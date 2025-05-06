@@ -15,7 +15,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="absolute inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3ad0] to-transparent">
+    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3ad0] to-transparent shadow-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 sm:px-6 lg:px-8" aria-label="Global">
         {/* Logo */}
         <div className="flex flex-1">
@@ -61,10 +61,10 @@ export default function Header() {
 
       {/* Mobile menu */}
       <Dialog as="div" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
-        <Dialog.Panel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-[#0c1e3a] px-6 py-6 sm:max-w-sm">
-          <div className="flex items-center justify-between">
+        <div className="fixed inset-x-0 top-0 z-50 w-full overflow-hidden rounded-b-2xl bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] shadow-lg backdrop-blur-md">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-6 lg:px-8">
             <a href="/" className="-m-1.5 p-1.5">
-              <img className="h-8 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
+              <img className="h-12 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
             </a>
             <button
               type="button"
@@ -75,30 +75,24 @@ export default function Header() {
             </button>
           </div>
 
-          <div className="mt-6 flow-root">
-            <div className="-my-6 divide-y divide-white/10">
-              <div className="space-y-2 py-6">
-                {navigation.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className="block rounded-md px-4 py-3 text-base font-semibold text-white hover:bg-white/10 hover:text-indigo-300 transition-all"
-                  >
-                    {item.name}
-                  </a>
-                ))}
-              </div>
-              <div className="py-6">
-                <a
-                  href="/login"
-                  className="block rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-3 text-base font-semibold text-white text-center hover:from-indigo-400 hover:to-indigo-600"
-                >
-                  Ingresar →
-                </a>
-              </div>
-            </div>
+          <div className="px-6 pb-6 pt-2 space-y-2 text-center">
+            {navigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className="block rounded-md px-4 py-3 text-base font-semibold text-white hover:bg-white/10 hover:text-indigo-300 transition-all"
+              >
+                {item.name}
+              </a>
+            ))}
+            <a
+              href="/login"
+              className="block mt-4 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-3 text-base font-semibold text-white hover:from-indigo-400 hover:to-indigo-600"
+            >
+              Ingresar →
+            </a>
           </div>
-        </Dialog.Panel>
+        </div>
       </Dialog>
     </header>
   )

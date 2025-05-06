@@ -20,7 +20,7 @@ export default function Welcome() {
           <Hero />
 
           {/* Separador: Hero → Clients */}
-          <svg className="w-full -mb-px block" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <svg className="w-full -mb-1" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg">
             <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
           </svg>
 
@@ -29,25 +29,21 @@ export default function Welcome() {
           <Features />
 
           {/* Transición suave entre Features y Statistics */}
-          <div className="h-4 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
+          <div className="-mt-px h-6 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
 
           <Statistics />
 
-          {/* Separador armónico entre Statistics y Alliances */}
-          <div className="relative">
-            <svg className="absolute top-full w-full" viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#f9fafb" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
-            </svg>
-          </div>
-
           {/* Nueva sección destacada de Compromiso y Alianzas */}
-          <div className="bg-gray-50 pt-20 pb-12 px-4 sm:px-6 lg:px-6">
-            <Alliances />
+          <div className="bg-gray-50 py-6 px-4 sm:px-6 lg:px-6">
+
+            <div className="mt-4">
+              <Alliances />
+            </div>
           </div>
 
           {/* Transición curva sin borde visible hacia CallToAction */}
           <svg
-            className="w-full block leading-none"
+            className="w-full -mt-px block leading-none"
             viewBox="0 0 1440 60"
             xmlns="http://www.w3.org/2000/svg"
             preserveAspectRatio="none"
@@ -59,12 +55,14 @@ export default function Welcome() {
         </main>
 
         {/* Separador: CTA → Footer */}
-        <svg className="w-full -mt-px" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <path fill="#111827" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
-        </svg>
+<svg className="w-full -mt-1" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg">
+  <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
+</svg>
+
 
         <Footer />
       </div>
     </>
   )
 }
+

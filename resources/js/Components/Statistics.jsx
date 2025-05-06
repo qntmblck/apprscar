@@ -42,7 +42,7 @@ export default function Statistics() {
     <section
       ref={ref}
       id="estadisticas"
-      className="bg-gradient-to-r from-[#f6f9ff] to-[#eceaff] py-20 px-6"
+      className="bg-gradient-to-r from-[#f6f9ff] to-[#eceaff] py-20 sm:py-20 px-6"
     >
       <div className="max-w-7xl mx-auto text-center font-sans">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -63,7 +63,7 @@ export default function Statistics() {
                 key={i}
                 className="flex flex-col items-center border-l border-gray-300 first:border-none pl-6 first:pl-0"
               >
-                <dt className="text-sm font-medium text-gray-600">{stat.label}</dt>
+                <dt className="text-sm font-semibold text-gray-600">{stat.label}</dt>
                 <dd className="mt-2 text-3xl font-extrabold text-gray-900">
                   {stat.suffix.startsWith('+') ? stat.suffix : ''}
                   {count}
@@ -74,6 +74,7 @@ export default function Statistics() {
           })}
         </dl>
       </div>
+
     </section>
   )
 }
