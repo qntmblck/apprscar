@@ -14,16 +14,16 @@ export default function CallToAction() {
             </p>
             <div className="mt-8 flex justify-center gap-x-6">
               <a
-                href="#contacto"
+                href="#"
                 className="rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                Cotiza con nosotros
+                Alianza Transportista
               </a>
               <a
-                href="#servicios"
+                href="#"
                 className="text-sm font-semibold leading-6 text-white hover:text-indigo-300"
               >
-                Ver servicios <span aria-hidden="true">→</span>
+                Quiero Conducir <span aria-hidden="true">→</span>
               </a>
             </div>
 
@@ -46,4 +46,4 @@ export default function CallToAction() {
       </section>
     );
   }
-
+console.log('CallToAction component rendered');
