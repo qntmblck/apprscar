@@ -3,19 +3,19 @@ import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const navigation = [
-  { name: 'Inicio', href: '/' },
-  { name: 'Nosotros', href: '/nosotros' },
-  { name: 'Servicios', href: '/servicios' },
-  { name: 'Clientes', href: '/clientes' },
-  { name: 'Compromiso', href: '/compromiso' },
-  { name: 'Contacto', href: '/contacto' },
+  { name: 'Inicio', href: '#inicio' },
+  { name: 'Nosotros', href: '#nosotros' },
+  { name: 'Servicios', href: '#servicios' },
+  { name: 'Clientes', href: '#clientes' },
+  { name: 'Compromiso', href: '#cta' },
+  { name: 'Contacto', href: '#contacto' },
 ]
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="absolute inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3a90] to-transparent">
+    <header className="absolute inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3ad0] to-transparent">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 sm:px-6 lg:px-8" aria-label="Global">
         {/* Logo */}
         <div className="flex flex-1">
@@ -24,7 +24,7 @@ export default function Header() {
           </a>
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile button */}
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -35,24 +35,24 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Navigation links */}
-        <div className="hidden lg:flex lg:gap-x-10">
+        {/* Desktop nav */}
+        <div className="hidden lg:flex lg:gap-x-4">
           {navigation.map((item) => (
             <a
               key={item.name}
               href={item.href}
-              className="text-sm font-semibold leading-6 text-white hover:text-indigo-300 transition-colors"
+              className="relative rounded-md px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:text-indigo-300"
             >
               {item.name}
             </a>
           ))}
         </div>
 
-        {/* Login button */}
+        {/* Login */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <a
             href="/login"
-            className="rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-indigo-400 hover:to-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
+            className="rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow hover:from-indigo-400 hover:to-indigo-600 transition"
           >
             Ingresar →
           </a>
@@ -74,6 +74,7 @@ export default function Header() {
               <XMarkIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
+
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-white/10">
               <div className="space-y-2 py-6">
@@ -81,7 +82,7 @@ export default function Header() {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-gray-700"
+                    className="block rounded-md px-4 py-3 text-base font-semibold text-white hover:bg-white/10 hover:text-indigo-300 transition-all"
                   >
                     {item.name}
                   </a>
@@ -90,7 +91,7 @@ export default function Header() {
               <div className="py-6">
                 <a
                   href="/login"
-                  className="block rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-700 px-3 py-2.5 text-base font-semibold text-white hover:from-indigo-400 hover:to-indigo-600"
+                  className="block rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-3 text-base font-semibold text-white text-center hover:from-indigo-400 hover:to-indigo-600"
                 >
                   Ingresar →
                 </a>

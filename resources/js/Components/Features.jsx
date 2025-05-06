@@ -33,7 +33,7 @@ import {
     return (
       <section
         id="servicios"
-        className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] py-24 sm:py-28"
+        className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] py-12 sm:py-16"
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {/* Título animado alineado a la derecha */}
@@ -47,23 +47,23 @@ import {
             <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               Nuestro compromiso con la excelencia
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-300">
+            <p className="mt-4 text-lg leading-8 text-gray-300">
               En Transportes SCAR, combinamos experiencia, tecnología y profesionalismo para ofrecer un servicio integral y confiable en toda la cadena logística.
             </p>
           </motion.div>
 
           {/* Grid de características */}
-          <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-20 lg:max-w-none">
-            <dl className="grid grid-cols-1 gap-x-12 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mx-auto mt-10 max-w-2xl lg:max-w-none">
+            <dl className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((feature) => (
                 <div key={feature.name} className="flex flex-col items-start text-left">
                   <dt className="text-base font-semibold text-white">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500">
                       <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                     </div>
                     {feature.name}
                   </dt>
-                  <dd className="mt-2 text-base text-gray-300">{feature.description}</dd>
+                  <dd className="mt-1 text-base text-gray-300">{feature.description}</dd>
                 </div>
               ))}
             </dl>

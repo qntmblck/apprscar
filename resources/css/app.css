@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Oculta o estiliza el scrollbar horizontal */
+.no-scrollbar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
