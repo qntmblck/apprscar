@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
 const statsData = [
-  { label: 'Clientes y Colaboradores', value: 100, suffix: '+' },
-  { label: 'Tasa de crecimiento anual del sector', value: 5.61, suffix: '%', decimals: true },
-  { label: 'Colaboradores capacitados', value: 100, suffix: '%', decimals: false },
-  { label: 'Cumplimiento en tiempos de entrega', value: 95, suffix: '+%', decimals: false },
+  { label: 'Clientes y Colaboradores', value: 120, suffix: '+' },
+  { label: 'Tasa de crecimiento del sector', value: 5.61, suffix: '%', decimals: true },
+  { label: 'Capacitación del equipo operativo', value: 100, suffix: '%', decimals: false },
+  { label: 'Cumplimiento en entregas', value: 95, suffix: '+%', decimals: false },
 ]
 
 function useCounter(target, decimals = false, trigger) {
@@ -39,25 +39,32 @@ export default function Statistics() {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 })
 
   return (
-    <section ref={ref} id="estadisticas" className="bg-gradient-to-r from-[#f6f9ff] to-[#eceaff] py-24 px-6">
-      <div className="max-w-7xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+    <section
+      ref={ref}
+      id="estadisticas"
+      className="bg-gradient-to-r from-[#f6f9ff] to-[#eceaff] py-20 px-6"
+    >
+      <div className="max-w-7xl mx-auto text-center font-sans">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
           Confiado por cientos de clientes y colaboradores en todo Chile
         </h2>
-        <p className="mt-6 text-lg leading-8 text-gray-700 max-w-3xl mx-auto">
-          El mercado del transporte de carga en Chile crece con un 5.61% de alza anual...
+        <p className="mt-6 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
+          El sector del transporte de carga mantiene un crecimiento sostenido del 5.61% anual. En Transportes SCAR respondemos con eficiencia operativa, costos competitivos y personal altamente capacitado.
         </p>
-        <p className="mt-4 text-lg leading-8 text-gray-700 max-w-3xl mx-auto">
-          Nuestra cultura organizacional promueve el autocuidado, el respeto y la mejora constante...
+        <p className="mt-4 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
+          Invertimos en el bienestar de nuestro equipo, promoviendo una cultura de seguridad, respeto y mejora continua. Nuestra infraestructura y alianzas nos permiten operar a lo largo de todo Chile.
         </p>
 
         <dl className="mt-16 grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {statsData.map((stat, i) => {
             const count = useCounter(stat.value, stat.decimals, inView)
             return (
-              <div key={i} className="flex flex-col items-center border-l border-gray-300 first:border-none pl-6 first:pl-0">
-                <dt className="text-sm font-semibold text-gray-600">{stat.label}</dt>
-                <dd className="mt-2 text-3xl font-bold text-gray-900">
+              <div
+                key={i}
+                className="flex flex-col items-center border-l border-gray-300 first:border-none pl-6 first:pl-0"
+              >
+                <dt className="text-sm font-medium text-gray-600">{stat.label}</dt>
+                <dd className="mt-2 text-3xl font-extrabold text-gray-900">
                   {stat.suffix.startsWith('+') ? stat.suffix : ''}
                   {count}
                   {stat.suffix.endsWith('%') ? '%' : ''}

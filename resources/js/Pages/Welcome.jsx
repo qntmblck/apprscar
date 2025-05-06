@@ -5,6 +5,7 @@ import Hero from '@/Components/Hero'
 import Clients from '@/Components/Clients'
 import Features from '@/Components/Features'
 import Statistics from '@/Components/Statistics'
+import Alliances from '@/Components/Alliances'
 import CallToAction from '@/Components/CallToAction'
 import Footer from '@/Components/Footer'
 
@@ -32,6 +33,14 @@ export default function Welcome() {
 
           <Statistics />
 
+          {/* Nueva sección destacada de Compromiso y Alianzas */}
+          <div className="bg-gray-50 py-6 px-4 sm:px-6 lg:px-6">
+
+            <div className="mt-4">
+              <Alliances />
+            </div>
+          </div>
+
           {/* Transición curva sin borde visible hacia CallToAction */}
           <svg
             className="w-full -mt-px block leading-none"
@@ -55,3 +64,4 @@ export default function Welcome() {
     </>
   )
 }
+

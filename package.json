@@ -24,6 +24,7 @@
     "dependencies": {
         "@heroicons/react": "^2.2.0",
         "framer-motion": "^12.9.7",
+        "prop-types": "^15.8.1",
         "react-intersection-observer": "^9.16.0",
         "tailwind-scrollbar-hide": "^2.0.0"
     }

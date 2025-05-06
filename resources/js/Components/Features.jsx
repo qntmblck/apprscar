@@ -1,50 +1,53 @@
 import {
     ShieldCheckIcon,
-    TruckIcon,
-    MapIcon,
+    ClockIcon,
+    UserGroupIcon,
     ChartBarIcon,
-  } from '@heroicons/react/24/outline'
-  import { motion } from 'framer-motion'
+  } from '@heroicons/react/24/outline';
+  import { motion } from 'framer-motion';
 
   const features = [
     {
-      name: 'Cobertura Nacional',
-      description: 'Desde Arica a Punta Arenas, conectamos cada rincón del país con eficiencia y compromiso.',
-      icon: MapIcon,
+      name: 'Conocimiento Profundo del Cliente',
+      description:
+        'Comprendemos las expectativas y necesidades específicas de cada cliente, permitiéndonos ofrecer soluciones personalizadas que agregan verdadero valor.',
+      icon: UserGroupIcon,
     },
     {
-      name: 'Seguridad en cada envío',
-      description: 'Aplicamos rigurosos protocolos y capacitaciones para proteger cada carga.',
+      name: 'Resolución Eficiente de Problemas',
+      description:
+        'Implementamos procesos claros y capacitamos a nuestro personal para manejar situaciones difíciles, asegurando soluciones rápidas y efectivas.',
       icon: ShieldCheckIcon,
     },
     {
-      name: 'Gestión Tecnológica',
-      description: 'Sistemas digitales para monitoreo, control y trazabilidad de viajes.',
+      name: 'Empatía y Comunicación Clara',
+      description:
+        'Establecemos conexiones emocionales mediante una comunicación transparente y empática, fortaleciendo la relación y fomentando la lealtad.',
       icon: ChartBarIcon,
     },
     {
-      name: 'Relación con Clientes',
-      description: 'Comprometidos con la transparencia, confianza y mejora continua junto a nuestros aliados.',
-      icon: TruckIcon,
+      name: 'Reducción de Tiempos de Espera',
+      description:
+        'Minimizamos los tiempos de espera mediante la automatización de procesos y la optimización de recursos, mejorando significativamente la experiencia del cliente.',
+      icon: ClockIcon,
     },
-  ]
+  ];
 
   export default function Features() {
     return (
       <section
         id="servicios"
-        className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] py-12 sm:py-16"
+        className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] py-16 sm:py-20"
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          {/* Título y logo adaptables */}
+          {/* Encabezado con logo y texto */}
           <motion.div
-            className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 sm:gap-10 max-w-7xl mx-auto mb-12 text-center sm:text-right"
+            className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 sm:gap-10 mb-16 text-center sm:text-right"
             initial={{ opacity: 0, x: -60 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            {/* Logo SCAR */}
             <div className="flex-shrink-0">
               <img
                 src="/img/logoscar.png"
@@ -53,34 +56,31 @@ import {
               />
             </div>
 
-            {/* Texto */}
             <div className="max-w-2xl">
               <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white">
-                Nuestro compromiso con la excelencia
+                Nuestro Compromiso con la Excelencia
               </h2>
               <p className="mt-4 text-base sm:text-lg leading-7 sm:leading-8 text-gray-300">
-                En Transportes SCAR, combinamos experiencia, tecnología y profesionalismo para ofrecer un servicio integral y confiable en toda la cadena logística.
+                En Transportes SCAR, nos enfocamos en comprender profundamente a nuestros clientes, resolver eficientemente sus problemas, comunicarnos con empatía y reducir los tiempos de espera para ofrecer un servicio excepcional.
               </p>
             </div>
           </motion.div>
 
           {/* Grilla de características */}
-          <div className="mx-auto mt-10 max-w-2xl lg:max-w-none">
-            <dl className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((feature) => (
-                <div key={feature.name} className="flex flex-col items-start text-left">
-                  <dt className="text-base font-semibold text-white">
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500">
-                      <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
-                    </div>
-                    {feature.name}
-                  </dt>
-                  <dd className="mt-1 text-base text-gray-300">{feature.description}</dd>
-                </div>
-              ))}
-            </dl>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12">
+            {features.map((feature) => (
+              <div key={feature.name} className="flex flex-col items-start text-left">
+                <dt className="text-base font-semibold text-white">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500">
+                    <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                  </div>
+                  {feature.name}
+                </dt>
+                <dd className="mt-1 text-base text-gray-300">{feature.description}</dd>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-    )
+    );
   }
