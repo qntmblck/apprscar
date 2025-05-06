@@ -33,7 +33,22 @@ export default function Welcome() {
 
           <Statistics />
 
+          <svg className="w-full -mt-1" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg">
+  <path fill="#0c1e3a" d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" />
+  <rect x="0" y="0" width="1440" height="60" fill="#f6f9ff" mask="url(#curve)" />
+  <defs>
+    <mask id="curve">
+      <rect x="0" y="0" width="1440" height="60" fill="white" />
+      <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="black" />
+    </mask>
+  </defs>
+</svg>
+
+
+
+
           {/* Nueva sección destacada de Compromiso y Alianzas */}
+
           <div className="bg-gray-50 py-6 px-4 sm:px-6 lg:px-6">
 
             <div className="mt-4">
@@ -41,15 +56,22 @@ export default function Welcome() {
             </div>
           </div>
 
-          {/* Transición curva sin borde visible hacia CallToAction */}
           <svg
-            className="w-full -mt-px block leading-none"
-            viewBox="0 0 1440 60"
-            xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="none"
-          >
-            <path fill="#0c1e3a" d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" />
-          </svg>
+  className="w-full -mt-px block leading-none"
+  viewBox="0 0 1440 60"
+  xmlns="http://www.w3.org/2000/svg"
+  preserveAspectRatio="none"
+>
+  <defs>
+    <mask id="bottom-curve">
+      <rect x="0" y="0" width="1440" height="60" fill="white" />
+      <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="black" />
+    </mask>
+  </defs>
+  <rect x="0" y="0" width="1440" height="60" fill="#f6f9ff" mask="url(#bottom-curve)" />
+  <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="#0c1e3a" />
+</svg>
+
 
           <CallToAction />
         </main>
