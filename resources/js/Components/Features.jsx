@@ -38,19 +38,28 @@ import {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {/* Título animado alineado a la derecha */}
           <motion.div
-            className="max-w-2xl ml-auto text-right"
-            initial={{ opacity: 0, x: -60 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              Nuestro compromiso con la excelencia
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-gray-300">
-              En Transportes SCAR, combinamos experiencia, tecnología y profesionalismo para ofrecer un servicio integral y confiable en toda la cadena logística.
-            </p>
-          </motion.div>
+  className="flex items-center justify-between max-w-7xl mx-auto mb-10"
+  initial={{ opacity: 0, x: -60 }}
+  whileInView={{ opacity: 1, x: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.8 }}
+>
+  {/* Logo grande alineado a la izquierda */}
+  <div className="flex-shrink-0">
+    <img src="/img/logoscar.png" alt="Logo SCAR" className="h-28 w-auto" />
+  </div>
+
+  {/* Título alineado a la derecha */}
+  <div className="max-w-2xl text-right">
+    <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+      Nuestro compromiso con la excelencia
+    </h2>
+    <p className="mt-4 text-lg leading-8 text-gray-300">
+      En Transportes SCAR, combinamos experiencia, tecnología y profesionalismo para ofrecer un servicio integral y confiable en toda la cadena logística.
+    </p>
+  </div>
+</motion.div>
+
 
           {/* Grid de características */}
           <div className="mx-auto mt-10 max-w-2xl lg:max-w-none">
