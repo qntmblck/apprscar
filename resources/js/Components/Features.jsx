@@ -38,18 +38,22 @@ import {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {/* Título animado alineado a la derecha */}
           <motion.div
-  className="flex items-center justify-between max-w-7xl mx-auto mb-10"
+  className="flex items-center justify-between max-w-7xl mx-auto mb-14 px-6"
   initial={{ opacity: 0, x: -60 }}
   whileInView={{ opacity: 1, x: 0 }}
   viewport={{ once: true }}
   transition={{ duration: 0.8 }}
 >
-  {/* Logo grande alineado a la izquierda */}
-  <div className="flex-shrink-0">
-    <img src="/img/logoscar.png" alt="Logo SCAR" className="h-28 w-auto" />
+  {/* Logo centrado verticalmente */}
+  <div className="flex-shrink-0 flex items-center h-full">
+    <img
+      src="/img/logoscar.png"
+      alt="Logo SCAR"
+      className="h-40 w-auto" // antes h-28
+    />
   </div>
 
-  {/* Título alineado a la derecha */}
+  {/* Texto alineado a la derecha */}
   <div className="max-w-2xl text-right">
     <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
       Nuestro compromiso con la excelencia
@@ -59,6 +63,7 @@ import {
     </p>
   </div>
 </motion.div>
+
 
 
           {/* Grid de características */}
