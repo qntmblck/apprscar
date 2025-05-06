@@ -18,7 +18,7 @@ export default function Welcome() {
         <main>
           <Hero />
 
-          {/* Separador: Clients → Features */}
+          {/* Separador: Hero → Clients */}
           <svg className="w-full -mb-1" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg">
             <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
           </svg>
@@ -27,16 +27,22 @@ export default function Welcome() {
 
           <Features />
 
-<div className="-mt-px h-4 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
+          {/* Transición suave entre Features y Statistics */}
+          <div className="-mt-px h-4 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
 
-<Statistics />
+          <Statistics />
 
-<svg className="w-full -mt-1" viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg">
-  <path fill="#0c1e3a" d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" />
-</svg>
+          {/* Transición curva sin borde visible hacia CallToAction */}
+          <svg
+            className="w-full -mt-px block leading-none"
+            viewBox="0 0 1440 60"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+          >
+            <path fill="#0c1e3a" d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" />
+          </svg>
 
-<CallToAction />
-
+          <CallToAction />
         </main>
 
         {/* Separador: CTA → Footer */}
