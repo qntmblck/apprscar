@@ -20,18 +20,17 @@ export default function Welcome() {
         <main className="overflow-hidden leading-none antialiased bg-white">
           <Hero />
 
-         {/* Separador curvo (Hero → Clients) con fondo azul arriba y blanco abajo */}
-<div className="bg-white -mt-[1px]">
-  <svg
-    className="w-full block leading-none"
-    preserveAspectRatio="none"
-    viewBox="0 0 1440 60"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
-  </svg>
-</div>
-
+          {/* Separador curvo (Hero → Clients) */}
+          <div className="bg-white -mt-[1px]">
+            <svg
+              className="w-full block leading-none"
+              preserveAspectRatio="none"
+              viewBox="0 0 1440 60"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
+            </svg>
+          </div>
 
           <Clients />
           <Features />
@@ -62,8 +61,8 @@ export default function Welcome() {
 
           <Alliances />
 
-          {/* Separador: Alliances → CTA */}
-          <div className="bg-[#f6f9ff] -mt-[1px]">
+          {/* Separador: Alliances → CTA (fix visual total) */}
+          <div className="relative -mt-[2px] z-10 bg-[#f6f9ff]">
             <svg
               className="w-full block leading-none"
               preserveAspectRatio="none"
@@ -77,7 +76,11 @@ export default function Welcome() {
                 </mask>
               </defs>
               <rect width="1440" height="60" fill="#f6f9ff" mask="url(#bottom-curve)" />
-              <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="#0c1e3a" />
+              <path
+                d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z"
+                fill="#0c1e3a"
+                shapeRendering="geometricPrecision"
+              />
             </svg>
           </div>
 
