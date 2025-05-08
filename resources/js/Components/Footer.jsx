@@ -144,7 +144,8 @@ export default function Footer() {
         ))}
       </div>
 
-      <div className="relative z-20 max-w-7xl mx-auto px-6 py-20 sm:py-24 lg:px-8">
+      <div className="relative z-20 max-w-7xl mx-auto px-6 py-10 sm:py-12 lg:px-8">
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Texto centrado */}
           <div className="flex flex-col justify-center items-center text-center">
