@@ -39,7 +39,7 @@ export default function Alliances() {
         </p>
       </div>
 
-      <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-8 max-w-7xl mx-auto px-6 pb-0">
+      <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-8 max-w-7xl mx-auto px-6 pb-0 mb-8">
         {items.map((item, i) => (
           <Flashcard
             key={i}
