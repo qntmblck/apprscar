@@ -2,17 +2,17 @@ export default function Hero() {
     return (
       <section
         id="inicio"
-        className="relative flex items-center text-white min-h-[60vh] sm:min-h-[70vh] lg:min-h-[100vh] py-16 sm:py-20 lg:py-32"
+        className="relative flex items-center text-white min-h-[100vh] sm:min-h-[80vh] py-20 sm:py-32"
       >
-        {/* Fondo con efecto parallax solo en escritorio */}
+        {/* Fondo con efecto parallax solo en desktop */}
         <div
-          className="absolute inset-0 bg-center bg-cover bg-scroll lg:bg-fixed"
+          className="absolute inset-0 bg-center bg-cover sm:bg-fixed bg-scroll"
           style={{
             backgroundImage: "url('/img/dashboard/truck.jpg')",
           }}
         >
-          {/* Overlay más suave en móvil, más oscuro en escritorio */}
-          <div className="absolute inset-0 bg-black bg-opacity-30 lg:bg-opacity-60" />
+          {/* Overlay más suave en móvil */}
+          <div className="absolute inset-0 bg-black bg-opacity-30 sm:bg-opacity-60" />
         </div>
 
         {/* Contenido del Hero */}
