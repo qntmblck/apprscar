@@ -124,7 +124,8 @@ export default function Footer() {
   }, [])
 
   return (
-    <footer className="relative text-white font-semibold overflow-hidden" style={{ backgroundColor: '#0c1e3a' }}>
+    <footer className="relative text-white font-semibold overflow-hidden bg-[#0c1e3a]">
+
       {/* Fondo patrón */}
       <div className="absolute inset-0 z-0 pointer-events-none animate-slow-pattern" style={{
         backgroundImage: 'radial-gradient(circle at 25% 25%, #6366f1 1px, transparent 1px)',

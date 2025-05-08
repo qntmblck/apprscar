@@ -18,7 +18,7 @@ const clients = [
 
   export default function Clients() {
     return (
-      <section id="clientes" className="bg-white py-6 px-4">
+      <section id="clientes" className="bg-white py-6 px-4 -mt-[1px]">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex animate-scroll space-x-8 px-2 w-max">
             {clients.concat(clients).map((client, index) => (
@@ -44,3 +44,4 @@ const clients = [
       </section>
     )
   }
+

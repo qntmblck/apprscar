@@ -14,84 +14,75 @@ export default function Welcome() {
     <>
       <Head title="Transportes SCAR | Tu carga, nuestra misión" />
 
-      <div className="bg-white">
+      <div className="bg-white overflow-x-hidden leading-none">
         <Header />
-        <main className="overflow-hidden leading-none">
+
+        <main className="overflow-hidden leading-none antialiased bg-white">
           <Hero />
 
-          {/* Separador: Hero → Clients */}
-          <svg
-            className="w-full block leading-none"
-            style={{ display: 'block', lineHeight: 0 }}
-            viewBox="0 0 1440 60"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
-          </svg>
+         {/* Separador curvo (Hero → Clients) con fondo azul arriba y blanco abajo */}
+<div className="bg-white -mt-[1px]">
+  <svg
+    className="w-full block leading-none"
+    preserveAspectRatio="none"
+    viewBox="0 0 1440 60"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
+  </svg>
+</div>
+
 
           <Clients />
-
           <Features />
 
-          {/* Transición suave entre Features y Statistics */}
-          <div className="-mt-px h-6 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
+          {/* Transición: Features → Statistics */}
+          <div className="-mt-[1px] h-6 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
 
           <Statistics />
 
-          {/* Separador: Statistics → Compromiso y Alianzas */}
-          <svg
-            className="w-full block leading-none"
-            style={{ display: 'block', lineHeight: 0 }}
-            viewBox="0 0 1440 60"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <mask id="curve">
-                <rect x="0" y="0" width="1440" height="60" fill="white" />
-                <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="black" />
-              </mask>
-            </defs>
-            <rect x="0" y="0" width="1440" height="60" fill="#f6f9ff" mask="url(#curve)" />
-            <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="#0c1e3a" />
-          </svg>
-
-          {/* Nueva sección destacada de Compromiso y Alianzas */}
-          <div className="bg-gray-50 py-6 px-4 sm:px-6 lg:px-6">
-            <div className="mt-4">
-              <Alliances />
-            </div>
+          {/* Separador: Statistics → Alliances */}
+          <div className="bg-[#f6f9ff] -mt-[1px]">
+            <svg
+              className="w-full block leading-none"
+              preserveAspectRatio="none"
+              viewBox="0 0 1440 60"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <mask id="curve">
+                  <rect width="1440" height="60" fill="white" />
+                  <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="black" />
+                </mask>
+              </defs>
+              <rect width="1440" height="60" fill="#f6f9ff" mask="url(#curve)" />
+              <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="#0c1e3a" />
+            </svg>
           </div>
 
-          {/* Separador: Alianzas → CTA */}
-          <svg
-            className="w-full block leading-none"
-            style={{ display: 'block', lineHeight: 0 }}
-            viewBox="0 0 1440 60"
-            xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="none"
-          >
-            <defs>
-              <mask id="bottom-curve">
-                <rect x="0" y="0" width="1440" height="60" fill="white" />
-                <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="black" />
-              </mask>
-            </defs>
-            <rect x="0" y="0" width="1440" height="60" fill="#f6f9ff" mask="url(#bottom-curve)" />
-            <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="#0c1e3a" />
-          </svg>
+          <Alliances />
+
+          {/* Separador: Alliances → CTA */}
+          <div className="bg-[#f6f9ff] -mt-[1px]">
+            <svg
+              className="w-full block leading-none"
+              preserveAspectRatio="none"
+              viewBox="0 0 1440 60"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <mask id="bottom-curve">
+                  <rect width="1440" height="60" fill="white" />
+                  <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="black" />
+                </mask>
+              </defs>
+              <rect width="1440" height="60" fill="#f6f9ff" mask="url(#bottom-curve)" />
+              <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="#0c1e3a" />
+            </svg>
+          </div>
 
           <CallToAction />
         </main>
-
-        {/* Separador: CTA → Footer */}
-        <svg
-          className="w-full block leading-none"
-          style={{ display: 'block', lineHeight: 0 }}
-          viewBox="0 0 1440 60"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
-        </svg>
 
         <Footer />
       </div>

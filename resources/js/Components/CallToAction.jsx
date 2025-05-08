@@ -5,12 +5,13 @@ export default function CallToAction() {
         className="relative isolate overflow-hidden bg-[#0c1e3a] py-16 sm:py-20 text-white"
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="relative isolate overflow-hidden bg-gray-900 px-6 py-14 text-center shadow-2xl sm:rounded-3xl sm:px-16">
+          <div className="relative isolate overflow-hidden px-6 py-14 text-center sm:px-16">
             <h2 className="text-balance text-3xl font-bold tracking-tight text-white sm:text-4xl">
               ¿Listo para confiar tu carga a verdaderos profesionales?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-7 text-gray-300">
-              En Transportes SCAR, aseguramos puntualidad, eficiencia y seguimiento en cada uno de tus envíos. Escríbenos hoy mismo y cotiza sin compromiso.
+              En Transportes SCAR, aseguramos puntualidad, eficiencia y seguimiento en cada uno de tus envíos.
+              Escríbenos hoy mismo y cotiza sin compromiso.
             </p>
             <div className="mt-8 flex justify-center gap-x-6">
               <a
@@ -46,4 +47,3 @@ export default function CallToAction() {
       </section>
     );
   }
-console.log('CallToAction component rendered');
