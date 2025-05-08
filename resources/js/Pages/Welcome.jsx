@@ -61,28 +61,29 @@ export default function Welcome() {
 
           <Alliances />
 
-          {/* Separador: Alliances → CTA (fix visual total) */}
-          <div className="relative -mt-[2px] z-10 bg-[#f6f9ff]">
-            <svg
-              className="w-full block leading-none"
-              preserveAspectRatio="none"
-              viewBox="0 0 1440 60"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <mask id="bottom-curve">
-                  <rect width="1440" height="60" fill="white" />
-                  <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="black" />
-                </mask>
-              </defs>
-              <rect width="1440" height="60" fill="#f6f9ff" mask="url(#bottom-curve)" />
-              <path
-                d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z"
-                fill="#0c1e3a"
-                shapeRendering="geometricPrecision"
-              />
-            </svg>
-          </div>
+        {/* Separador: Alliances → CallToAction */}
+<div className="relative -mt-[4px] z-10 bg-white">
+  <svg
+    className="w-full block leading-none"
+    preserveAspectRatio="none"
+    viewBox="0 0 1440 60"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <mask id="bottom-curve">
+        <rect width="1440" height="60" fill="white" />
+        <path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="black" />
+      </mask>
+    </defs>
+    <rect width="1440" height="60" fill="white" mask="url(#bottom-curve)" />
+    <path
+      d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z"
+      fill="#0c1e3a"
+      shapeRendering="geometricPrecision"
+    />
+  </svg>
+</div>
+
 
           <CallToAction />
         </main>

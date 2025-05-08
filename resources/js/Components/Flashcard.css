@@ -1,17 +1,12 @@
 .perspective {
-    perspective: 1200px;
+    perspective: 1000px;
   }
-
-  .backface-hidden {
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
-  }
-
   .transform-style {
     transform-style: preserve-3d;
-    transition: transform 0.7s;
   }
-
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
