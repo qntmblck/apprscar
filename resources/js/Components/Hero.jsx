@@ -28,7 +28,7 @@ export default function Hero() {
         </p>
         <div className="mt-10">
           <a
-            href="#contacto"
+            href="/contacto#clientes"
             className="inline-block rounded-md border border-white px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-600 hover:border-indigo-600 transition"
           >
             Cotiza tu Servicio →

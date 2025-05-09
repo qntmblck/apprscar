@@ -5,9 +5,21 @@ import ContactTransportista from '@/Components/ContactTransportista'
 import FAQ from '@/Components/FAQ'
 import WhatsAppChat from '@/Components/WhatsAppChat'
 import CallButton from '@/Components/CallButton'
+import { useEffect } from 'react'
 
+export default function Contacto() {
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash) {
+      const el = document.querySelector(hash)
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' })
+        }, 300)
+      }
+    }
+  }, [])
 
-export default function Contact() {
   return (
     <div className="bg-white">
       {/* Encabezado */}
@@ -34,14 +46,22 @@ export default function Contact() {
         </svg>
       </section>
 
+
+      <section id="clientes">
       {/* Formulario para clientes */}
       <ContactCliente />
+      </section>
+
 
       {/* Separador sutil */}
       <div className="h-8 bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" />
 
+
+      <section id="colaboradores">
       {/* Formulario para transportistas */}
       <ContactTransportista />
+      </section>
+
 
       {/* Separador sutil */}
       <div className="h-8 bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" />

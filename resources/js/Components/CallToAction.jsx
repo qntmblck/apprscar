@@ -15,13 +15,13 @@ export default function CallToAction() {
             </p>
             <div className="mt-6 flex justify-center gap-x-6 flex-wrap">
               <a
-                href="#"
+                href="/contacto#colaboradores"
                 className="rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition"
               >
                 Alianza Transportista
               </a>
               <a
-                href="#"
+                href="/contacto#colaboradores"
                 className="text-sm font-semibold leading-6 text-white hover:text-indigo-300 transition"
               >
                 Quiero Conducir <span aria-hidden="true">→</span>
