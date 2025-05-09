@@ -40,24 +40,16 @@ export default function Welcome() {
 
           <Statistics />
 
-          {/* Separador: Statistics → Alliances */}
-          <div className="bg-[#f6f9ff] -mt-[1px]">
-            <svg
-              className="w-full block leading-none"
-              preserveAspectRatio="none"
-              viewBox="0 0 1440 60"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <mask id="curve">
-                  <rect width="1440" height="60" fill="white" />
-                  <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="black" />
-                </mask>
-              </defs>
-              <rect width="1440" height="60" fill="#f6f9ff" mask="url(#curve)" />
-              <path d="M1440,0 C960,60 480,0 0,60 L0,0 L1440,0 Z" fill="#0c1e3a" />
-            </svg>
-          </div>
+          {/* Separador estilizado: Statistics → Alliances */}
+<svg className="w-full -mt-1" viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lightToWhite" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stopColor="#f6f9ff" />
+      <stop offset="100%" stopColor="#eceaff" />
+    </linearGradient>
+  </defs>
+  <path fill="#0c1e3a" d="M1440,0 C960,100 480,0 0,100 L0,0 L1440,0 Z" />
+</svg>
 
           <Alliances />
 
