@@ -4,7 +4,9 @@ import {
     UserGroupIcon,
     ChartBarIcon,
   } from '@heroicons/react/24/outline';
-  import { motion } from 'framer-motion';
+  import { motion, useAnimation } from 'framer-motion';
+  import { useInView } from 'react-intersection-observer';
+  import { useEffect } from 'react';
 
   const features = [
     {
@@ -34,19 +36,28 @@ import {
   ];
 
   export default function Features() {
+    const controls = useAnimation();
+    const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.2 });
+
+    useEffect(() => {
+      if (inView) {
+        controls.start({ opacity: 1, x: 0 });
+      }
+    }, [inView, controls]);
+
     return (
       <section
         id="servicios"
         className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] py-16 sm:py-20"
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          {/* Encabezado con logo y texto */}
+          {/* Encabezado animado de izquierda a derecha */}
           <motion.div
-            className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 sm:gap-10 mb-16 text-center sm:text-right"
+            ref={ref}
             initial={{ opacity: 0, x: -60 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            animate={controls}
             transition={{ duration: 0.8 }}
+            className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 sm:gap-10 mb-16 text-center sm:text-right"
           >
             <div className="flex-shrink-0">
               <img
@@ -66,7 +77,7 @@ import {
             </div>
           </motion.div>
 
-          {/* Grilla de características */}
+          {/* Grilla de características (opcional: animable también) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12">
             {features.map((feature) => (
               <div key={feature.name} className="flex flex-col items-start text-left">
