@@ -7,6 +7,8 @@ import Statistics from '@/Components/Statistics'
 import Alliances from '@/Components/Alliances'
 import CallToAction from '@/Components/CallToAction'
 import Footer from '@/Components/Footer'
+import WhatsAppChat from '@/Components/WhatsAppChat'
+import CallButton from '@/Components/CallButton'
 
 export default function Welcome() {
   return (
@@ -40,26 +42,27 @@ export default function Welcome() {
           <Statistics />
 
           {/* Separador estilizado: Statistics → Alliances */}
-<svg className="w-full -mt-1" viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="lightToWhite" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stopColor="#f6f9ff" />
-      <stop offset="100%" stopColor="#eceaff" />
-    </linearGradient>
-  </defs>
-  <path fill="#0c1e3a" d="M1440,0 C960,100 480,0 0,100 L0,0 L1440,0 Z" />
-</svg>
+          <div className="bg-white -mt-[1px]">
+            <svg
+              className="w-full block leading-none"
+              preserveAspectRatio="none"
+              viewBox="0 0 1440 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path fill="#0c1e3a" d="M1440,0 C960,100 480,0 0,100 L0,0 L1440,0 Z" />
+            </svg>
+          </div>
 
           <Alliances />
 
-        {/* Separador difuminado: Alliances → CTA */}
-<div className="w-full h-6 -mt-[2px] bg-gradient-to-b from-white to-[#0c1e3a]" />
-
-
+          {/* Separador difuminado: Alliances → CTA */}
+          <div className="w-full h-6 -mt-[2px] bg-gradient-to-b from-white to-[#0c1e3a]" />
 
           <CallToAction />
         </main>
 
+      <WhatsAppChat />
+      <CallButton />
         <Footer />
       </div>
     </>
