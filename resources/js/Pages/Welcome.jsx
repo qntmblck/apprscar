@@ -65,20 +65,21 @@ export default function Welcome() {
           <Alliances />
 
           {/* Separador curvo: de fondo blanco a CTA azul */}
-<div className="-mt-[5px] bg-white">
+<div className="bg-white">
   <svg
-    className="w-full block"
-    viewBox="0 0 1440 120"
+    className="w-full h-[60px] block leading-none"
+    viewBox="0 0 1440 60"
     xmlns="http://www.w3.org/2000/svg"
     preserveAspectRatio="none"
   >
     <path
-      d="M0,0 C600,120 840,0 1440,100 L1440,120 L0,120 Z"
       fill="#1e3a8a"
+      d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z"
     />
   </svg>
 </div>
-<div className="-mt-[4px] relative z-10">
+
+<div className="-mt-[1px] relative z-10">
   <CallToAction />
 </div>
         </main>
