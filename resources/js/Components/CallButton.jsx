@@ -1,6 +1,6 @@
 export default function CallButton() {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-12 right-6 z-50">
         <a
           href="tel:+56944671205"
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 transition"
