@@ -33,9 +33,14 @@ const faqs = [
 
   export default function FAQ() {
     return (
-      <div className="bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" id="faq">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
-          <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">Preguntas frecuentes</h2>
+      <section
+        id="faq"
+        className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a] py-16 sm:py-24"
+      >
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+          <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            Preguntas frecuentes
+          </h2>
           <p className="mt-6 max-w-2xl text-base leading-7 text-white/80">
             ¿Tienes otra pregunta que no ves aquí? Puedes escribirnos directamente usando cualquiera de los formularios o por WhatsApp.
           </p>
@@ -50,6 +55,21 @@ const faqs = [
             </dl>
           </div>
         </div>
-      </div>
+
+        {/* Fondo decorativo sutil */}
+        <svg
+          viewBox="0 0 1024 1024"
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 -z-10 h-[40rem] w-[40rem] -translate-x-1/2 [mask-image:radial-gradient(closest-side,white,transparent)]"
+        >
+          <circle r={512} cx={512} cy={512} fill="url(#scar-gradient)" fillOpacity="0.6" />
+          <defs>
+            <radialGradient id="scar-gradient">
+              <stop stopColor="#4f46e5" />
+              <stop offset={1} stopColor="#312e81" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </section>
     )
   }

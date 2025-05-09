@@ -49,31 +49,38 @@ export default function Welcome() {
           </div>
 
           <Clients />
+
           <Features />
 
-          {/* Transición: Features → Statistics */}
-          <div className="-mt-[1px] h-6 w-full bg-gradient-to-b from-[#0c1e3a] to-[#f6f9ff]" />
+          {/* Separador superior: Features → Statistics */}
+<div className="-mt-[1px] h-6 w-full bg-gradient-to-b from-[#0c1e3a] via-[#d5e5ff] to-[#eef2ff]" />
+
+
 
           <Statistics />
+          {/* Separador inferior: Statistics → Alliances */}
+<div className="-mt-[1px] h-10 w-full bg-gradient-to-b from-[#eef2ff] via-[#f5f7fb] to-white" />
 
-          {/* Separador estilizado: Statistics → Alliances */}
-          <div className="bg-white -mt-[1px]">
-            <svg
-              className="w-full block leading-none"
-              preserveAspectRatio="none"
-              viewBox="0 0 1440 100"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path fill="#0c1e3a" d="M1440,0 C960,100 480,0 0,100 L0,0 L1440,0 Z" />
-            </svg>
-          </div>
 
           <Alliances />
 
-          {/* Separador difuminado: Alliances → CTA */}
-          <div className="w-full h-6 -mt-[2px] bg-gradient-to-b from-white to-[#0c1e3a]" />
-
-          <CallToAction />
+          {/* Separador curvo: de fondo blanco a CTA azul */}
+<div className="-mt-[5px] bg-white">
+  <svg
+    className="w-full block"
+    viewBox="0 0 1440 120"
+    xmlns="http://www.w3.org/2000/svg"
+    preserveAspectRatio="none"
+  >
+    <path
+      d="M0,0 C600,120 840,0 1440,100 L1440,120 L0,120 Z"
+      fill="#1e3a8a"
+    />
+  </svg>
+</div>
+<div className="-mt-[4px] relative z-10">
+  <CallToAction />
+</div>
         </main>
 
       <WhatsAppChat />

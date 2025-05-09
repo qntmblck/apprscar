@@ -2,14 +2,14 @@ export default function CallToAction() {
     return (
       <section
         id="cta"
-        className="relative isolate overflow-hidden bg-[#0c1e3a] py-12 text-white"
+        className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a] py-16 sm:py-24 text-white"
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="relative isolate px-4 sm:px-8 text-center">
+          <div className="relative isolate px-4 sm:px-8 text-center z-10">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
               ¿Listo para confiar tu carga a verdaderos profesionales?
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-gray-300">
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/80">
               En Transportes SCAR, aseguramos puntualidad, eficiencia y seguimiento en cada uno de tus envíos.
               Escríbenos hoy mismo y cotiza sin compromiso.
             </p>

@@ -43,6 +43,10 @@ export default function Contact() {
       {/* Formulario para transportistas */}
       <ContactTransportista />
 
+      {/* Separador sutil */}
+      <div className="h-8 bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" />
+
+
       {/* Preguntas frecuentes */}
       <FAQ />
 
