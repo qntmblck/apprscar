@@ -54,7 +54,7 @@ export default function Welcome() {
           <Alliances />
 
         {/* Separador difuminado: Alliances → CTA */}
-<div className="w-full h-12 -mt-[2px] bg-gradient-to-b from-white to-[#0c1e3a]" />
+<div className="w-full h-6 -mt-[2px] bg-gradient-to-b from-white to-[#0c1e3a]" />
 
 
 

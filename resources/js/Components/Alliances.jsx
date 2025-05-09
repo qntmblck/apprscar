@@ -29,7 +29,7 @@ const items = [
 
 export default function Alliances() {
   return (
-    <section id="compromiso" className="bg-white pt-12 pb-0 scroll-mt-24">
+    <section id="compromiso" className="bg-white pt-6 pb-8 scroll-mt-24">
       <div className="max-w-4xl mx-auto px-4 text-center">
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
           Compromiso y Alianzas
