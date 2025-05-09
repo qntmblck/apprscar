@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
+
 const navigation = [
-  { name: 'Inicio', href: '#inicio' },
-  { name: 'Nosotros', href: '#nosotros' },
-  { name: 'Servicios', href: '#servicios' },
-  { name: 'Contacto', href: '#contacto' },
-]
+    { name: 'Inicio', href: '/#inicio' },
+    { name: 'Nosotros', href: '/#alliances' },
+    { name: 'Servicios', href: '/#servicios' },
+    { name: 'Contacto', href: '/contacto' },
+  ]
+
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

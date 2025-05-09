@@ -23,11 +23,11 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="Register" />
+            <Head title="Registrarse" />
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="name" value="Name" />
+                    <InputLabel htmlFor="name" value="Nombre" />
 
                     <TextInput
                         id="name"
@@ -61,7 +61,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value="Contraseña" />
 
                     <TextInput
                         id="password"
@@ -80,7 +80,7 @@ export default function Register() {
                 <div className="mt-4">
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirm Password"
+                        value="Confirmar Contraseña"
                     />
 
                     <TextInput
@@ -107,14 +107,36 @@ export default function Register() {
                         href={route('login')}
                         className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                        Already registered?
+                        ¿Ya tienes cuenta?
                     </Link>
 
                     <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
+                        Registrarse
                     </PrimaryButton>
                 </div>
             </form>
+
+            {/* Separador */}
+            <div className="my-6 text-center border-t border-gray-200 relative">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-sm text-gray-500">
+                    o continúa con
+                </span>
+            </div>
+
+            {/* Botón Google SCAR */}
+            <div className="flex justify-center">
+                <a
+                    href={route('google.redirect')}
+                    className="w-full flex items-center justify-center gap-3 bg-[#0c1e3a] hover:bg-[#132b54] text-white font-semibold py-2 px-4 rounded-md transition-all duration-200"
+                >
+                    <img
+                        src="/img/gmail.png?v=2"
+                        alt="SCAR"
+                        className="h-5 w-5"
+                    />
+                    Registrarse con Google
+                </a>
+            </div>
         </GuestLayout>
     );
 }

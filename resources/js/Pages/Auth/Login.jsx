@@ -33,7 +33,8 @@ export default function Login({ status, canResetPassword }) {
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    {/* CAMBIO AQUÍ */}
+                    <InputLabel htmlFor="email" value="Correo electrónico" />
 
                     <TextInput
                         id="email"
@@ -50,7 +51,8 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    {/* CAMBIO AQUÍ */}
+                    <InputLabel htmlFor="password" value="Clave de acceso" />
 
                     <TextInput
                         id="password"
@@ -80,19 +82,29 @@ export default function Login({ status, canResetPassword }) {
                     </label>
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            ¿Olvidaste tu contraseña?
-                        </Link>
-                    )}
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        {canResetPassword && (
+                            <Link
+                                href={route('password.request')}
+                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        )}
+                    </div>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Ingresar
-                    </PrimaryButton>
+                    <div className="flex gap-2">
+                        <Link href={route('register')}>
+                            <PrimaryButton type="button" className="bg-gray-600 hover:bg-gray-700">
+                                Registrarse
+                            </PrimaryButton>
+                        </Link>
+
+                        <PrimaryButton className="" disabled={processing}>
+                            Ingresar
+                        </PrimaryButton>
+                    </div>
                 </div>
             </form>
 
@@ -110,7 +122,7 @@ export default function Login({ status, canResetPassword }) {
                     className="w-full flex items-center justify-center gap-3 bg-[#0c1e3a] hover:bg-[#132b54] text-white font-semibold py-2 px-4 rounded-md transition-all duration-200"
                 >
                     <img
-                        src="/img/logo-scar-blanco.png"
+                        src="/img/gmail.png?v=2"
                         alt="SCAR"
                         className="h-5 w-5"
                     />
