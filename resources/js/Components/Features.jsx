@@ -69,7 +69,7 @@ import {
 
             <div className="max-w-2xl">
               <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white">
-                Métricas de Desempeño y Eficiencia Operativa
+              Resultados que trazan nuestra ruta de excelencia
               </h2>
               <p className="mt-4 text-base sm:text-lg leading-7 sm:leading-8 text-gray-300">
                 Transportes SCAR aplica principios de análisis sistemático, mejora continua y control de procesos para optimizar cada fase del servicio logístico.

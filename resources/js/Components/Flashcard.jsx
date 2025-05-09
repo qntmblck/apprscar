@@ -11,7 +11,7 @@ export default function Flashcard({ title, description, image }) {
 
   return (
     <div
-      className="flashcard-container perspective cursor-pointer w-full h-[290px]"
+      className="flashcard-container perspective cursor-pointer w-full h-auto sm:h-[220px] lg:h-[250px] hover:shadow-lg transition-shadow duration-300"
       onMouseEnter={() => setFlipped(true)}
       onMouseLeave={() => setFlipped(false)}
     >
@@ -21,23 +21,23 @@ export default function Flashcard({ title, description, image }) {
         }`}
       >
         {/* Front */}
-        <div className="absolute inset-0 backface-hidden rounded-t-xl shadow-none overflow-hidden flex flex-col items-center justify-start bg-white">
+        <div className="absolute inset-0 backface-hidden rounded-xl shadow-md overflow-hidden flex flex-col justify-between bg-white h-full">
           <div className="flex-1 flex items-center justify-center p-4">
             <img
               src={image}
               alt={title}
-              className="max-h-[100px] object-contain"
+              className="max-h-[80px] sm:max-h-[100px] object-contain"
             />
           </div>
-          <div className="w-full bg-indigo-800 text-white text-center py-2">
-            <h3 className="text-base font-semibold">{title}</h3>
+          <div className="bg-indigo-800 text-white text-center py-2 px-3">
+            <h3 className="text-sm sm:text-base font-semibold leading-tight">{title}</h3>
           </div>
         </div>
 
         {/* Back */}
-        <div className="absolute inset-0 rotate-y-180 backface-hidden rounded-t-xl shadow-none bg-gradient-to-tr from-indigo-900 via-indigo-800 to-indigo-700 p-4 flex flex-col justify-center items-start text-white">
-          <h3 className="text-base font-bold mb-2">{title}</h3>
-          <ul className="text-base sm:text-sm font-normal space-y-1 list-disc list-inside leading-relaxed">
+        <div className="absolute inset-0 rotate-y-180 backface-hidden rounded-xl bg-gradient-to-tr from-indigo-900 via-indigo-800 to-indigo-700 p-4 flex flex-col justify-center items-start text-white h-full">
+          <h3 className="text-sm sm:text-base font-bold mb-2">{title}</h3>
+          <ul className="text-sm leading-relaxed space-y-1 list-disc list-inside">
             {descriptionList.map((line, index) => (
               <li key={index}>{line}</li>
             ))}

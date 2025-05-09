@@ -1,47 +1,47 @@
-import { useEffect, useState } from 'react'
-import { useInView } from 'react-intersection-observer'
+import { useEffect, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
 
 const statsData = [
-  { label: 'Clientes y Colaboradores', value: 120, suffix: '+' },
-  { label: 'Tasa de crecimiento del sector', value: 5.61, suffix: '%', decimals: true },
-  { label: 'Capacitación del equipo operativo', value: 100, suffix: '%', decimals: false },
-  { label: 'Cumplimiento en entregas', value: 95, suffix: '+%', decimals: false },
-]
+  { label: 'Empresas atendidas en los últimos 12 meses', value: 127, suffix: '' },
+  { label: 'Índice de cumplimiento logístico', value: 98.7, suffix: '%', decimals: true },
+  { label: 'Cobertura geográfica nacional', value: 16, suffix: ' regiones' },
+  { label: 'Personal operativo certificado', value: 100, suffix: '%', decimals: false },
+];
 
 function useCounter(target, decimals = false, trigger) {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (!trigger) return
-    let start = 0
-    const duration = 1200
-    const incrementTime = 20
-    const steps = duration / incrementTime
-    const increment = (target - start) / steps
+    if (!trigger) return;
+    let start = 0;
+    const duration = 1200;
+    const incrementTime = 20;
+    const steps = duration / incrementTime;
+    const increment = (target - start) / steps;
 
     const timer = setInterval(() => {
-      start += increment
+      start += increment;
       if (start >= target) {
-        clearInterval(timer)
-        setCount(target)
+        clearInterval(timer);
+        setCount(target);
       } else {
-        setCount(start)
+        setCount(start);
       }
-    }, incrementTime)
+    }, incrementTime);
 
-    return () => clearInterval(timer)
-  }, [target, trigger])
+    return () => clearInterval(timer);
+  }, [target, trigger]);
 
-  return decimals ? count.toFixed(2) : Math.round(count)
+  return decimals ? count.toFixed(2) : Math.round(count);
 }
 
 export default function Statistics() {
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 })
-  const [animate, setAnimate] = useState(false)
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
+  const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
-    if (inView) setAnimate(true)
-  }, [inView])
+    if (inView) setAnimate(true);
+  }, [inView]);
 
   return (
     <section
@@ -54,19 +54,19 @@ export default function Statistics() {
           animate ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
         } hover:scale-[1.05]`}
       >
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight transition-transform duration-300 hover:scale-[1.05]">
-          Confiado por cientos de clientes y colaboradores en todo Chile
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+          Indicadores Clave de Desempeño
         </h2>
-        <p className="mt-6 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed transition-transform duration-300 hover:scale-[1.05]">
-          El sector del transporte de carga mantiene un crecimiento sostenido del 5.61% anual. En Transportes SCAR respondemos con eficiencia operativa, costos competitivos y personal altamente capacitado.
+        <p className="mt-6 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
+          Transportes SCAR presenta resultados concretos: cobertura nacional, cumplimiento operativo superior al 98%, y un equipo 100% certificado.
         </p>
-        <p className="mt-4 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed transition-transform duration-300 hover:scale-[1.05]">
-          Invertimos en el bienestar de nuestro equipo, promoviendo una cultura de seguridad, respeto y mejora continua. Nuestra infraestructura y alianzas nos permiten operar a lo largo de todo Chile.
+        <p className="mt-4 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
+          Eficiencia, trazabilidad y confiabilidad que convierten la logística en una ventaja competitiva real para nuestros clientes.
         </p>
 
         <dl className="mt-16 grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {statsData.map((stat, i) => {
-            const count = useCounter(stat.value, stat.decimals, inView)
+            const count = useCounter(stat.value, stat.decimals, inView);
             return (
               <div
                 key={i}
@@ -74,15 +74,15 @@ export default function Statistics() {
               >
                 <dt className="text-sm font-semibold text-gray-600">{stat.label}</dt>
                 <dd className="mt-2 text-3xl font-extrabold text-gray-900">
-                  {stat.suffix.startsWith('+') ? stat.suffix : ''}
-                  {count}
-                  {stat.suffix.endsWith('%') ? '%' : ''}
+                  {count.toLocaleString('es-CL')}
+                  {stat.suffix}
                 </dd>
               </div>
-            )
+            );
           })}
         </dl>
       </div>
     </section>
-  )
+  );
 }
+
