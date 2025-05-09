@@ -37,7 +37,7 @@ export default function Hero() {
   return (
     <section
       id="inicio"
-      className="relative flex items-center text-white py-64 sm:py-32 min-h-[40vh] sm:min-h-[80vh] bg-center bg-cover bg-no-repeat"
+      className="relative flex items-center text-white py-64 sm:py-32 min-h-[25vh] sm:min-h-[80vh] bg-center bg-cover bg-no-repeat"
       style={{
         backgroundImage: "url('/img/dashboard/truck.jpg')",
         backgroundAttachment: attachment,
