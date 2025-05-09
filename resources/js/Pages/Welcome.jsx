@@ -9,9 +9,24 @@ import CallToAction from '@/Components/CallToAction'
 import Footer from '@/Components/Footer'
 import WhatsAppChat from '@/Components/WhatsAppChat'
 import CallButton from '@/Components/CallButton'
+import { useEffect } from 'react'
 
 export default function Welcome() {
-  return (
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const hash = window.location.hash
+    if (hash) {
+      const el = document.querySelector(hash)
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' })
+        }, 300)
+      }
+    }
+  }, [])
+
+    return (
     <>
       <Head title="Transportes SCAR | Tu carga, nuestra misión" />
 
