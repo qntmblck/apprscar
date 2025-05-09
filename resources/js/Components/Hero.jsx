@@ -9,9 +9,16 @@ export default function Hero() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setAttachment(window.innerWidth >= 1024 ? 'fixed' : 'scroll')
+      const updateAttachment = () => {
+        setAttachment(window.innerWidth >= 1024 ? 'fixed' : 'scroll')
+      }
+
+      updateAttachment()
+      window.addEventListener('resize', updateAttachment)
+      return () => window.removeEventListener('resize', updateAttachment)
     }
   }, [])
+
 
   useEffect(() => {
     if (inView) {
