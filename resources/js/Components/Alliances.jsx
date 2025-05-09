@@ -32,27 +32,27 @@ const items = [
 
 export default function Alliances() {
   const controls = useAnimation()
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.2 })
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
 
   useEffect(() => {
     if (inView) {
       controls.start({
-        scale: 1,
         opacity: 1,
+        y: 0,
         transition: {
           type: 'spring',
-          stiffness: 100,
-          damping: 12,
+          stiffness: 60,
+          damping: 14,
         },
       })
     }
   }, [inView, controls])
 
   return (
-    <section id="alliances" className="bg-white pt-6 pb-8 scroll-mt-24">
+    <section id="alliances" className="bg-white pt-6 pb-8">
       <motion.div
         ref={ref}
-        initial={{ scale: 2.5, opacity: 0 }}
+        initial={{ opacity: 0.01, y: 50 }}
         animate={controls}
         className="max-w-7xl mx-auto px-4 text-center"
       >
