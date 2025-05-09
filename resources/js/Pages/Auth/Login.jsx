@@ -23,7 +23,7 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Iniciar sesión" />
 
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
@@ -75,7 +75,7 @@ export default function Login({ status, canResetPassword }) {
                             }
                         />
                         <span className="ms-2 text-sm text-gray-600">
-                            Remember me
+                            Recordarme
                         </span>
                     </label>
                 </div>
@@ -86,15 +86,37 @@ export default function Login({ status, canResetPassword }) {
                             href={route('password.request')}
                             className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
-                            Forgot your password?
+                            ¿Olvidaste tu contraseña?
                         </Link>
                     )}
 
                     <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
+                        Ingresar
                     </PrimaryButton>
                 </div>
             </form>
+
+            {/* Separador */}
+            <div className="my-6 text-center border-t border-gray-200 relative">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-sm text-gray-500">
+                    o inicia sesión con
+                </span>
+            </div>
+
+            {/* Botón Google SCAR */}
+            <div className="flex justify-center">
+                <a
+                    href={route('google.redirect')}
+                    className="w-full flex items-center justify-center gap-3 bg-[#0c1e3a] hover:bg-[#132b54] text-white font-semibold py-2 px-4 rounded-md transition-all duration-200"
+                >
+                    <img
+                        src="/img/logo-scar-blanco.png"
+                        alt="SCAR"
+                        className="h-5 w-5"
+                    />
+                    Iniciar sesión con Google
+                </a>
+            </div>
         </GuestLayout>
     );
 }
