@@ -2,16 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Oculta o estiliza el scrollbar horizontal */
+/* ===== Scrollbar Utility ===== */
 .no-scrollbar::-webkit-scrollbar {
-    height: 4px;
-  }
+  height: 4px;
+}
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+.no-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
 
-  .no-scrollbar::-webkit-scrollbar-thumb {
-    background-color: transparent;
+/* ===== Animation Utility ===== */
+@keyframes slide-down {
+  from {
+    transform: translateY(-10%);
+    opacity: 0;
   }
+  to {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+}
 
-  .no-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-  }
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}

@@ -27,6 +27,7 @@ export default function Header() {
       }
       if (window.location.pathname === '/contacto') setActiveItem('contacto')
     }
+
     handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
@@ -36,7 +37,7 @@ export default function Header() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-transparent shadow-md">
-      {/* Fondo partículas */}
+      {/* Fondo de partículas */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <svg className="absolute w-full h-full animate-pulse opacity-70 blur-[0.5px] mix-blend-screen">
           {Array.from({ length: 30 }).map((_, i) => (
@@ -52,13 +53,36 @@ export default function Header() {
         </svg>
       </div>
 
-      {/* Barra superior */}
-      <div className="mx-auto flex max-w-7xl items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
-        <a href="/" className="-m-1.5 p-0">
-          <img className="h-12 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
-        </a>
+      {/* Contenedor principal */}
+      <div className="relative mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <div className="flex-shrink-0">
+          <a href="/">
+            <img className="h-12 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
+          </a>
+        </div>
 
-        <div className="flex lg:hidden">
+        {/* Ítems navegación escritorio */}
+        <div className="absolute inset-0 hidden lg:flex justify-center items-center">
+          <div className="flex gap-x-4">
+            {navigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+                  isActive(item.target)
+                    ? 'bg-white/10 text-indigo-400 backdrop-blur-sm shadow-inner'
+                    : 'text-white hover:text-indigo-300 hover:bg-white/10'
+                }`}
+              >
+                {item.name}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Botón Burger (móvil) */}
+        <div className="ml-auto flex lg:hidden">
           <button
             type="button"
             className="p-2 text-white"
@@ -72,26 +96,8 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="hidden lg:flex lg:gap-x-4">
-          {navigation.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                isActive(item.target)
-                  ? 'bg-white/10 text-indigo-400 backdrop-blur-sm shadow-inner'
-                  : 'text-white hover:text-indigo-300 hover:bg-white/10'
-              }`}
-            >
-              {item.name}
-              {isActive(item.target) && (
-                <span className="absolute inset-0 rounded-md ring-1 ring-indigo-400/50" />
-              )}
-            </a>
-          ))}
-        </div>
-
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+        {/* Botón Ingresar */}
+        <div className="hidden lg:flex flex-1 justify-end">
           <a
             href="/login"
             className="rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow hover:from-indigo-400 hover:to-indigo-600 transition"
@@ -101,7 +107,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Menú desplegable móvil animado */}
+      {/* Menú desplegable móvil */}
       {mobileMenuOpen && (
         <div className="lg:hidden animate-slide-down bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] px-6 pb-4 pt-2">
           <div className="space-y-2 text-left">
@@ -110,9 +116,9 @@ export default function Header() {
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded-md px-4 py-3 text-base font-semibold transition-all ${
+                className={`inline-flex items-center justify-start w-full rounded-md px-4 py-3 text-base font-semibold transition-all duration-300 ${
                   isActive(item.target)
-                    ? 'bg-white/10 text-indigo-300 backdrop-blur-md'
+                    ? 'bg-white/10 text-indigo-300 ring-1 ring-indigo-400/50 backdrop-blur'
                     : 'text-white hover:text-indigo-300 hover:bg-white/10'
                 }`}
               >
