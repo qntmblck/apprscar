@@ -33,19 +33,18 @@ const faqs = [
 
   export default function FAQ() {
     return (
-      <div className="bg-gray-900" id="faq">
+      <div className="bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" id="faq">
         <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
           <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">Preguntas frecuentes</h2>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-gray-300">
-            ¿Tienes otra pregunta que no ves aquí? Puedes escribirnos directamente usando cualquiera de los formularios o
-            por WhatsApp.
+          <p className="mt-6 max-w-2xl text-base leading-7 text-white/80">
+            ¿Tienes otra pregunta que no ves aquí? Puedes escribirnos directamente usando cualquiera de los formularios o por WhatsApp.
           </p>
           <div className="mt-20">
             <dl className="space-y-16 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 sm:space-y-0 lg:grid-cols-3 lg:gap-x-10">
               {faqs.map((faq) => (
                 <div key={faq.id}>
                   <dt className="text-base font-semibold text-white">{faq.question}</dt>
-                  <dd className="mt-2 text-base text-gray-300">{faq.answer}</dd>
+                  <dd className="mt-2 text-base text-white/70">{faq.answer}</dd>
                 </div>
               ))}
             </dl>

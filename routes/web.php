@@ -5,8 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\GoogleController;
-
-
+use App\Http\Controllers\ContactoController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -33,6 +32,10 @@ Route::get('/contacto', function () {
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+
+Route::post('/contacto/cliente', [ContactoController::class, 'cliente'])->name('contacto.cliente');
+Route::post('/contacto/transportista', [ContactoController::class, 'transportista'])->name('contacto.transportista');
+
 
 
 require __DIR__.'/auth.php';

@@ -10,22 +10,33 @@ export default function Contact() {
       {/* Encabezado */}
       <Header />
 
-      {/* Hero simple */}
+      {/* Hero actualizado con efecto fijo solo en desktop */}
       <section
-        className="relative bg-[#0c1e3a] text-white py-24 px-6 text-center"
-        style={{ backgroundImage: "url('/img/dashboard/truck.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl font-bold">Contáctanos</h1>
-          <p className="mt-4 text-lg sm:text-xl text-gray-200">
-            ¿Eres cliente o transportista? Escoge el formulario adecuado y conversemos.
-          </p>
-        </div>
-      </section>
+  className="relative bg-[#0c1e3a] text-white py-28 sm:py-36 px-6 text-center overflow-hidden bg-center bg-cover"
+  style={{
+    backgroundImage: "url('/img/mano.jpg')",
+  }}
+>
+  <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+  <div className="relative z-10 max-w-4xl mx-auto">
+    <h1 className="text-4xl sm:text-5xl font-bold">Contáctanos</h1>
+    <p className="mt-4 text-lg sm:text-xl text-gray-200">
+      ¿Eres cliente o transportista? Escoge el formulario adecuado y conversemos.
+    </p>
+  </div>
+
+  {/* Separador inferior (curva elegante) */}
+  <svg className="absolute bottom-0 left-0 w-full text-white" viewBox="0 0 1440 100" preserveAspectRatio="none">
+    <path fill="#1e3a8a" d="M0,0 C480,100 960,0 1440,100 L1440,100 L0,100 Z"></path>
+  </svg>
+</section>
+
 
       {/* Formulario para clientes */}
       <ContactCliente />
+
+      {/* Separador muy sutil entre formularios (gradiente plano) */}
+      <div className="h-8 bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" />
 
       {/* Formulario para transportistas */}
       <ContactTransportista />
