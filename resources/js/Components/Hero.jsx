@@ -37,7 +37,7 @@ export default function Hero() {
   return (
     <section
       id="inicio"
-      className="relative flex items-center text-white py-32 sm:py-32 min-h-[25vh] sm:min-h-[80vh] bg-center bg-cover bg-no-repeat"
+      className="relative flex items-center justify-center text-white py-20 sm:py-32 min-h-[65vh] sm:min-h-[80vh] bg-center bg-cover bg-no-repeat"
       style={{
         backgroundImage: "url('/img/dashboard/truck.jpg')",
         backgroundAttachment: attachment,
@@ -49,7 +49,7 @@ export default function Hero() {
         ref={ref}
         initial={{ opacity: 0, x: 100, scale: 1.2 }}
         animate={controls}
-        className="relative z-10 w-full max-w-4xl px-6 lg:px-16 text-left"
+        className="relative z-10 w-full max-w-4xl px-6 lg:px-16 text-center"
       >
         <motion.h1
           whileHover={{ scale: 1.03 }}
@@ -67,7 +67,7 @@ export default function Hero() {
           Más de 25 años de experiencia en transporte de carga por carretera en Chile, con cobertura de Arica a Punta Arenas.
         </motion.p>
 
-        <div className="mt-10">
+        <div className="mt-10 flex justify-center">
           <motion.a
             whileHover={{ scale: 1.1 }}
             transition={{ type: 'spring', stiffness: 80, damping: 10 }}
@@ -81,4 +81,3 @@ export default function Hero() {
     </section>
   )
 }
-
