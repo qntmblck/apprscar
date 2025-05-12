@@ -1,19 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Flashcard.css'
 
 export default function Flashcard({ title, description, image }) {
   const [flipped, setFlipped] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+
+  useEffect(() => {
+    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)
+  }, [])
 
   const descriptionList = description
     .split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
 
+  const handleToggle = () => {
+    if (isTouchDevice) {
+      setFlipped(!flipped)
+    }
+  }
+
   return (
     <div
-      className="flashcard-container perspective cursor-pointer w-full h-auto sm:h-[220px] lg:h-[250px] hover:shadow-lg transition-shadow duration-300"
-      onMouseEnter={() => setFlipped(true)}
-      onMouseLeave={() => setFlipped(false)}
+      className="flashcard-container perspective cursor-pointer w-full h-auto min-h-[200px] sm:h-[220px] lg:h-[250px] hover:shadow-lg transition-shadow duration-300"
+      onMouseEnter={() => !isTouchDevice && setFlipped(true)}
+      onMouseLeave={() => !isTouchDevice && setFlipped(false)}
+      onClick={handleToggle}
     >
       <div
         className={`flashcard-inner transform-style preserve-3d transition-transform duration-700 w-full h-full relative ${
