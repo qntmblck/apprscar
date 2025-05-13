@@ -14,10 +14,9 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        // Permite acceso a superadmin o al correo temporalmente autorizado
         if ($user->hasRole('superadmin') || $user->email === 'jcomeaux@ug.uchile.cl') {
             $users = User::with('roles')->get();
-            $roles = Role::all();
+            $roles = Role::all(); // Incluye todos los roles, incluyendo superadmin
 
             return Inertia::render('Auth/Users/Index', [
                 'users' => $users,
@@ -34,7 +33,6 @@ class UserController extends Controller
             'role' => 'required|exists:roles,name',
         ]);
 
-        // Solo añade el rol sin eliminar los otros
         if (!$user->hasRole($request->role)) {
             $user->assignRole($request->role);
         }
@@ -48,6 +46,10 @@ class UserController extends Controller
             'role' => 'required|exists:roles,name',
         ]);
 
+        if ($request->role === 'superadmin') {
+            return back()->with('error', 'No se puede eliminar el rol superadmin.');
+        }
+
         if ($user->hasRole($request->role)) {
             $user->removeRole($request->role);
         }
@@ -55,3 +57,4 @@ class UserController extends Controller
         return back()->with('success', 'Rol eliminado correctamente.');
     }
 }
+
