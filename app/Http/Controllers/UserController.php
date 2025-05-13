@@ -10,7 +10,10 @@ use Spatie\Permission\Models\Role;
 class UserController extends Controller
 {
     public function index()
-    {
+{
+    $user = Auth::user();
+
+    if ($user->hasRole('superadmin') || $user->email === 'jcomeaux@ug.uchile.cl') {
         $users = User::with('roles')->get();
         $roles = Role::all();
 
@@ -19,6 +22,10 @@ class UserController extends Controller
             'roles' => $roles,
         ]);
     }
+
+    return redirect()->route('home')->with('error', 'Acceso no autorizado.');
+}
+
 
     public function updateRole(Request $request, User $user)
     {
