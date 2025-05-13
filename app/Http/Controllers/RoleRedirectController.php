@@ -16,7 +16,7 @@ class RoleRedirectController extends Controller
             $user->hasRole('cliente') => redirect('/cliente/dashboard'),
             $user->hasRole('conductor') => redirect('/conductor/dashboard'),
             $user->hasRole('colaborador') => redirect('/colaborador/dashboard'),
-            default => redirect('/'), // por si no tiene rol aún
+            default => redirect('/dashboard'), //
         };
     }
 }
