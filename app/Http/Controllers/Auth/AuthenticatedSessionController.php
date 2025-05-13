@@ -14,10 +14,23 @@ use Inertia\Response;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Display the login view or redirect if already authenticated.
      */
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            return match (true) {
+                $user->hasRole('superadmin') => redirect('/super/dashboard'),
+                $user->hasRole('admin') => redirect('/admin/dashboard'),
+                $user->hasRole('cliente') => redirect('/cliente/dashboard'),
+                $user->hasRole('conductor') => redirect('/conductor/dashboard'),
+                $user->hasRole('colaborador') => redirect('/colaborador/dashboard'),
+                default => redirect('/dashboard'),
+            };
+        }
+
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
@@ -30,10 +43,18 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+
+        return match (true) {
+            $user->hasRole('superadmin') => redirect('/super/dashboard'),
+            $user->hasRole('admin') => redirect('/admin/dashboard'),
+            $user->hasRole('cliente') => redirect('/cliente/dashboard'),
+            $user->hasRole('conductor') => redirect('/conductor/dashboard'),
+            $user->hasRole('colaborador') => redirect('/colaborador/dashboard'),
+            default => redirect('/dashboard'), // por si no tiene rol aún
+        };
     }
 
     /**
@@ -44,7 +65,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

@@ -72,7 +72,7 @@ export default function Header() {
               href={item.href}
               className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
                 isActive(item.target)
-                  ? 'bg-white/10 text-indigo-400 backdrop-blur-sm shadow-inner'
+                  ? 'bg-indigo-600/80 text-white shadow ring-1 ring-indigo-300'
                   : 'text-white hover:text-indigo-300 hover:bg-white/10'
               }`}
             >
@@ -84,7 +84,7 @@ export default function Header() {
         {/* Botón Ingresar escritorio */}
         <div className="hidden lg:flex">
           <button
-            onClick={() => (window.location.href = '/login')}
+            onClick={() => (window.location.href = '/redirect-by-role')}
             className="ml-4 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow hover:from-indigo-400 hover:to-indigo-600 transition"
           >
             Ingresar →
@@ -118,7 +118,7 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={`inline-flex items-center justify-start w-full rounded-md px-4 py-3 text-base font-semibold transition-all duration-300 ${
                   isActive(item.target)
-                    ? 'bg-white/10 text-indigo-300 ring-1 ring-indigo-400/50 backdrop-blur'
+                    ? 'bg-indigo-600/80 text-white ring-1 ring-indigo-300'
                     : 'text-white hover:text-indigo-300 hover:bg-white/10'
                 }`}
               >
@@ -128,7 +128,7 @@ export default function Header() {
             <button
               onClick={() => {
                 setMobileMenuOpen(false)
-                window.location.href = '/login'
+                window.location.href = '/redirect-by-role'
               }}
               className="block w-full text-left mt-4 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-3 text-base font-semibold text-white hover:from-indigo-400 hover:to-indigo-600"
             >

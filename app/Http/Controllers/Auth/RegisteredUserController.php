@@ -15,24 +15,16 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): Response
     {
         return Inertia::render('Auth/Register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -43,9 +35,18 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
-
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Aquí puedes asignar un rol por defecto si lo deseas:
+        // $user->assignRole('cliente');
+
+        return match (true) {
+            $user->hasRole('superadmin') => redirect('/super/dashboard'),
+            $user->hasRole('admin') => redirect('/admin/dashboard'),
+            $user->hasRole('cliente') => redirect('/cliente/dashboard'),
+            $user->hasRole('conductor') => redirect('/conductor/dashboard'),
+            $user->hasRole('colaborador') => redirect('/colaborador/dashboard'),
+            default => redirect('/dashboard'),
+        };
     }
 }
