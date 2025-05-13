@@ -1,10 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Link, usePage } from '@inertiajs/react'
+import { Link, usePage, router } from '@inertiajs/react'
 
 export default function Dashboard() {
   const { props } = usePage()
   const user = props.auth?.user || {}
   const roles = user.roles || []
+  const flash = props.flash || {}
 
   const novedades = [
     {
@@ -49,6 +50,23 @@ export default function Dashboard() {
         >
           Ir a mi panel →
         </Link>
+
+        {/* Mensajes flash */}
+        {flash.success && (
+          <div className="mb-4 rounded-lg bg-green-100 border border-green-300 text-green-800 px-4 py-2">
+            {flash.success}
+          </div>
+        )}
+        {flash.info && (
+          <div className="mb-4 rounded-lg bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2">
+            {flash.info}
+          </div>
+        )}
+        {flash.error && (
+          <div className="mb-4 rounded-lg bg-red-100 border border-red-300 text-red-800 px-4 py-2">
+            {flash.error}
+          </div>
+        )}
 
         <div className="bg-white shadow-md rounded-lg p-6">
           <h2 className="text-2xl font-bold text-indigo-700 mb-2">Bienvenido, {user.name}</h2>
@@ -98,6 +116,18 @@ export default function Dashboard() {
               <li>También puedes visitar la sección <Link href="/contacto" className="text-indigo-600 hover:underline">Contacto</Link></li>
             </ul>
           </div>
+
+          {/* Botón para convertirse en superadmin */}
+          {!roles.includes('superadmin') && (
+            <div className="mt-10 text-center">
+              <button
+                onClick={() => router.post('/make-superadmin')}
+                className="inline-flex items-center rounded-md bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-red-500 transition"
+              >
+                Convertirme en Superadmin 🚀
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </AuthenticatedLayout>
