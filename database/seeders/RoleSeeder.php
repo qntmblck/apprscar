@@ -9,11 +9,10 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crea los 5 roles principales
-        Role::firstOrCreate(['name' => 'superadmin']);
-        Role::firstOrCreate(['name' => 'admin']);
-        Role::firstOrCreate(['name' => 'cliente']);
-        Role::firstOrCreate(['name' => 'conductor']);
-        Role::firstOrCreate(['name' => 'colaborador']);
+        $roles = ['superadmin', 'admin', 'cliente', 'conductor', 'colaborador'];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
     }
 }
