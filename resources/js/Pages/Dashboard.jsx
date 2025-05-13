@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Link, usePage, router } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 
 export default function Dashboard() {
   const { props } = usePage()
@@ -116,18 +116,6 @@ export default function Dashboard() {
               <li>También puedes visitar la sección <Link href="/contacto" className="text-indigo-600 hover:underline">Contacto</Link></li>
             </ul>
           </div>
-
-          {/* Botón para convertirse en superadmin */}
-          {!roles.includes('superadmin') && (
-            <div className="mt-10 text-center">
-              <button
-                onClick={() => router.post('/make-superadmin')}
-                className="inline-flex items-center rounded-md bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-red-500 transition"
-              >
-                Convertirme en Superadmin 🚀
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </AuthenticatedLayout>
