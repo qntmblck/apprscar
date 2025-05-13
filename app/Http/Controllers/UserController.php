@@ -41,20 +41,22 @@ class UserController extends Controller
     }
 
     public function removeRole(Request $request, User $user)
-    {
-        $request->validate([
-            'role' => 'required|exists:roles,name',
-        ]);
+{
+    $request->validate([
+        'role' => 'required|exists:roles,name',
+    ]);
 
-        if ($request->role === 'superadmin') {
-            return back()->with('error', 'No se puede eliminar el rol superadmin.');
-        }
-
-        if ($user->hasRole($request->role)) {
-            $user->removeRole($request->role);
-        }
-
-        return back()->with('success', 'Rol eliminado correctamente.');
+    // Bloquea que un usuario se quite a sí mismo el rol superadmin
+    if ($request->role === 'superadmin' && $user->id === Auth::id()) {
+        return back()->with('error', 'No puedes quitarte el rol superadmin a ti mismo.');
     }
+
+    if ($user->hasRole($request->role)) {
+        $user->removeRole($request->role);
+    }
+
+    return back()->with('success', 'Rol eliminado correctamente.');
+}
+
 }
 

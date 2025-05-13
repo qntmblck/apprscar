@@ -1,6 +1,9 @@
-import { router } from '@inertiajs/react'
+import { router, usePage } from '@inertiajs/react'
 
 export default function SuperUsuarios({ users, roles }) {
+  const { props } = usePage()
+  const currentUserId = props.auth.user.id
+
   const toggleRole = (userId, roleName) => {
     router.post(`/usuarios/${userId}/role`, { role: roleName }, { preserveScroll: true })
   }
@@ -14,9 +17,20 @@ export default function SuperUsuarios({ users, roles }) {
 
   const handleCheckbox = (user, role) => {
     const hasRole = user.roles?.some(r => r.name === role.name)
+    const isCurrentUser = user.id === currentUserId
+    const isSuperadmin = role.name === 'superadmin'
+
+    if (isSuperadmin && isCurrentUser) {
+      return () => {} // no hace nada
+    }
+
     return hasRole
       ? () => removeRole(user.id, role.name)
       : () => toggleRole(user.id, role.name)
+  }
+
+  const isCheckboxDisabled = (user, role) => {
+    return role.name === 'superadmin' && user.id === currentUserId
   }
 
   return (
@@ -44,6 +58,7 @@ export default function SuperUsuarios({ users, roles }) {
                         <input
                           type="checkbox"
                           checked={hasRole}
+                          disabled={isCheckboxDisabled(user, role)}
                           onChange={handleCheckbox(user, role)}
                           className="form-checkbox text-indigo-600"
                         />
