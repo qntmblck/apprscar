@@ -10,13 +10,14 @@ class Retorno extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ciudad',
-        'direccion',
-        'contacto',
+        'flete_id',
+        'nombre',
+        'km',
+        'region',
     ];
 
-    public function fletes()
+    public function flete()
     {
-        return $this->hasMany(Flete::class);
+        return $this->belongsTo(Flete::class);
     }
 }

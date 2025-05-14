@@ -5,15 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Agenda extends Model
+class Diesel extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'flete_id',
-        'user_id',
+        'monto',
+        'litros',
+        'lugar',
         'fecha',
-        'descripcion',
     ];
 
     public function flete()

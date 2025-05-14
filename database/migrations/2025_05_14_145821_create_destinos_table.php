@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('destinos', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre'); // Ej: Puerto Montt
-            $table->integer('km');    // Ej: 1030
-            $table->string('region'); // Ej: Los Lagos
+            $table->string('nombre');
+            $table->string('region');
+            $table->integer('km');
             $table->timestamps();
         });
     }

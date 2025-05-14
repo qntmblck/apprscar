@@ -10,16 +10,26 @@ class Cliente extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nombre',
+        'user_id',
+        'razon_social',
         'rut',
+        'giro',
         'direccion',
         'telefono',
-        'email',
     ];
 
-    // Relación: un cliente puede tener muchos fletes
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function fletes()
     {
         return $this->hasMany(Flete::class, 'cliente_principal_id');
+    }
+
+    public function documentos()
+    {
+        return $this->morphMany(Documento::class, 'documentable');
     }
 }

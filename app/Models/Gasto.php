@@ -11,14 +11,23 @@ class Gasto extends Model
 
     protected $fillable = [
         'flete_id',
+        'user_id',
         'monto',
-        'descripcion',
-        'tipo',
-        'comprobante_url',
+        'detalle',
     ];
 
     public function flete()
     {
         return $this->belongsTo(Flete::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function documentos()
+    {
+        return $this->morphMany(Documento::class, 'documentable');
     }
 }

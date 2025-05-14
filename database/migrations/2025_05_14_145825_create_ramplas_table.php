@@ -6,23 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('ramplas', function (Blueprint $table) {
-    $table->id();
-    $table->string('patente')->unique();
-    $table->string('tipo');
-    $table->timestamps();
-});
-
+            $table->id();
+            $table->string('patente')->unique();
+            $table->string('tipo');
+            $table->string('marca');
+            $table->float('capacidad'); // en kilogramos o toneladas
+            $table->float('longitud'); // en metros
+            $table->timestamps();
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('ramplas');

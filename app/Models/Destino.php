@@ -11,9 +11,14 @@ class Destino extends Model
 
     protected $fillable = [
         'nombre',
-        'km',
         'region',
+        'km',
     ];
+
+    public function tarifas()
+    {
+        return $this->hasMany(Tarifa::class);
+    }
 
     public function fletes()
     {

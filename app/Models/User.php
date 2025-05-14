@@ -2,54 +2,65 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
-// Importa el trait de Spatie
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles; // ← Agregado HasRoles para manejar roles y permisos
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'google_id',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+    public function fletes()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(Flete::class, 'conductor_id');
     }
 
-    // Helper opcional para múltiples roles en validaciones rápidas
-    public function hasAnyRoleString(...$roles): bool
+    public function cliente()
     {
-        return $this->hasAnyRole($roles);
+        return $this->hasOne(Cliente::class);
+    }
+
+    public function rendiciones()
+    {
+        return $this->hasMany(Rendicion::class);
+    }
+
+    public function documentos()
+    {
+        return $this->morphMany(Documento::class, 'documentable');
+    }
+
+    public function gastos()
+    {
+        return $this->hasMany(Gasto::class);
+    }
+
+    public function agendas()
+    {
+        return $this->hasMany(Agenda::class);
+    }
+
+    public function mantenciones()
+    {
+        return $this->hasMany(Mantencion::class);
     }
 }

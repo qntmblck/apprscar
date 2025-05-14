@@ -10,15 +10,26 @@ class Mantencion extends Model
     use HasFactory;
 
     protected $fillable = [
-        'flete_id',
-        'tipo',
-        'descripcion',
+        'user_id',
+        'tracto_id',
+        'rampla_id',
+        'detalle',
         'fecha',
         'costo',
     ];
 
-    public function flete()
+    public function user()
     {
-        return $this->belongsTo(Flete::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function tracto()
+    {
+        return $this->belongsTo(Tracto::class);
+    }
+
+    public function rampla()
+    {
+        return $this->belongsTo(Rampla::class);
     }
 }

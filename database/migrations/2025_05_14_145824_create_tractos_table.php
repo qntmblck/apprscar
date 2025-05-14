@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('patente')->unique();
             $table->string('marca');
             $table->string('modelo');
-            $table->year('anio');
-            $table->string('color')->nullable();
+            $table->string('color');
+            $table->integer('año');
             $table->timestamps();
         });
     }

@@ -12,13 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('documentos', function (Blueprint $table) {
-    $table->id();
-    $table->morphs('documentable'); // puede ser flete, gasto, usuario
-    $table->string('nombre_archivo');
-    $table->string('ruta');
-    $table->timestamps();
-});
-
+            $table->id();
+            $table->morphs('documentable'); // puede ser flete, gasto, usuario, etc.
+            $table->string('nombre_archivo');
+            $table->string('ruta');
+            $table->timestamps();
+        });
     }
 
     /**

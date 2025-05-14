@@ -1,25 +1,23 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Documento extends Model
 {
-    public function up(): void
-    {
-        Schema::create('documentos', function (Blueprint $table) {
-            $table->id();
-            $table->morphs('documentable'); // ✅ permite asociar a múltiples entidades
-            $table->string('tipo');         // Ej: "PDF", "imagen", "licencia"
-            $table->string('archivo_url');  // Ruta al archivo
-            $table->text('descripcion')->nullable(); // Comentario opcional
-            $table->timestamps();
-        });
-    }
+    use HasFactory;
 
-    public function down(): void
+    protected $fillable = [
+        'documentable_id',
+        'documentable_type',
+        'ruta',
+        'tipo',
+    ];
+
+    public function documentable()
     {
-        Schema::dropIfExists('documentos');
+        return $this->morphTo();
     }
-};
+}
