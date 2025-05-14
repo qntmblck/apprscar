@@ -22,7 +22,7 @@ export default function Flashcard({ title, description, image }) {
 
   return (
     <div
-      className="flashcard-container perspective cursor-pointer w-full h-auto min-h-[200px] sm:h-[220px] lg:h-[250px] hover:shadow-lg transition-shadow duration-300"
+      className="flashcard-container perspective cursor-pointer w-full h-auto min-h-[200px] sm:h-[220px] lg:h-[250px] hover:shadow-lg transition-shadow duration-300 px-4"
       onMouseEnter={() => !isTouchDevice && setFlipped(true)}
       onMouseLeave={() => !isTouchDevice && setFlipped(false)}
       onClick={handleToggle}

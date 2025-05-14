@@ -47,11 +47,11 @@ export default function Statistics() {
     <section
       ref={ref}
       id="estadisticas"
-      className="bg-gradient-to-r from-[#f6f9ff] to-[#eceaff] py-20 sm:py-20 px-6"
+      className="bg-gradient-to-r from-[#f6f9ff] to-[#eceaff] py-20 px-6"
     >
       <div
         className={`max-w-7xl mx-auto text-center font-sans transform transition-all duration-1000 ${
-          animate ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+          animate ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
         } hover:scale-[1.05]`}
       >
         <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -64,7 +64,7 @@ export default function Statistics() {
           Eficiencia, trazabilidad y confiabilidad que convierten la logística en una ventaja competitiva real para nuestros clientes.
         </p>
 
-        <dl className="mt-16 grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-16 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-6">
           {statsData.map((stat, i) => {
             const count = useCounter(stat.value, stat.decimals, inView);
             return (
@@ -85,4 +85,3 @@ export default function Statistics() {
     </section>
   );
 }
-

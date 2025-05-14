@@ -3,10 +3,11 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const navigation = [
   { name: 'Inicio', href: '/#inicio', target: 'inicio' },
+  { name: 'Servicios', href: '/#servicios', target: 'servicios' }, // ← movido antes
   { name: 'Nosotros', href: '/#alliances', target: 'alliances' },
-  { name: 'Servicios', href: '/#servicios', target: 'servicios' },
   { name: 'Contacto', href: '/contacto', target: 'contacto' },
 ]
+
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

@@ -15,12 +15,12 @@ export default function CallToAction() {
       ref={ref}
       className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a] py-16 sm:py-24 text-white"
     >
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div
-          className={`relative isolate px-4 sm:px-8 text-center z-10 transform transition-all duration-1000 ${
-            animate ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-          } hover:scale-[1.15]`}
-        >
+      <div
+        className={`mx-auto max-w-7xl px-6 sm:px-8 lg:px-8 transform transition-all duration-1000 ${
+          animate ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+        } hover:scale-[1.05]`}
+      >
+        <div className="relative isolate px-4 sm:px-8 text-center z-10">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white transition-transform duration-300 hover:scale-115">
             ¿Listo para confiar tu carga a verdaderos profesionales?
           </h2>
@@ -46,7 +46,6 @@ export default function CallToAction() {
             </a>
           </div>
 
-          {/* Fondo decorativo sutil */}
           <svg
             viewBox="0 0 1024 1024"
             aria-hidden="true"
