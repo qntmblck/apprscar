@@ -53,7 +53,7 @@ export default function Welcome() {
           <Features />
 
           {/* Separador superior: Features → Statistics */}
-<div className="-mt-[1px] h-6 w-full bg-gradient-to-b from-[#0c1e3a] via-[#d5e5ff] to-[#eef2ff]" />
+<div className="-mt-[1px] h-10 w-full bg-gradient-to-b from-[#354256] via-[#d5e5ff] to-[#eef2ff]" />
 
 
 

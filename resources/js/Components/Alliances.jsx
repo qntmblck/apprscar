@@ -49,7 +49,7 @@ export default function Alliances() {
   }, [inView, controls])
 
   return (
-    <section id="alliances" className="bg-white pt-6 pb-8">
+    <section id="alliances" className="bg-white  pt-12 sm:pt-16 pb-8">
       <motion.div
         ref={ref}
         initial={{ opacity: 0.01, y: 50 }}
