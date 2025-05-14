@@ -48,49 +48,52 @@ export default function Features() {
   return (
     <section
       id="servicios"
-      ref={ref}
-      className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#102546] pt-24 pb-24 px-6 sm:px-8"
+      className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#102546] py-8 sm:py-12"
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Encabezado animado */}
         <motion.div
-          initial={{ opacity: 0, x: -80 }}
+          ref={ref}
+          initial={{ opacity: 0, x: -60 }}
           animate={controls}
           transition={{ duration: 0.8 }}
-          className="transform transition-transform duration-1000 hover:scale-[1.05]"
+          className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 sm:gap-10 mb-16 text-center sm:text-right"
         >
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 sm:gap-10 mb-16 text-center sm:text-right">
-            <div className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
-              <img
-                src="/img/logoscar.png"
-                alt="Logo SCAR"
-                className="h-24 sm:h-40 w-auto mx-auto sm:mx-0"
-              />
-            </div>
-
-            <div className="max-w-2xl">
-              <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white transition-transform duration-300 hover:scale-105">
-                Resultados que trazan nuestra ruta de excelencia
-              </h2>
-              <p className="mt-4 text-base sm:text-lg leading-7 sm:leading-8 text-gray-300 transition-transform duration-300 hover:scale-105">
-                Transportes SCAR aplica principios de análisis sistemático, mejora continua y control de procesos para optimizar cada fase del servicio logístico.
-              </p>
-            </div>
+          <div className="flex-shrink-0">
+            <img
+              src="/img/logoscar.png"
+              alt="Logo SCAR"
+              className="h-24 sm:h-40 w-auto mx-auto sm:mx-0"
+            />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-            {features.map((feature) => (
-              <div key={feature.name} className="flex flex-col items-center text-center sm:items-start sm:text-left">
-                <dt className="text-base font-semibold text-white">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-500 mx-auto sm:mx-0">
-                    <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  {feature.name}
-                </dt>
-                <dd className="mt-1 text-base text-gray-300">{feature.description}</dd>
-              </div>
-            ))}
+          <div className="max-w-2xl">
+            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white">
+              Resultados que trazan nuestra ruta de excelencia
+            </h2>
+            <p className="mt-4 text-base sm:text-lg leading-7 sm:leading-8 text-gray-300">
+              Transportes SCAR aplica principios de análisis sistemático, mejora continua y control de procesos para optimizar cada fase del servicio logístico.
+            </p>
           </div>
         </motion.div>
+
+        {/* Grilla de características */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+          {features.map((feature) => (
+            <div
+              key={feature.name}
+              className="flex flex-col items-center text-center sm:items-center sm:text-center"
+            >
+              <dt className="text-base font-semibold text-white">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-500 mx-auto">
+                  <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                {feature.name}
+              </dt>
+              <dd className="mt-1 text-base text-gray-300">{feature.description}</dd>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
