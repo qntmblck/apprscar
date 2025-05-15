@@ -22,7 +22,7 @@ export default function Flashcard({ title, description, image }) {
 
   return (
     <div
-      className="flashcard-container perspective cursor-pointer w-full h-auto min-h-[220px] sm:h-[250px] lg:h-[290px] hover:shadow-lg transition-shadow duration-300 px-4"
+      className="flashcard-container perspective cursor-pointer w-full min-h-[260px] sm:min-h-[280px] lg:min-h-[300px] hover:shadow-lg transition-shadow duration-300 px-1"
       onMouseEnter={() => !isTouchDevice && setFlipped(true)}
       onMouseLeave={() => !isTouchDevice && setFlipped(false)}
       onClick={handleToggle}
@@ -46,17 +46,15 @@ export default function Flashcard({ title, description, image }) {
           </div>
         </div>
 
-        {/* Back */}
-        <div className="absolute inset-0 rotate-y-180 backface-hidden rounded-xl bg-gradient-to-tr from-indigo-900 via-indigo-800 to-indigo-700 text-white h-full overflow-hidden">
-          <div className="p-4 flex flex-col h-full">
-            <h3 className="text-sm sm:text-base font-bold mb-2">{title}</h3>
-            <div className="overflow-y-auto pr-2 custom-scrollbar flex-1">
-              <ul className="text-sm leading-relaxed space-y-1 list-disc list-inside">
-                {descriptionList.map((line, index) => (
-                  <li key={index}>{line}</li>
-                ))}
-              </ul>
-            </div>
+        {/* Back (ahora optimizada como FlashcardFlete) */}
+        <div className="absolute inset-0 rotate-y-180 backface-hidden rounded-xl bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#102546] text-white h-full w-full flex flex-col justify-center items-center px-4 py-6 text-center">
+          <div className="space-y-2">
+            <h3 className="text-base sm:text-lg font-bold">{title}</h3>
+            {descriptionList.map((line, i) => (
+              <p key={i} className="text-sm sm:text-base leading-relaxed">
+                {line}
+              </p>
+            ))}
           </div>
         </div>
       </div>
