@@ -20,6 +20,9 @@ use App\Http\Controllers\ColaboradorDashboardController;
 // Gestión de usuarios y roles
 use App\Http\Controllers\UserController;
 
+// Controlador de Fletes
+use App\Http\Controllers\FleteController;
+
 // Modelos
 use Spatie\Permission\Models\Role;
 
@@ -70,6 +73,10 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::post('/usuarios/{user}/role', [UserController::class, 'updateRole'])->name('usuarios.updateRole');
     Route::delete('/usuarios/{user}/role', [UserController::class, 'removeRole'])->name('usuarios.removeRole');
 });
+
+// Ruta única para vista general de fletes según rol
+Route::middleware(['auth', 'role:superadmin|admin|conductor|colaborador|cliente'])
+    ->get('/fletes', [FleteController::class, 'index'])->name('fletes.index');
 
 // 🔥 Ruta temporal para convertir en superadmin (puedes eliminarla si ya no la usas)
 Route::middleware(['auth', 'verified'])->post('/make-superadmin', function () {

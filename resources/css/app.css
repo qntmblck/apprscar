@@ -29,3 +29,41 @@
 .animate-slide-down {
   animation: slide-down 0.3s ease-out;
 }
+
+/* ===== Flashcard Flip ===== */
+.perspective {
+  perspective: 1000px;
+}
+
+.transform-style {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; /* Safari support */
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Estructura general de las flashcards */
+.flashcard-container {
+  @apply relative w-full max-w-xs mx-auto;
+  min-height: 180px;
+}
+
+.flashcard-inner {
+  @apply relative w-full h-full transition-transform duration-700 ease-in-out;
+  transform-style: preserve-3d;
+}
+
+/* Ambas caras de la tarjeta */
+.flashcard-inner > div {
+  @apply absolute w-full h-full rounded-xl;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  top: 0;
+  left: 0;
+}

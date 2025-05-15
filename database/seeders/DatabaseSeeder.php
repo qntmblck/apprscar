@@ -90,8 +90,8 @@ class DatabaseSeeder extends Seeder
             'tipo' => 'Reparto'
         ]);
 
-        // Crear flete
-        $flete = Flete::create([
+        // Crear flete de prueba
+        Flete::create([
             'conductor_id' => $conductor->id,
             'cliente_principal_id' => $cliente->id,
             'tracto_id' => $tracto->id,
@@ -105,5 +105,8 @@ class DatabaseSeeder extends Seeder
             'fecha_salida' => now()->subDays(2),
             'fecha_llegada' => now(),
         ]);
+
+        // ✅ Llamar FleteSeeder adicional con 1000 fletes aleatorios
+        $this->call(FleteSeeder::class);
     }
 }
