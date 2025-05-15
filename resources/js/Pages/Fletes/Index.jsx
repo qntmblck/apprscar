@@ -1,4 +1,3 @@
-<?php
 
 import { useForm } from '@inertiajs/react'
 import Flashcard from '@/Components/Flashcard'
