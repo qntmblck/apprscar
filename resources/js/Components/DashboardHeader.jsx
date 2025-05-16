@@ -47,7 +47,7 @@ export default function DashboardHeader() {
         <div className="flex-shrink-0">
           <Link href="/">
             <img
-  className="h-6 sm:h-6 md:h-7 lg:h-8 w-auto"
+  className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto"
   src="/img/scar.png"
   alt="Transportes SCAR"
 />
