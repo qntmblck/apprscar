@@ -46,7 +46,12 @@ export default function DashboardHeader() {
       <div className="relative mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8 justify-between">
         <div className="flex-shrink-0">
           <Link href="/">
-            <img className="h-12 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
+            <img
+  className="h-6 sm:h-6 md:h-7 lg:h-8 w-auto"
+  src="/img/scar.png"
+  alt="Transportes SCAR"
+/>
+
           </Link>
         </div>
 
