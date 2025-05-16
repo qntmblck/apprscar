@@ -1,4 +1,7 @@
 import Flashcard from './Flashcard'
+import { motion, useAnimation } from 'framer-motion'
+import { useInView } from 'react-intersection-observer'
+import { useEffect } from 'react'
 
 const items = [
   {
@@ -28,17 +31,37 @@ const items = [
 ]
 
 export default function Alliances() {
+  const controls = useAnimation()
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  })
+
+  useEffect(() => {
+    if (inView) {
+      controls.start({ opacity: 1, x: 0 })
+    }
+  }, [inView, controls])
+
   return (
     <section id="alliances" className="bg-white py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+        {/* Animación del título como en Features */}
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, x: -60 }}
+          animate={controls}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12"
+        >
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
             Colaboración Estratégica
           </h2>
           <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             Nuestro modelo de alianzas integra tecnología, cumplimiento y capacidad operativa mediante acuerdos con actores clave. Estas colaboraciones fortalecen cada parte del servicio y amplían nuestro alcance logístico a nivel nacional.
           </p>
-        </div>
+        </motion.div>
+
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {items.map((item, index) => (
             <Flashcard

@@ -1,25 +1,12 @@
 .perspective {
-    perspective: 1000px;
-  }
-  .transform-style {
-    transform-style: preserve-3d;
-  }
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
-  .rotate-y-180 {
-    transform: rotateY(180deg);
-  }
-
-  .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  perspective: 1000px;
 }
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+.transform-style {
+  transform-style: preserve-3d;
 }
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }

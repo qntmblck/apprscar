@@ -28,11 +28,8 @@ export default function Flashcard({ title, description, image }) {
       onClick={handleToggle}
     >
       <div
-        className={`flashcard-inner transform-style preserve-3d transition-transform duration-700 w-full h-full relative ${
-          flipped ? 'rotate-y-180' : ''
-        }`}
+        className={\`flashcard-inner transform-style preserve-3d transition-transform duration-700 w-full h-full relative \${flipped ? 'rotate-y-180' : ''}\`}
       >
-        {/* Front */}
         <div className="absolute inset-0 backface-hidden rounded-xl shadow-md overflow-hidden flex flex-col justify-between bg-white h-full">
           <div className="flex-1 flex items-center justify-center p-4">
             <img
@@ -46,21 +43,16 @@ export default function Flashcard({ title, description, image }) {
           </div>
         </div>
 
-        {/* Back (con scroll y contenido alineado al inicio) */}
-<div className="absolute inset-0 rotate-y-180 backface-hidden rounded-xl bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#102546] text-white h-full w-full flex flex-col px-4 py-6 text-center overflow-hidden">
-  <div className="overflow-y-auto max-h-full w-full flex-1 flex flex-col items-center justify-start">
-    <h3 className="text-base sm:text-lg font-bold mb-3">{title}</h3>
-    <div className="space-y-2 max-w-[90%]">
-      {descriptionList.map((line, i) => (
-        <p key={i} className="text-sm sm:text-base leading-relaxed break-words">
-          {line}
-        </p>
-      ))}
-    </div>
-  </div>
-</div>
-
-
+        <div className="absolute inset-0 rotate-y-180 backface-hidden rounded-xl bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#102546] text-white h-full w-full px-4 py-4 text-center">
+          <div className="h-full w-full overflow-y-auto custom-scrollbar flex flex-col justify-start items-center space-y-2">
+            <h3 className="text-base sm:text-lg font-bold break-words">{title}</h3>
+            {descriptionList.map((line, i) => (
+              <p key={i} className="text-sm sm:text-base leading-relaxed break-words">
+                {line}
+              </p>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
