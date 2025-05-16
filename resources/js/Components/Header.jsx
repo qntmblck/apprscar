@@ -62,7 +62,7 @@ export default function Header() {
             className="p-0 m-0 border-none bg-transparent cursor-pointer"
           >
             <img
-  className="h-8 sm:h-8 md:h-7 lg:h-10 w-auto mt-2"
+  className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-2"
   src="/img/scar.png"
   alt="Transportes SCAR"
 />
