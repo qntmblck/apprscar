@@ -61,7 +61,7 @@ export default function Header() {
             onClick={() => (window.location.href = '/')}
             className="p-0 m-0 border-none bg-transparent cursor-pointer"
           >
-            <img className="h-12 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
+            <img className="h-8 w-auto" src="/img/scar.png" alt="Transportes SCAR" />
           </button>
         </div>
 

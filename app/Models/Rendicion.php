@@ -17,12 +17,25 @@ class Rendicion extends Model
         'observaciones',
         'caja_flete',
         'viatico_efectivo',
+        'viatico_calculado',
+        'saldo',
     ];
 
-    public function flete() { return $this->belongsTo(Flete::class); }
-    public function user() { return $this->belongsTo(User::class); }
-    public function gastos() { return $this->hasMany(Gasto::class); }
-    public function diesels() { return $this->hasMany(Diesel::class); }
+    public function flete() {
+        return $this->belongsTo(Flete::class);
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
+    public function gastos() {
+        return $this->hasMany(Gasto::class);
+    }
+
+    public function diesels() {
+        return $this->hasMany(Diesel::class);
+    }
 
     public function getTotalGastosAttribute()
     {
@@ -31,7 +44,7 @@ class Rendicion extends Model
 
     public function getTotalDieselAttribute()
     {
-        return $this->diesels->where('forma_pago', '!=', 'Crédito')->sum('monto');
+        return $this->diesels->where('metodo_pago', '!=', 'Crédito')->sum('monto');
     }
 
     public function getViaticoCalculadoAttribute()
@@ -46,7 +59,7 @@ class Rendicion extends Model
         $fletePosterior = \App\Models\Flete::where('conductor_id', $this->flete->conductor_id)
             ->whereDate('fecha_salida', '=', $llegada)
             ->where('id', '!=', $this->flete->id)
-            ->first();
+            ->exists();
 
         if ($fletePosterior) $dias -= 1;
 

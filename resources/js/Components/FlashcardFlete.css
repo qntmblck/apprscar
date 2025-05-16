@@ -1,20 +1,6 @@
-/* FlashcardFlete.css */
-.flete-perspective {
-  perspective: 1000px;
-}
+/* FlashcardFlete.css - versión limpia sin giro */
 
-.flete-transform-style {
-  transform-style: preserve-3d;
-}
-
-.flete-backface-hidden {
-  backface-visibility: hidden;
-}
-
-.flete-rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
+/* Scroll personalizado (si aún lo usas en formularios) */
 .flete-scrollbar {
   overflow-y: auto;
   scrollbar-width: thin;
@@ -32,18 +18,4 @@
 .flete-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.3);
   border-radius: 4px;
-}
-/* Asegura que ambas caras mantengan altura constante */
-
-.flete-card-face {
-  height: 100%;
-  min-height: 100%;
-  transition: transform 0.7s ease;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-}
-
-/* Suaviza la rotación (complementario al className ya usado en JSX) */
-.flete-transform-style {
-  transition: transform 0.7s ease;
 }

@@ -10,11 +10,13 @@ class Gasto extends Model
     use HasFactory;
 
     protected $fillable = [
-        'flete_id',
-        'user_id',
-        'monto',
-        'detalle',
-    ];
+    'flete_id',
+    'usuario_id',
+    'tipo',
+    'monto',
+    'descripcion',
+];
+
 
     public function flete()
     {
@@ -22,9 +24,10 @@ class Gasto extends Model
     }
 
     public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+{
+    return $this->belongsTo(User::class, 'usuario_id');
+}
+
 
     public function documentos()
     {

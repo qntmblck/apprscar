@@ -13,17 +13,12 @@ class Diesel extends Model
         'flete_id',
         'monto',
         'litros',
-        'lugar',
-        'fecha',
+        'metodo_pago', // ✅ este sí está en la tabla
     ];
 
     public function flete()
     {
         return $this->belongsTo(Flete::class);
     }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 }
+

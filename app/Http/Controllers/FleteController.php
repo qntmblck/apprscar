@@ -7,6 +7,7 @@ use App\Models\Flete;
 use App\Models\Cliente;
 use App\Models\Tracto;
 use App\Models\User;
+use App\Models\Rendicion;
 use Inertia\Inertia;
 
 class FleteController extends Controller
@@ -44,6 +45,34 @@ class FleteController extends Controller
             'conductores' => User::role('conductor')->get(['id', 'name']),
             'clientes' => Cliente::all(['id', 'razon_social']),
             'tractos' => Tracto::all(['id', 'patente']),
+        ]);
+    }
+
+    public function finalizar(Request $request)
+    {
+        $validated = $request->validate([
+            'flete_id' => 'required|exists:fletes,id',
+            'rendicion_id' => 'required|exists:rendicions,id',
+            'fecha_termino' => 'required|date',
+            'viatico_efectivo' => 'required|numeric|min:0',
+        ]);
+
+        $flete = Flete::findOrFail($validated['flete_id']);
+        $rendicion = Rendicion::with('flete.conductor', 'diesels', 'gastos')->findOrFail($validated['rendicion_id']);
+
+        $flete->update([
+            'fecha_llegada' => $validated['fecha_termino'],
+        ]);
+
+        $rendicion->update([
+            'viatico_efectivo' => $validated['viatico_efectivo'],
+            'viatico_calculado' => $rendicion->viatico_calculado,
+            'saldo' => $rendicion->saldo,
+        ]);
+
+        return response()->json([
+            'message' => 'Flete finalizado correctamente.',
+            'viatico' => $rendicion->viatico_calculado,
         ]);
     }
 }

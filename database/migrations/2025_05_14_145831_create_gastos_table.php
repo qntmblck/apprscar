@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('flete_id')->constrained()->onDelete('cascade');
             $table->foreignId('usuario_id')->constrained('users')->onDelete('restrict');
-            $table->string('tipo'); // Ej: carga, descarga, peaje, diesel, etc.
+            $table->enum('tipo', ['Carga', 'Descarga', 'Camioneta', 'Estacionamiento', 'Peaje', 'Otros']);
             $table->decimal('monto', 10, 2);
             $table->text('descripcion')->nullable();
             $table->timestamps();
