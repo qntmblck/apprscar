@@ -63,7 +63,7 @@ export default function Header() {
           >
             <img
   className="h-6 sm:h-6 md:h-7 lg:h-8 w-auto"
-  src="/img/scar.png?=v1"
+  src="/img/scar.png"
   alt="Transportes SCAR"
 />
 
