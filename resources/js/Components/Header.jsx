@@ -35,7 +35,9 @@ export default function Header() {
   }, [])
 
   const isActive = (target) => activeItem === target
-
+  console.log('Navigation:', navigation)
+console.log('Mobile Menu Open:', mobileMenuOpen)
+console.log('Active Item:', activeItem)
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-transparent shadow-md">
       {/* Partículas */}
@@ -122,9 +124,7 @@ export default function Header() {
                 className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${isActive(item.target)
                   ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
                   : 'text-white hover:text-[#0094d9] hover:bg-white/10'}`}
-console.log('Navigation:', navigation)
-console.log('Mobile Menu Open:', mobileMenuOpen)
-console.log('Active Item:', activeItem)              >
+                         >
                 {item.name}
               </a>
             ))}
