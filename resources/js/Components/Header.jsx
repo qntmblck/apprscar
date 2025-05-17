@@ -3,11 +3,10 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const navigation = [
   { name: 'Inicio', href: '/#inicio', target: 'inicio' },
-  { name: 'Servicios', href: '/#servicios', target: 'servicios' }, // ← movido antes
+  { name: 'Servicios', href: '/#servicios', target: 'servicios' },
   { name: 'Nosotros', href: '/#alliances', target: 'alliances' },
   { name: 'Contacto', href: '/contacto', target: 'contacto' },
 ]
-
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -15,12 +14,13 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['inicio', 'servicios', 'alliances']
+      const sections = navigation.map((item) => item.target)
       for (const id of sections) {
         const el = document.getElementById(id)
         if (el) {
           const rect = el.getBoundingClientRect()
-          if (rect.top <= 80 && rect.bottom >= 80) {
+          const inView = rect.top <= 120 && rect.bottom >= 120
+          if (inView) {
             setActiveItem(id)
             return
           }
@@ -47,7 +47,7 @@ export default function Header() {
               cx={`${Math.random() * 100}%`}
               cy={`${Math.random() * 100}%`}
               r={Math.random() * 1.5 + 0.4}
-              fill={['#a78bfa', '#c084fc', '#818cf8', '#facc15', '#fde68a'][i % 5]}
+              fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
               fillOpacity="0.45"
             />
           ))}
@@ -62,11 +62,10 @@ export default function Header() {
             className="p-0 m-0 border-none bg-transparent cursor-pointer"
           >
             <img
-  className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-2"
-  src="/img/scar.png"
-  alt="Transportes SCAR"
-/>
-
+              className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-2"
+              src="/img/scar.png"
+              alt="Transportes SCAR"
+            />
           </button>
         </div>
 
@@ -76,11 +75,9 @@ export default function Header() {
             <a
               key={item.name}
               href={item.href}
-              className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                isActive(item.target)
-                  ? 'bg-indigo-600/80 text-white shadow ring-1 ring-indigo-300'
-                  : 'text-white hover:text-indigo-300 hover:bg-white/10'
-              }`}
+              className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${isActive(item.target)
+                ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
+                : 'text-white hover:text-[#0094d9] hover:bg-white/10'}`}
             >
               {item.name}
             </a>
@@ -91,7 +88,7 @@ export default function Header() {
         <div className="hidden lg:flex">
           <button
             onClick={() => (window.location.href = '/redirect-by-role')}
-            className="ml-4 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow hover:from-indigo-400 hover:to-indigo-600 transition"
+            className="ml-4 rounded-md bg-gradient-to-r from-[#0094d9] to-[#003f8c] px-4 py-2 text-sm font-semibold text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition"
           >
             Ingresar →
           </button>
@@ -116,18 +113,18 @@ export default function Header() {
       {/* Menú móvil */}
       {mobileMenuOpen && (
         <div className="lg:hidden animate-slide-down bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] px-6 pb-4 pt-2">
-          <div className="space-y-2 text-left">
+          <div className="flex flex-wrap gap-2 justify-center items-center text-center">
             {navigation.map((item) => (
               <a
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`inline-flex items-center justify-start w-full rounded-md px-4 py-3 text-base font-semibold transition-all duration-300 ${
-                  isActive(item.target)
-                    ? 'bg-indigo-600/80 text-white ring-1 ring-indigo-300'
-                    : 'text-white hover:text-indigo-300 hover:bg-white/10'
-                }`}
-              >
+                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${isActive(item.target)
+                  ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
+                  : 'text-white hover:text-[#0094d9] hover:bg-white/10'}`}
+console.log('Navigation:', navigation)
+console.log('Mobile Menu Open:', mobileMenuOpen)
+console.log('Active Item:', activeItem)              >
                 {item.name}
               </a>
             ))}
@@ -136,7 +133,7 @@ export default function Header() {
                 setMobileMenuOpen(false)
                 window.location.href = '/redirect-by-role'
               }}
-              className="block w-full text-left mt-4 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-700 px-4 py-3 text-base font-semibold text-white hover:from-indigo-400 hover:to-indigo-600"
+              className="rounded-md bg-gradient-to-r from-[#0094d9] to-[#003f8c] px-4 py-2 text-sm font-semibold text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition"
             >
               Ingresar →
             </button>

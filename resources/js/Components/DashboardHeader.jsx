@@ -25,9 +25,7 @@ export default function DashboardHeader() {
   const isActive = (name) => activeItem === name
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-white via-[#0c1e3aa0] to-[#0c1e3a] shadow-md"
->
-      {/* Partículas animadas */}
+    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-white via-[#0c1e3aa0] to-[#0c1e3a] shadow-md">
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <svg className="absolute w-full h-full animate-pulse opacity-70 blur-[0.5px] mix-blend-screen">
           {Array.from({ length: 30 }).map((_, i) => (
@@ -36,7 +34,7 @@ export default function DashboardHeader() {
               cx={`${Math.random() * 100}%`}
               cy={`${Math.random() * 100}%`}
               r={Math.random() * 1.5 + 0.4}
-              fill={['#a78bfa', '#c084fc', '#818cf8', '#facc15', '#fde68a'][i % 5]}
+              fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
               fillOpacity="0.45"
             />
           ))}
@@ -47,11 +45,10 @@ export default function DashboardHeader() {
         <div className="flex-shrink-0">
           <Link href="/">
             <img
-  className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-1"
-  src="/img/scar2.png"
-  alt="Transportes SCAR"
-/>
-
+              className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-1"
+              src="/img/scar2.png"
+              alt="Transportes SCAR"
+            />
           </Link>
         </div>
 
@@ -62,8 +59,8 @@ export default function DashboardHeader() {
               href={item.href}
               className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
                 isActive(item.name)
-                  ? 'bg-indigo-600 text-white shadow ring-2 ring-indigo-300'
-                  : 'text-white hover:text-indigo-300 hover:bg-white/10'
+                  ? 'bg-[#003f8c] text-white shadow ring-2 ring-[#0094d9]'
+                  : 'text-white hover:text-[#0094d9] hover:bg-white/10'
               }`}
             >
               {item.name}
@@ -114,35 +111,33 @@ export default function DashboardHeader() {
 
       {mobileMenuOpen && (
         <div className="lg:hidden animate-slide-down bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] px-6 pb-4 pt-2">
-          <div className="space-y-2 text-left">
+          <div className="flex flex-wrap gap-2 justify-center items-center text-center">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded-md px-4 py-3 text-base font-semibold transition-all duration-300 ${
+                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
                   isActive(item.name)
-                    ? 'bg-indigo-600 text-white ring-2 ring-indigo-300'
-                    : 'text-white hover:text-indigo-300 hover:bg-white/10'
+                    ? 'bg-[#003f8c] text-white ring-2 ring-[#0094d9]'
+                    : 'text-white hover:text-[#0094d9] hover:bg-white/10'
                 }`}
               >
                 {item.name}
               </Link>
             ))}
-            <div className="border-t border-white/20 mt-4 pt-4">
-              {userNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  method={item.method}
-                  as="button"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full text-left rounded-md px-4 py-3 text-base font-semibold text-white hover:text-indigo-300 hover:bg-white/10"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
+            {userNavigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                method={item.method}
+                as="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold text-white hover:text-[#0094d9] hover:bg-white/10 transition"
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
         </div>
       )}
