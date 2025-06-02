@@ -15,6 +15,8 @@ export default function FinalizarForm({
   })
 
   const [viaticoCalculado, setViaticoCalculado] = useState(0)
+  const [exito, setExito] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (form.fecha_termino && fechaSalida) {
@@ -34,7 +36,14 @@ export default function FinalizarForm({
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
+    setError(null)
+
+    if (!form.fecha_termino && !form.viatico_efectivo) {
+      setError('Debes ingresar al menos la fecha o el viático efectivo.')
+      return
+    }
+
     const payload = {
       flete_id: fleteId,
       rendicion_id: rendicionId,
@@ -43,53 +52,81 @@ export default function FinalizarForm({
       viatico_calculado: viaticoCalculado,
     }
 
-    onSubmit(payload)                 // Enviar al backend
-    onSuccess('Flete finalizado exitosamente.') // Mensaje + giro flashcard + cierre
-    setForm({ fecha_termino: '', viatico_efectivo: '' }) // Reset form
+    try {
+      const res = await onSubmit(payload)
+      if (res?.data?.flete) {
+        onSuccess(res.data.flete)
+        setForm({ fecha_termino: '', viatico_efectivo: '' })
+        setExito(true)
+        setTimeout(() => setExito(false), 1800)
+      } else {
+        throw new Error('No se pudo finalizar el flete.')
+      }
+    } catch (e) {
+      const message =
+        e.response?.data?.message ||
+        e.response?.data?.error ||
+        (e.response?.data?.errors
+          ? Object.values(e.response.data.errors).flat().join(' ')
+          : 'Error inesperado al finalizar el flete.')
+      setError(message)
+    }
   }
 
   return (
-    <div className="space-y-2 text-left text-xs">
-      <label className="block mb-1">Selecciona la fecha de término:</label>
-      <input
-        type="date"
-        name="fecha_termino"
-        value={form.fecha_termino}
-        onChange={handleChange}
-        className="w-full h-[42px] text-sm sm:text-base p-2 rounded bg-white text-black"
-      />
+    <div className="bg-gray-50 rounded-md p-3 space-y-3 border border-gray-200 shadow-sm text-sm w-full">
+      {error && (
+        <div className="text-red-600 text-xs bg-red-100 p-2 rounded">
+          ❌ {error}
+        </div>
+      )}
 
-      <label className="block mt-2">Viático calculado:</label>
-      <input
-        type="text"
-        value={viaticoCalculado.toLocaleString('es-CL')}
-        readOnly
-        className="w-full p-1 rounded text-gray-500 text-sm bg-gray-100"
-      />
+      <div className="space-y-2">
+        <label className="text-xs">🗓 Fecha de término:</label>
+        <input
+          type="date"
+          name="fecha_termino"
+          value={form.fecha_termino}
+          onChange={handleChange}
+          className="w-full px-3 py-2 rounded border border-gray-300 bg-white"
+        />
 
-      <label className="block">Viático efectivo recibido:</label>
-      <input
-        type="number"
-        name="viatico_efectivo"
-        value={form.viatico_efectivo}
-        onChange={handleChange}
-        className="w-full p-1 rounded text-black text-sm"
-      />
+        <label className="text-xs">🌊 Viático calculado:</label>
+        <input
+          type="text"
+          value={viaticoCalculado.toLocaleString('es-CL')}
+          readOnly
+          className="w-full px-3 py-2 rounded bg-gray-100 text-gray-500 border"
+        />
 
-      <div className="flex justify-end gap-2 mt-2">
+        <label className="text-xs">💵 Viático efectivo recibido:</label>
+        <input
+          type="number"
+          name="viatico_efectivo"
+          value={form.viatico_efectivo}
+          onChange={handleChange}
+          className="w-full px-3 py-2 rounded border border-gray-300 bg-white"
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
         <button
           onClick={handleSend}
-          className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs"
+          className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-xs"
         >
           Enviar
         </button>
         <button
           onClick={onCancel}
-          className="bg-gray-500 hover:bg-gray-400 text-white px-3 py-1 rounded text-xs"
+          className="bg-gray-500 hover:bg-gray-400 text-white px-4 py-2 rounded text-xs"
         >
           Cancelar
         </button>
       </div>
+
+      {exito && (
+        <div className="text-green-600 text-xs text-right">✔️ Viático registrado</div>
+      )}
     </div>
   )
 }

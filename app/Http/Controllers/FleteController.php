@@ -26,6 +26,7 @@ class FleteController extends Controller
             'rendicion.diesels',
         ]);
 
+        // Filtros por rol
         if ($user->hasRole('conductor')) {
             $query->where('conductor_id', $user->id);
         } elseif ($user->hasRole('cliente')) {
@@ -34,20 +35,20 @@ class FleteController extends Controller
             $query->whereHas('colaboradores', fn($q) => $q->where('colaborador_id', $user->id));
         }
 
+        // Filtros personalizados
         if ($request->filled('conductor_id')) {
             $query->where('conductor_id', $request->conductor_id);
         }
-
         if ($request->filled('cliente_id')) {
             $query->where('cliente_principal_id', $request->cliente_id);
         }
-
         if ($request->filled('tracto_id')) {
             $query->where('tracto_id', $request->tracto_id);
         }
 
         $fletes = $query->latest()->get();
 
+        // Hacer visibles los atributos virtuales necesarios
         $fletes->each(function ($flete) {
             if ($flete->rendicion) {
                 $flete->rendicion->makeVisible([
@@ -114,4 +115,50 @@ class FleteController extends Controller
             'flete' => $flete,
         ]);
     }
+
+    public function registrarViatico(Request $request)
+{
+    $validated = $request->validate([
+        'flete_id' => 'required|exists:fletes,id',
+        'rendicion_id' => 'required|exists:rendiciones,id',
+        'viatico_efectivo' => 'required|numeric|min:0',
+    ]);
+
+    $rendicion = Rendicion::with(['flete', 'diesels', 'gastos'])->findOrFail($validated['rendicion_id']);
+
+    $rendicion->update([
+        'viatico_efectivo' => $validated['viatico_efectivo'],
+        'viatico' => $validated['viatico_efectivo'],
+    ]);
+
+    $rendicion->recalcularTotales();
+
+    $flete = Flete::with([
+        'cliente',
+        'conductor',
+        'tracto',
+        'rampla',
+        'destino',
+        'rendicion.gastos',
+        'rendicion.diesels',
+    ])->findOrFail($validated['flete_id']);
+
+    // Formatear fecha llegada
+    if ($flete->fecha_llegada) {
+        $flete->fecha_llegada_formateada = \Carbon\Carbon::parse($flete->fecha_llegada)->format('d/m/Y');
+    }
+
+    $flete->rendicion->makeVisible([
+        'saldo_temporal',
+        'total_gastos',
+        'total_diesel',
+        'viatico_calculado',
+    ]);
+
+    return response()->json([
+        'message' => 'Viático registrado correctamente.',
+        'flete' => $flete,
+    ]);
+}
+
 }
