@@ -2,36 +2,39 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Cliente;
-use App\Models\Tracto;
-use App\Models\Rampla;
 use App\Models\Destino;
-use App\Models\Tarifa;
 use App\Models\Flete;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Str;
+use App\Models\Rampla;
+use App\Models\Rendicion;
+use App\Models\Tarifa;
+use App\Models\Tracto;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class FleteSeeder extends Seeder
 {
     public function run(): void
     {
-        // Asegurar todos los roles necesarios
-        foreach (['conductor', 'cliente', 'colaborador', 'superadmin'] as $roleName) {
-            Role::firstOrCreate(['name' => $roleName]);
+        foreach (['superadmin', 'conductor', 'cliente'] as $role) {
+            Role::firstOrCreate(['name' => $role]);
         }
 
-        // Crear 20 conductores con usuario
+        $faker = \Faker\Factory::create('es_ES');
         $conductores = collect();
+        $clientes = collect();
+
+        // Crear conductores
         for ($i = 1; $i <= 20; $i++) {
             $user = User::firstOrCreate(
                 ['email' => "conductor{$i}@mail.com"],
                 [
-                    'name' => "Conductor {$i}",
-                    'email_verified_at' => now(),
+                    'name' => $faker->name,
                     'password' => bcrypt('password'),
+                    'email_verified_at' => now(),
                     'remember_token' => Str::random(10),
                 ]
             );
@@ -39,15 +42,14 @@ class FleteSeeder extends Seeder
             $conductores->push($user);
         }
 
-        // Crear 20 clientes y su registro en clientes
-        $clientes = collect();
+        // Crear clientes
         for ($i = 1; $i <= 20; $i++) {
             $user = User::firstOrCreate(
                 ['email' => "cliente{$i}@mail.com"],
                 [
-                    'name' => "Cliente {$i}",
-                    'email_verified_at' => now(),
+                    'name' => $faker->company,
                     'password' => bcrypt('password'),
+                    'email_verified_at' => now(),
                     'remember_token' => Str::random(10),
                 ]
             );
@@ -55,59 +57,67 @@ class FleteSeeder extends Seeder
 
             $cliente = Cliente::firstOrCreate([
                 'user_id' => $user->id,
-                'razon_social' => "Cliente Empresa {$i}",
-                'rut' => "76.000." . str_pad($i, 3, '0', STR_PAD_LEFT) . "-K",
-                'giro' => "Transporte de carga",
-                'direccion' => "Calle Falsa #{$i}",
-                'telefono' => "987654" . str_pad($i, 3, '0', STR_PAD_LEFT),
+                'razon_social' => $user->name,
+                'rut' => '76.000.' . str_pad($i, 3, '0', STR_PAD_LEFT) . '-K',
+                'giro' => 'Transporte',
+                'direccion' => $faker->address,
+                'telefono' => $faker->phoneNumber,
             ]);
 
             $clientes->push($cliente);
         }
 
-        // Crear 1 tracto y 1 rampla
-        $tracto = Tracto::firstOrCreate([
-            'patente' => 'ABC123',
-            'marca' => 'Volvo',
-            'modelo' => 'FH',
-            'año' => 2020,
-            'color' => 'Azul'
-        ]);
-
-        $rampla = Rampla::firstOrCreate([
-            'patente' => 'XYZ789',
-            'tipo' => 'Plataforma',
-            'marca' => 'Randon',
-            'capacidad' => 28000,
-            'longitud' => 13.5,
-        ]);
-
-        // Crear 10 destinos únicos
-        $destinos = collect([
-            ['nombre' => 'Santiago', 'region' => 'RM', 'km' => 0],
-            ['nombre' => 'Valparaíso', 'region' => 'Valparaíso', 'km' => 120],
-            ['nombre' => 'Concepción', 'region' => 'Biobío', 'km' => 500],
-            ['nombre' => 'Antofagasta', 'region' => 'Antofagasta', 'km' => 1300],
-            ['nombre' => 'La Serena', 'region' => 'Coquimbo', 'km' => 470],
-            ['nombre' => 'Puerto Montt', 'region' => 'Los Lagos', 'km' => 1000],
-            ['nombre' => 'Temuco', 'region' => 'Araucanía', 'km' => 680],
-            ['nombre' => 'Iquique', 'region' => 'Tarapacá', 'km' => 1800],
-            ['nombre' => 'Rancagua', 'region' => 'O’Higgins', 'km' => 90],
-            ['nombre' => 'Copiapó', 'region' => 'Atacama', 'km' => 800],
-        ]);
-
-        $destinosMap = collect();
-        foreach ($destinos as $d) {
-            $destino = Destino::firstOrCreate(['nombre' => $d['nombre']], [
-                'region' => $d['region'],
-                'km' => $d['km']
-            ]);
-            $destinosMap->push($destino);
+        // Tractos
+        $tractos = collect();
+        for ($i = 1; $i <= 5; $i++) {
+            $tractos->push(Tracto::firstOrCreate([
+                'patente' => "TRC" . str_pad($i, 3, '0', STR_PAD_LEFT),
+            ], [
+                'marca' => 'Volvo',
+                'modelo' => 'FH',
+                'año' => rand(2015, 2023),
+                'color' => 'Blanco',
+            ]));
         }
 
-        // Crear tarifa por destino (Directo)
+        // Ramplas
+        $ramplas = collect();
+        for ($i = 1; $i <= 5; $i++) {
+            $ramplas->push(Rampla::firstOrCreate([
+                'patente' => "RMP" . str_pad($i, 3, '0', STR_PAD_LEFT),
+            ], [
+                'tipo' => 'Plataforma',
+                'marca' => 'Randon',
+                'capacidad' => 28000,
+                'longitud' => 13.5,
+            ]));
+        }
+
+        // Destinos
+        $destinosRaw = [
+            ['Santiago', 'RM', 0], ['Valparaíso', 'Valparaíso', 120], ['Concepción', 'Biobío', 500],
+            ['Antofagasta', 'Antofagasta', 1300], ['La Serena', 'Coquimbo', 470], ['Puerto Montt', 'Los Lagos', 1000],
+            ['Temuco', 'Araucanía', 680], ['Iquique', 'Tarapacá', 1800], ['Rancagua', 'O’Higgins', 90],
+            ['Copiapó', 'Atacama', 800], ['Chillán', 'Ñuble', 400], ['Talca', 'Maule', 250],
+            ['Arica', 'Arica y Parinacota', 2050], ['Punta Arenas', 'Magallanes', 2200], ['Quillota', 'Valparaíso', 135],
+            ['Ovalle', 'Coquimbo', 410], ['Curicó', 'Maule', 200], ['Los Ángeles', 'Biobío', 510],
+            ['Calama', 'Antofagasta', 1450], ['San Antonio', 'Valparaíso', 105], ['Melipilla', 'RM', 70],
+            ['San Fernando', 'O’Higgins', 160], ['Angol', 'Araucanía', 700], ['Vallenar', 'Atacama', 950],
+            ['Linares', 'Maule', 300], ['Castro', 'Los Lagos', 1200], ['Tocopilla', 'Antofagasta', 1350],
+            ['Osorno', 'Los Lagos', 1050], ['Coyhaique', 'Aysén', 1900], ['Puerto Natales', 'Magallanes', 2250],
+        ];
+
+        $destinos = collect();
+        foreach ($destinosRaw as [$nombre, $region, $km]) {
+            $destinos->push(Destino::firstOrCreate(['nombre' => $nombre], [
+                'region' => $region,
+                'km' => $km,
+            ]));
+        }
+
+        // Tarifas
         $tarifas = collect();
-        foreach ($destinosMap as $destino) {
+        foreach ($destinos as $destino) {
             $tarifas->push(Tarifa::firstOrCreate([
                 'destino_id' => $destino->id,
                 'tipo' => 'Directo',
@@ -116,19 +126,19 @@ class FleteSeeder extends Seeder
             ]));
         }
 
-        // Crear 1000 fletes aleatorios
+        // Fletes + Rendiciones
         for ($i = 0; $i < 1000; $i++) {
             $conductor = $conductores->random();
             $cliente = $clientes->random();
-            $destino = $destinosMap->random();
+            $tracto = $tractos->random();
+            $rampla = $ramplas->random();
+            $destino = $destinos->random();
             $tarifa = $tarifas->firstWhere('destino_id', $destino->id);
-            $km_ida = $destino->km;
-            $rendimiento = round(mt_rand(25, 65) / 10, 2);
-            $estado = collect(['activo', 'rendido', 'pendiente'])->random();
-            $fecha_salida = Carbon::now()->subDays(rand(1, 60));
-            $fecha_llegada = (clone $fecha_salida)->addDays(rand(1, 5));
 
-            Flete::create([
+            $fecha_salida = Carbon::now()->subDays(rand(0, 90));
+            $fecha_llegada = (clone $fecha_salida)->addDays(rand(1, 3));
+
+            $flete = Flete::create([
                 'conductor_id' => $conductor->id,
                 'cliente_principal_id' => $cliente->id,
                 'tracto_id' => $tracto->id,
@@ -136,25 +146,33 @@ class FleteSeeder extends Seeder
                 'destino_id' => $destino->id,
                 'tarifa_id' => $tarifa->id,
                 'tipo' => 'Directo',
-                'km_ida' => $km_ida,
-                'rendimiento' => $rendimiento,
-                'estado' => $estado,
+                'km_ida' => $destino->km,
+                'rendimiento' => round(mt_rand(30, 65) / 10, 1),
+                'estado' => 'pendiente',
                 'fecha_salida' => $fecha_salida,
                 'fecha_llegada' => $fecha_llegada,
             ]);
+
+            Rendicion::create([
+                'flete_id' => $flete->id,
+                'user_id' => $conductor->id,
+                'estado' => 'abierta',
+                'caja_flete' => rand(100000, 300000),
+                'viatico_efectivo' => 0,
+                'viatico_calculado' => 0,
+                'viatico' => null,
+                'saldo' => null,
+            ]);
         }
 
-        // Crear superadmin si no existe
-$superadmin = User::firstOrCreate(
-    ['email' => 'superadmin@example.com'],
-    [
-        'name' => 'Súper Admin',
-        'email_verified_at' => now(),
-        'password' => bcrypt('password'),
-        'remember_token' => Str::random(10),
-    ]
-);
-$superadmin->assignRole('superadmin');
-
+        // Superadmin
+        User::firstOrCreate([
+            'email' => 'superadmin@example.com',
+        ], [
+            'name' => 'Súper Admin',
+            'email_verified_at' => now(),
+            'password' => bcrypt('password'),
+            'remember_token' => Str::random(10),
+        ])->assignRole('superadmin');
     }
 }

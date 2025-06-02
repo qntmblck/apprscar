@@ -46,7 +46,7 @@ export default function DashboardHeader() {
           <Link href="/">
             <img
               className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-1"
-              src="/img/scar2.png"
+              src="/img/scar3.png"
               alt="Transportes SCAR"
             />
           </Link>

@@ -29,9 +29,10 @@ export default function GastoForm({ fleteId, rendicionId, onSubmit, onCancel, on
       rendicion_id: rendicionId,
     }
 
-    onSubmit(payload)
-    onSuccess('Gasto registrado correctamente.')
-    setForm({ tipo: '', monto: '', descripcion: '', foto: null })
+    onSubmit(payload, (updatedFlete) => {
+      onSuccess(updatedFlete)
+      setForm({ tipo: '', monto: '', descripcion: '', foto: null })
+    })
   }
 
   return (

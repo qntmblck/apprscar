@@ -16,7 +16,15 @@ class FleteController extends Controller
     {
         $user = auth()->user();
 
-        $query = Flete::query()->with(['cliente', 'conductor', 'tracto', 'rampla']);
+        $query = Flete::query()->with([
+            'cliente',
+            'conductor',
+            'tracto',
+            'rampla',
+            'destino',
+            'rendicion.gastos',
+            'rendicion.diesels',
+        ]);
 
         if ($user->hasRole('conductor')) {
             $query->where('conductor_id', $user->id);
@@ -38,8 +46,21 @@ class FleteController extends Controller
             $query->where('tracto_id', $request->tracto_id);
         }
 
+        $fletes = $query->latest()->get();
+
+        $fletes->each(function ($flete) {
+            if ($flete->rendicion) {
+                $flete->rendicion->makeVisible([
+                    'saldo_temporal',
+                    'total_gastos',
+                    'total_diesel',
+                    'viatico_calculado',
+                ]);
+            }
+        });
+
         return Inertia::render('Fletes/Index', [
-            'fletes' => $query->latest()->get(),
+            'fletes' => $fletes,
             'role' => $user->getRoleNames()->first(),
             'filters' => $request->only('conductor_id', 'cliente_id', 'tracto_id'),
             'conductores' => User::role('conductor')->get(['id', 'name']),
@@ -52,27 +73,45 @@ class FleteController extends Controller
     {
         $validated = $request->validate([
             'flete_id' => 'required|exists:fletes,id',
-            'rendicion_id' => 'required|exists:rendicions,id',
+            'rendicion_id' => 'required|exists:rendiciones,id',
             'fecha_termino' => 'required|date',
             'viatico_efectivo' => 'required|numeric|min:0',
         ]);
 
         $flete = Flete::findOrFail($validated['flete_id']);
-        $rendicion = Rendicion::with('flete.conductor', 'diesels', 'gastos')->findOrFail($validated['rendicion_id']);
+        $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
 
-        $flete->update([
-            'fecha_llegada' => $validated['fecha_termino'],
-        ]);
+        $rendicion = Rendicion::with(['flete', 'diesels', 'gastos'])->findOrFail($validated['rendicion_id']);
 
         $rendicion->update([
             'viatico_efectivo' => $validated['viatico_efectivo'],
+            'viatico' => $validated['viatico_efectivo'],
             'viatico_calculado' => $rendicion->viatico_calculado,
             'saldo' => $rendicion->saldo,
         ]);
 
+        $rendicion->recalcularTotales();
+
+        $flete->load([
+            'cliente',
+            'conductor',
+            'tracto',
+            'rampla',
+            'destino',
+            'rendicion.gastos',
+            'rendicion.diesels',
+        ]);
+
+        $flete->rendicion->makeVisible([
+            'saldo_temporal',
+            'total_gastos',
+            'total_diesel',
+            'viatico_calculado',
+        ]);
+
         return response()->json([
             'message' => 'Flete finalizado correctamente.',
-            'viatico' => $rendicion->viatico_calculado,
+            'flete' => $flete,
         ]);
     }
 }

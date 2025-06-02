@@ -11,14 +11,26 @@ class Diesel extends Model
 
     protected $fillable = [
         'flete_id',
+        'rendicion_id',
+        'usuario_id',
         'monto',
         'litros',
-        'metodo_pago', // ✅ este sí está en la tabla
+        'metodo_pago',
+        'foto',
     ];
+
+    public function rendicion()
+    {
+        return $this->belongsTo(Rendicion::class);
+    }
 
     public function flete()
     {
         return $this->belongsTo(Flete::class);
     }
-}
 
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'usuario_id');
+    }
+}

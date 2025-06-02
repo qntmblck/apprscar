@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/diesel', [DieselController::class, 'store'])->name('diesel.store');
     Route::post('/gasto', [GastoController::class, 'store'])->name('gasto.store');
     Route::post('/fletes/finalizar', [FleteController::class, 'finalizar'])->name('fletes.finalizar');
+    Route::post('/rendicion/{id}/viatico', [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
 });
 
 Route::middleware(['auth', 'verified'])->post('/make-superadmin', function () {
@@ -78,9 +79,3 @@ Route::middleware(['auth', 'verified'])->post('/make-superadmin', function () {
 })->name('make-superadmin');
 
 require __DIR__.'/auth.php';
-
-// Registrar Diesel
-Route::middleware('auth')->post('/diesel', [App\Http\Controllers\DieselController::class, 'store'])->name('diesel.store');
-
-// Registrar Diesel
-Route::middleware('auth')->post('/diesel', [App\Http\Controllers\DieselController::class, 'store'])->name('diesel.store');

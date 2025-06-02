@@ -10,11 +10,16 @@ return new class extends Migration
     {
         Schema::create('gastos', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('flete_id')->constrained()->onDelete('cascade');
+            $table->foreignId('rendicion_id')->constrained('rendiciones')->onDelete('cascade');
             $table->foreignId('usuario_id')->constrained('users')->onDelete('restrict');
+
             $table->enum('tipo', ['Carga', 'Descarga', 'Camioneta', 'Estacionamiento', 'Peaje', 'Otros']);
-            $table->decimal('monto', 10, 2);
+            $table->integer('monto'); // En pesos chilenos, sin decimales
             $table->text('descripcion')->nullable();
+            $table->string('foto')->nullable(); // Imagen opcional del gasto
+
             $table->timestamps();
         });
     }

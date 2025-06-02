@@ -26,49 +26,39 @@ class Flete extends Model
 
     protected $dates = ['fecha_salida', 'fecha_llegada'];
 
-    public function conductor()
-    {
+    public function conductor() {
         return $this->belongsTo(User::class, 'conductor_id');
     }
 
-    public function cliente()
-    {
+    public function cliente() {
         return $this->belongsTo(Cliente::class, 'cliente_principal_id');
     }
 
-    public function tracto()
-    {
+    public function tracto() {
         return $this->belongsTo(Tracto::class);
     }
 
-    public function rampla()
-    {
+    public function rampla() {
         return $this->belongsTo(Rampla::class);
     }
 
-    public function destino()
-    {
+    public function destino() {
         return $this->belongsTo(Destino::class);
     }
 
-    public function tarifa()
-    {
+    public function tarifa() {
         return $this->belongsTo(Tarifa::class);
     }
 
-    public function retorno()
-    {
+    public function retorno() {
         return $this->hasOne(Retorno::class);
     }
 
-    public function rendicion()
-    {
+    public function rendicion() {
         return $this->hasOne(Rendicion::class);
     }
 
-    // ✅ Relación con colaboradores
-    public function colaboradores()
-    {
+    public function colaboradores() {
         return $this->belongsToMany(User::class, 'colaborador_flete', 'flete_id', 'colaborador_id');
     }
 }
