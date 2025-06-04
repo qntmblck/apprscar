@@ -19,6 +19,7 @@ export default function Fletes({ auth, fletes, filters, conductores, clientes, t
 
   const [fletesState, setFletesState] = useState(fletes)
   const [openForm, setOpenForm] = useState({})
+  const [errorMensaje, setErrorMensaje] = useState(null)
 
   useEffect(() => {
     get(route('fletes.index'), { preserveState: true, data })
@@ -55,10 +56,11 @@ export default function Fletes({ auth, fletes, filters, conductores, clientes, t
     try {
       const res = await axios.post(url, formData)
       if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+      setErrorMensaje(null)
       return res
     } catch (err) {
       console.error(err)
-      throw err
+      setErrorMensaje(err.response?.data?.message || 'Error inesperado al enviar el formulario')
     }
   }
 
@@ -76,6 +78,12 @@ export default function Fletes({ auth, fletes, filters, conductores, clientes, t
     <AuthenticatedLayout user={auth.user}>
       <Head title="Gestión de Fletes" />
       <div className="max-w-7xl mx-auto px-4 pt-6 pb-10 space-y-6">
+        {errorMensaje && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm">
+            ❌ {errorMensaje}
+          </div>
+        )}
+
         <div className="flex flex-wrap items-end gap-4 bg-gray-50 p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
           {[
             { label: 'Conductor', name: 'conductor_id', options: conductores, icon: UserCircleIcon, getLabel: o => o.name },

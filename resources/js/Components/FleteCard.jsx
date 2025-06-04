@@ -26,19 +26,26 @@ export default function FleteCard({
 
   const handleFlip = () => setFlipped(!flipped)
 
-  const colorEstadoFlete = flete.estado === 'Notificado' ? 'bg-black text-white' : 'bg-red-100 text-red-800 ring-red-600/20'
-  const colorEstadoRend = flete.rendicion?.estado === 'Cerrado' ? 'bg-black text-white' : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
+  const colorEstadoFlete = flete.estado === 'Notificado'
+    ? 'bg-black text-white'
+    : 'bg-red-100 text-red-800 ring-red-600/20'
+
+  const colorEstadoRend = flete.rendicion?.estado === 'Cerrado'
+    ? 'bg-black text-white'
+    : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
 
   return (
     <div className={`flete-card ${formAbierto ? 'expanded' : ''}`}>
       <div className={`flete-card-inner ${flipped ? 'rotate-y-180' : ''}`}>
-        {/* Frente */}
+
+        {/* Cara frontal */}
         <div className={`flete-card-front bg-gray-50 ring-1 ring-gray-900/5 shadow-sm rounded-lg p-4 ${!flipped ? 'active' : ''}`}>
           <div className="flex justify-end">
             <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
               <EyeIcon className="w-5 h-5" />
             </button>
           </div>
+
           <dl className="flex flex-wrap gap-y-1">
             <div className="flex-auto">
               <dt className="text-sm font-semibold text-gray-900">{flete.destino?.nombre || 'Sin destino'}</dt>
@@ -60,7 +67,9 @@ export default function FleteCard({
             </div>
             <div className="flex w-full gap-x-2 items-center text-sm text-gray-700">
               <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
-              Llegada: {flete.fecha_llegada ? new Date(flete.fecha_llegada).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }) : 'No registrada'}
+              Llegada: {flete.fecha_llegada
+                ? new Date(flete.fecha_llegada).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })
+                : 'No registrada'}
             </div>
             <div className="flex w-full gap-x-2 items-center text-sm text-gray-700">
               <UserIcon className="h-5 w-5 text-gray-400" />
@@ -76,16 +85,24 @@ export default function FleteCard({
             </div>
           </dl>
 
-          <div className="mt-4 flex justify-around gap-2 border-t border-gray-200 pt-3">
-            <button onClick={() => handleToggleForm(flete.id, 'diesel')} className="bg-[#44616e] hover:bg-[#3a535e] text-white px-3 py-1 rounded text-xs shadow-sm">
-              Diesel
-            </button>
-            <button onClick={() => handleToggleForm(flete.id, 'gasto')} className="bg-[#4a5c46] hover:bg-[#3d4b3a] text-white px-3 py-1 rounded text-xs shadow-sm">
-              Gasto
-            </button>
-            <button onClick={() => handleToggleForm(flete.id, 'finalizar')} className="bg-[#5c5040] hover:bg-[#4b4234] text-white px-3 py-1 rounded text-xs shadow-sm">
-              Viático
-            </button>
+          <div className="mt-3 text-sm text-gray-700">
+            <p className="font-semibold mb-1">Últimos registros:</p>
+            {[...(flete.rendicion?.gastos || []), ...(flete.rendicion?.diesels || [])]
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 2)
+              .map((r, i) => (
+                <div key={i} className="flex justify-between text-xs">
+                  <span>{r.tipo || 'Diesel'}{r.descripcion ? ` - ${r.descripcion}` : ''}</span>
+                  <span>${(r.monto ?? r.total)?.toLocaleString('es-CL')}</span>
+                  <button onClick={() => onEliminarRegistro(r.id)} className="text-red-500 hover:text-red-700 ml-2">✕</button>
+                </div>
+              ))}
+          </div>
+
+          <div className="mt-4 flex justify-between">
+            <button onClick={() => handleToggleForm(flete.id, 'diesel')} className="bg-[#44616e] hover:bg-[#3a535e] text-white px-3 py-1 rounded text-xs shadow-sm">Diesel</button>
+            <button onClick={() => handleToggleForm(flete.id, 'gasto')} className="bg-[#4a5c46] hover:bg-[#3d4b3a] text-white px-3 py-1 rounded text-xs shadow-sm">Gasto</button>
+            <button onClick={() => handleToggleForm(flete.id, 'finalizar')} className="bg-[#5c5040] hover:bg-[#4b4234] text-white px-3 py-1 rounded text-xs shadow-sm">Viático</button>
           </div>
 
           <div className="mt-2">
@@ -93,7 +110,7 @@ export default function FleteCard({
               <DieselForm
                 fleteId={flete.id}
                 rendicionId={flete.rendicion?.id}
-                onSubmit={submitForm}
+                onSubmit={(payload) => submitForm('/diesel', payload, flete.id)}
                 onCancel={() => handleCloseForm(flete.id)}
                 onSuccess={actualizarFleteEnLista}
               />
@@ -102,7 +119,7 @@ export default function FleteCard({
               <GastoForm
                 fleteId={flete.id}
                 rendicionId={flete.rendicion?.id}
-                onSubmit={submitForm}
+                onSubmit={(payload) => submitForm('/gasto', payload, flete.id)}
                 onCancel={() => handleCloseForm(flete.id)}
                 onSuccess={actualizarFleteEnLista}
               />
@@ -112,8 +129,7 @@ export default function FleteCard({
                 fleteId={flete.id}
                 rendicionId={flete.rendicion?.id}
                 fechaSalida={flete.fecha_salida}
-                fletePosteriorEnMismoDia={false}
-                onSubmit={submitForm}
+                onSubmit={(payload) => submitForm(`/rendicion/${flete.rendicion?.id}/viatico`, payload, flete.id)}
                 onCancel={() => handleCloseForm(flete.id)}
                 onSuccess={actualizarFleteEnLista}
               />
@@ -121,7 +137,7 @@ export default function FleteCard({
           </div>
         </div>
 
-        {/* Reverso */}
+        {/* Cara trasera */}
         <div className={`flete-card-back bg-white border border-gray-200 p-4 shadow-md rounded-xl ${flipped ? 'active' : ''}`}>
           <div className="flex justify-end">
             <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
@@ -132,20 +148,24 @@ export default function FleteCard({
 
           <p className="text-xs font-medium text-gray-500">🧾 Gastos:</p>
           <ul className="text-sm text-gray-700 mb-2 list-disc list-inside">
-            {flete.rendicion?.gastos?.map(g => (
-              <li key={g.id}>
-                ${g.monto?.toLocaleString('es-CL')} — <button onClick={() => onEliminarRegistro(g.id)} className="text-xs text-red-500 ml-2">✕</button>
-              </li>
-            )) || <li>No hay gastos.</li>}
+            {flete.rendicion?.gastos?.length > 0
+              ? flete.rendicion.gastos.map(g => (
+                <li key={g.id}>
+                  ${g.monto?.toLocaleString('es-CL')} — <button onClick={() => onEliminarRegistro(g.id)} className="text-xs text-red-500 ml-2">✕</button>
+                </li>
+              ))
+              : <li>No hay gastos.</li>}
           </ul>
 
           <p className="text-xs font-medium text-gray-500">⛽ Diesel:</p>
           <ul className="text-sm text-gray-700 list-disc list-inside">
-            {flete.rendicion?.diesels?.map(d => (
-              <li key={d.id}>
-                ${d.monto?.toLocaleString('es-CL')} ({d.metodo_pago}) — <button onClick={() => onEliminarRegistro(d.id)} className="text-xs text-red-500 ml-2">✕</button>
-              </li>
-            )) || <li>No hay registros.</li>}
+            {flete.rendicion?.diesels?.length > 0
+              ? flete.rendicion.diesels.map(d => (
+                <li key={d.id}>
+                  ${d.monto?.toLocaleString('es-CL')} ({d.metodo_pago}) — <button onClick={() => onEliminarRegistro(d.id)} className="text-xs text-red-500 ml-2">✕</button>
+                </li>
+              ))
+              : <li>No hay registros.</li>}
           </ul>
         </div>
       </div>
