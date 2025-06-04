@@ -16,12 +16,13 @@ return new class extends Migration
             $table->foreignId('tracto_id')->constrained()->onDelete('restrict');
             $table->foreignId('rampla_id')->constrained()->onDelete('restrict');
             $table->foreignId('destino_id')->constrained()->onDelete('restrict');
-            $table->foreignId('tarifa_id')->constrained()->onDelete('restrict');
+            $table->foreignId('tarifa_id')->nullable()->constrained()->onDelete('set null');
 
-            $table->string('tipo'); // Reparto o Directo
+            $table->enum('tipo', ['Directo', 'Reparto']);
             $table->integer('km_ida');
             $table->float('rendimiento')->nullable();
-            $table->string('estado')->default('pendiente');
+
+            $table->enum('estado', ['Sin Notificar', 'Notificado'])->default('Sin Notificar');
             $table->timestamp('fecha_salida')->nullable();
             $table->timestamp('fecha_llegada')->nullable();
 

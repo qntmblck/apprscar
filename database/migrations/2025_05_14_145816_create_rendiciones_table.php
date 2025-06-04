@@ -10,9 +10,13 @@ return new class extends Migration
     {
         Schema::create('rendiciones', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('flete_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('estado')->default('abierta');
+
+            $table->string('estado')->default('activo');     // activo / cerrado
+            $table->string('periodo')->nullable();            // Ej: Enero, Febrero, etc.
+
             $table->text('observaciones')->nullable();
 
             $table->integer('caja_flete')->default(0);

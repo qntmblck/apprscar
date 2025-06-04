@@ -11,13 +11,20 @@ class Tarifa extends Model
 
     protected $fillable = [
         'destino_id',
-        'monto',
+        'cliente_id',
         'tipo',
+        'valor_factura',
+        'valor_comision',
     ];
 
     public function destino()
     {
         return $this->belongsTo(Destino::class);
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
     }
 
     public function fletes()

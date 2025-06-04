@@ -74,59 +74,67 @@ export default function FinalizarForm({
   }
 
   return (
-    <div className="bg-gray-50 rounded-md p-3 space-y-3 border border-gray-200 shadow-sm text-sm w-full">
-      {error && (
-        <div className="text-red-600 text-xs bg-red-100 p-2 rounded">
-          ❌ {error}
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <label className="text-xs">🗓 Fecha de término:</label>
-        <input
-          type="date"
-          name="fecha_termino"
-          value={form.fecha_termino}
-          onChange={handleChange}
-          className="w-full px-3 py-2 rounded border border-gray-300 bg-white"
-        />
-
-        <label className="text-xs">🌊 Viático calculado:</label>
-        <input
-          type="text"
-          value={viaticoCalculado.toLocaleString('es-CL')}
-          readOnly
-          className="w-full px-3 py-2 rounded bg-gray-100 text-gray-500 border"
-        />
-
-        <label className="text-xs">💵 Viático efectivo recibido:</label>
-        <input
-          type="number"
-          name="viatico_efectivo"
-          value={form.viatico_efectivo}
-          onChange={handleChange}
-          className="w-full px-3 py-2 rounded border border-gray-300 bg-white"
-        />
-      </div>
-
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          onClick={handleSend}
-          className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-xs"
-        >
-          Enviar
-        </button>
-        <button
-          onClick={onCancel}
-          className="bg-gray-500 hover:bg-gray-400 text-white px-4 py-2 rounded text-xs"
-        >
-          Cancelar
-        </button>
-      </div>
-
-      {exito && (
-        <div className="text-green-600 text-xs text-right">✔️ Viático registrado</div>
-      )}
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner text-xs w-full">
+  {error && (
+    <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded mb-2">
+      ❌ {error}
     </div>
+  )}
+
+  <div className="grid grid-cols-2 gap-2">
+    {/* Fila 1: Fecha término */}
+    <div className="col-span-2">
+      <input
+        type="date"
+        name="fecha_termino"
+        value={form.fecha_termino}
+        onChange={handleChange}
+        className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+      />
+
+    </div>
+
+    {/* Fila 2: Viático calculado / efectivo */}
+    <input
+      type="text"
+      value={viaticoCalculado.toLocaleString('es-CL')}
+      readOnly
+      placeholder="🌊 Calculado"
+      className="p-2 rounded border border-gray-200 bg-gray-100 text-gray-500 w-full text-[11px]"
+    />
+    <input
+      type="text"
+      name="viatico_efectivo"
+      placeholder="💵 Efectivo"
+      value={form.viatico_efectivo}
+      onChange={handleChange}
+      className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+    />
+
+    {/* Fila 3: Enviar / Cancelar */}
+    <button
+      onClick={handleSend}
+      className="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded text-[11px] w-full"
+    >
+      Enviar
+    </button>
+    <button
+      onClick={onCancel}
+      className="bg-gray-500 hover:bg-gray-400 text-white px-3 py-2 rounded text-[11px] w-full"
+    >
+      Cancelar
+    </button>
+  </div>
+
+  {exito && (
+    <div className="text-green-600 text-[10px] text-right mt-2">
+      ✔️ Viático registrado
+    </div>
+  )}
+</div>
+
+
+
+
   )
 }

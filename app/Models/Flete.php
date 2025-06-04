@@ -26,6 +26,9 @@ class Flete extends Model
 
     protected $dates = ['fecha_salida', 'fecha_llegada'];
 
+    protected $appends = ['comision']; // 👈 Para incluir en JSON/API
+
+    // Relaciones principales
     public function conductor() {
         return $this->belongsTo(User::class, 'conductor_id');
     }
@@ -60,5 +63,25 @@ class Flete extends Model
 
     public function colaboradores() {
         return $this->belongsToMany(User::class, 'colaborador_flete', 'flete_id', 'colaborador_id');
+    }
+
+    // Accesor para estado legible
+    public function getEstadoColorAttribute() {
+        return match ($this->estado) {
+            'Sin Notificar' => 'bg-red-500',
+            'Notificado' => 'bg-green-500',
+            default => 'bg-gray-300',
+        };
+    }
+
+    // ✅ Atributo virtual: comision asociada al flete según su cliente, destino y tipo
+    public function getComisionAttribute()
+    {
+        $tarifa = Tarifa::where('cliente_id', $this->cliente_principal_id)
+            ->where('destino_id', $this->destino_id)
+            ->where('tipo', $this->tipo)
+            ->first();
+
+        return $tarifa?->valor_comision ?? 0;
     }
 }

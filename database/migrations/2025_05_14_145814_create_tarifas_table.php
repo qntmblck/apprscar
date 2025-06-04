@@ -10,9 +10,15 @@ return new class extends Migration
     {
         Schema::create('tarifas', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('destino_id')->constrained()->onDelete('cascade');
-            $table->integer('monto');
+            $table->foreignId('cliente_id')->constrained()->onDelete('cascade');
+
             $table->string('tipo'); // Reparto o Directo
+
+            $table->integer('valor_factura');
+            $table->integer('valor_comision');
+
             $table->timestamps();
         });
     }

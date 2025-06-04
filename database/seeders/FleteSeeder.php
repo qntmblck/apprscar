@@ -19,7 +19,7 @@ class FleteSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['superadmin', 'conductor', 'cliente'] as $role) {
+        foreach (['superadmin', 'conductor', 'cliente', 'colaborador'] as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
 
@@ -27,32 +27,26 @@ class FleteSeeder extends Seeder
         $conductores = collect();
         $clientes = collect();
 
-        // Crear conductores
+        // Conductores
         for ($i = 1; $i <= 20; $i++) {
-            $user = User::firstOrCreate(
-                ['email' => "conductor{$i}@mail.com"],
-                [
-                    'name' => $faker->name,
-                    'password' => bcrypt('password'),
-                    'email_verified_at' => now(),
-                    'remember_token' => Str::random(10),
-                ]
-            );
+            $user = User::firstOrCreate(['email' => "conductor{$i}@mail.com"], [
+                'name' => $faker->name,
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+            ]);
             $user->assignRole('conductor');
             $conductores->push($user);
         }
 
-        // Crear clientes
+        // Clientes
         for ($i = 1; $i <= 20; $i++) {
-            $user = User::firstOrCreate(
-                ['email' => "cliente{$i}@mail.com"],
-                [
-                    'name' => $faker->company,
-                    'password' => bcrypt('password'),
-                    'email_verified_at' => now(),
-                    'remember_token' => Str::random(10),
-                ]
-            );
+            $user = User::firstOrCreate(['email' => "cliente{$i}@mail.com"], [
+                'name' => $faker->company,
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+            ]);
             $user->assignRole('cliente');
 
             $cliente = Cliente::firstOrCreate([
@@ -63,7 +57,6 @@ class FleteSeeder extends Seeder
                 'direccion' => $faker->address,
                 'telefono' => $faker->phoneNumber,
             ]);
-
             $clientes->push($cliente);
         }
 
@@ -115,28 +108,43 @@ class FleteSeeder extends Seeder
             ]));
         }
 
-        // Tarifas
+        // Tarifas por cliente + destino + tipo
         $tarifas = collect();
-        foreach ($destinos as $destino) {
-            $tarifas->push(Tarifa::firstOrCreate([
-                'destino_id' => $destino->id,
-                'tipo' => 'Directo',
-            ], [
-                'monto' => rand(150000, 500000),
-            ]));
+        foreach ($clientes as $cliente) {
+            foreach ($destinos as $destino) {
+                foreach (['Directo', 'Reparto'] as $tipo) {
+                    $tarifas->push(Tarifa::firstOrCreate([
+                        'destino_id' => $destino->id,
+                        'cliente_id' => $cliente->id,
+                        'tipo' => $tipo,
+                    ], [
+                        'valor_factura' => rand(150000, 500000),
+                        'valor_comision' => rand(20000, 60000),
+                    ]));
+                }
+            }
         }
 
-        // Fletes + Rendiciones
+        $periodos = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'];
+
         for ($i = 0; $i < 1000; $i++) {
             $conductor = $conductores->random();
             $cliente = $clientes->random();
             $tracto = $tractos->random();
             $rampla = $ramplas->random();
             $destino = $destinos->random();
-            $tarifa = $tarifas->firstWhere('destino_id', $destino->id);
+            $tipo = rand(0, 1) ? 'Directo' : 'Reparto';
+
+            $tarifa = $tarifas->firstWhere(fn($t) =>
+                $t->destino_id === $destino->id &&
+                $t->cliente_id === $cliente->id &&
+                $t->tipo === $tipo
+            );
 
             $fecha_salida = Carbon::now()->subDays(rand(0, 90));
             $fecha_llegada = (clone $fecha_salida)->addDays(rand(1, 3));
+            $estadoFlete = rand(0, 1) ? 'Notificado' : 'Sin Notificar';
+
 
             $flete = Flete::create([
                 'conductor_id' => $conductor->id,
@@ -145,30 +153,42 @@ class FleteSeeder extends Seeder
                 'rampla_id' => $rampla->id,
                 'destino_id' => $destino->id,
                 'tarifa_id' => $tarifa->id,
-                'tipo' => 'Directo',
+                'tipo' => $tipo,
                 'km_ida' => $destino->km,
                 'rendimiento' => round(mt_rand(30, 65) / 10, 1),
-                'estado' => 'pendiente',
+                'estado' => $estadoFlete,
                 'fecha_salida' => $fecha_salida,
                 'fecha_llegada' => $fecha_llegada,
             ]);
 
+            $estadoRend = rand(0, 1) ? 'Activo' : 'Cerrado';
+            $caja = rand(150000, 300000);
+            $viaticoCalc = ($fecha_salida->diffInDays($fecha_llegada) + 1) * 15000;
+            $viatico = $estadoRend === 'cerrada' ? $viaticoCalc : 0;
+            $saldo = $estadoRend === 'cerrada' ? $caja - $viatico - rand(20000, 60000) : null;
+            $periodo = $estadoRend === 'cerrada' ? $periodos[array_rand($periodos)] : null;
+
             Rendicion::create([
                 'flete_id' => $flete->id,
                 'user_id' => $conductor->id,
-                'estado' => 'abierta',
-                'caja_flete' => rand(100000, 300000),
-                'viatico_efectivo' => 0,
-                'viatico_calculado' => 0,
-                'viatico' => null,
-                'saldo' => null,
+                'estado' => $estadoRend,
+                'caja_flete' => $caja,
+                'viatico_efectivo' => $viatico,
+                'viatico_calculado' => $viaticoCalc,
+                'viatico' => $estadoRend === 'cerrada' ? $viatico : null,
+                'saldo' => $saldo,
+                'periodo' => $periodo,
             ]);
         }
 
-        // Superadmin
-        User::firstOrCreate([
-            'email' => 'superadmin@example.com',
-        ], [
+        User::firstOrCreate(['email' => 'colaborador@example.com'], [
+            'name' => 'Usuario Colaborador',
+            'email_verified_at' => now(),
+            'password' => bcrypt('password'),
+            'remember_token' => Str::random(10),
+        ])->assignRole('colaborador');
+
+        User::firstOrCreate(['email' => 'superadmin@example.com'], [
             'name' => 'Súper Admin',
             'email_verified_at' => now(),
             'password' => bcrypt('password'),

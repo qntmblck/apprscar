@@ -20,8 +20,9 @@ class Rendicion extends Model
         'caja_flete',
         'viatico_efectivo',
         'viatico',
+        'viatico_calculado',
         'saldo',
-        'saldo_temporal', // importante si usas persistencia
+        'periodo',
     ];
 
     protected $appends = [
@@ -65,8 +66,8 @@ class Rendicion extends Model
 
     public function getViaticoCalculadoAttribute()
     {
-        $salida = optional($this->flete->fecha_salida)->startOfDay();
-        $llegada = optional($this->flete->fecha_llegada)->startOfDay() ?? now()->startOfDay();
+        $salida = optional($this->flete->fecha_salida)?->startOfDay();
+        $llegada = optional($this->flete->fecha_llegada)?->startOfDay() ?? now()->startOfDay();
 
         if (!$salida || $salida->gt($llegada)) return 0;
 
@@ -88,16 +89,15 @@ class Rendicion extends Model
         return $this->caja_flete - $this->total_diesel - $this->total_gastos - $viatico;
     }
 
-    // Recalcula y guarda solo saldo_temporal persistente
+    // Calcula y guarda saldo real
     public function recalcularTotales()
-{
-    $gastos = $this->gastos()->sum('monto');
-    $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
-    $viatico = $this->viatico ?? $this->viatico_calculado ?? 0;
+    {
+        $gastos = $this->gastos()->sum('monto');
+        $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
+        $viatico = $this->viatico ?? $this->viatico_calculado ?? 0;
 
-
-    $this->saldo = $this->caja_flete - $gastos - $diesel - $viatico;
-    $this->save(); // ✅ guarda saldo real, no virtual
-}
+        $this->saldo = $this->caja_flete - $gastos - $diesel - $viatico;
+        $this->save();
+    }
 
 }

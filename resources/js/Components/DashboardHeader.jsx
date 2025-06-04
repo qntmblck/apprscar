@@ -147,6 +147,7 @@ export default function DashboardHeader() {
 
 function getNavigation(roles) {
   const navigation = [{ name: 'Panel', href: getDashboardUrl(roles) }]
+
   if (roles.includes('superadmin')) {
     navigation.push(
       { name: 'Usuarios', href: '/usuarios' },
@@ -163,9 +164,13 @@ function getNavigation(roles) {
     navigation.push({ name: 'Clientes', href: '/clientes' })
   } else if (roles.includes('cliente')) {
     navigation.push({ name: 'Mis Fletes', href: '/cliente/fletes' })
+  } else if (roles.includes('conductor')) {
+    navigation.push({ name: 'Fletes', href: '/conductor/fletes' })
   }
+
   return navigation
 }
+
 
 function getDashboardUrl(roles) {
   if (roles.includes('superadmin')) return '/super/dashboard'
