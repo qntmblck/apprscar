@@ -27,4 +27,43 @@ class FleteBatchController extends Controller
 
         return response()->json(['message' => 'Fletes actualizados correctamente.']);
     }
+    public function actualizarPagos(Request $request)
+{
+    $request->validate([
+        'conductor_id' => 'required|exists:users,id',
+        'periodo' => 'required|string|in:Enero,Febrero,...,Diciembre',
+        'flete_ids' => 'required|array',
+        'flete_ids.*' => 'integer|exists:fletes,id',
+    ]);
+
+    $conductorId = $request->conductor_id;
+    $periodo = $request->periodo;
+    $fleteIdsPagados = $request->flete_ids;
+
+    // Traer todos los fletes del conductor en ese periodo
+    $todosFletesPeriodo = Flete::where('conductor_id', $conductorId)
+        ->where('periodo', $periodo)
+        ->get();
+
+    // Marcar los seleccionados como pagados, el resto como no pagados
+    foreach ($todosFletesPeriodo as $flete) {
+        $flete->update([
+            'pagado' => in_array($flete->id, $fleteIdsPagados),
+        ]);
+    }
+
+    // Recalcular total
+    $fletesPagados = $todosFletesPeriodo->whereIn('id', $fleteIdsPagados);
+    $totalComision = $fletesPagados->sum('comision');
+    $totalSaldo = $fletesPagados->pluck('rendicion.saldo')->sum();
+
+    // Crear o actualizar pago
+    \App\Models\Pago::updateOrCreate(
+        ['conductor_id' => $conductorId, 'periodo' => $periodo],
+        ['total_comision' => $totalComision, 'total_saldo' => $totalSaldo, 'fecha_pago' => now()]
+    );
+
+    return response()->json(['message' => '✅ Pagos actualizados.']);
+}
+
 }

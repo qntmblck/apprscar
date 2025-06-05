@@ -10,141 +10,89 @@ use App\Models\Rampla;
 use App\Models\Rendicion;
 use App\Models\Tarifa;
 use App\Models\Tracto;
-use Carbon\Carbon;
+use App\Models\Diesel;
+use App\Models\Gasto;
+use App\Models\AbonoCaja;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Role;
 
 class FleteSeeder extends Seeder
 {
     public function run(): void
     {
+        $faker = \Faker\Factory::create('es_CL');
+        $meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
         foreach (['superadmin', 'conductor', 'cliente', 'colaborador'] as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
 
-        $faker = \Faker\Factory::create('es_ES');
-        $conductores = collect();
+        $super = User::firstOrCreate(['email' => 'superadmin@example.com'], [
+            'name' => 'Super Admin',
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+        ]);
+        $super->syncRoles(['superadmin']);
+
+        $conductores = User::factory(10)->create()->each(fn($u) => $u->assignRole('conductor'));
+
         $clientes = collect();
-
-        // Conductores
-        for ($i = 1; $i <= 20; $i++) {
-            $user = User::firstOrCreate(['email' => "conductor{$i}@mail.com"], [
-                'name' => $faker->name,
-                'password' => bcrypt('password'),
-                'email_verified_at' => now(),
-                'remember_token' => Str::random(10),
-            ]);
-            $user->assignRole('conductor');
-            $conductores->push($user);
-        }
-
-        // Clientes
-        for ($i = 1; $i <= 20; $i++) {
-            $user = User::firstOrCreate(['email' => "cliente{$i}@mail.com"], [
-                'name' => $faker->company,
-                'password' => bcrypt('password'),
-                'email_verified_at' => now(),
-                'remember_token' => Str::random(10),
-            ]);
+        foreach (range(1, 10) as $i) {
+            $user = User::factory()->create(['email' => "cliente{$i}@mail.com"]);
             $user->assignRole('cliente');
-
-            $cliente = Cliente::firstOrCreate([
-                'user_id' => $user->id,
-                'razon_social' => $user->name,
-                'rut' => '76.000.' . str_pad($i, 3, '0', STR_PAD_LEFT) . '-K',
-                'giro' => 'Transporte',
-                'direccion' => $faker->address,
-                'telefono' => $faker->phoneNumber,
-            ]);
-            $clientes->push($cliente);
+            $clientes->push(
+                Cliente::create([
+                    'user_id' => $user->id,
+                    'razon_social' => $faker->company,
+                    'rut' => $faker->unique()->numerify('76.###.###-#'),
+                    'giro' => 'Transporte',
+                    'direccion' => $faker->address,
+                    'telefono' => $faker->phoneNumber,
+                ])
+            );
         }
 
-        // Tractos
-        $tractos = collect();
-        for ($i = 1; $i <= 5; $i++) {
-            $tractos->push(Tracto::firstOrCreate([
-                'patente' => "TRC" . str_pad($i, 3, '0', STR_PAD_LEFT),
-            ], [
-                'marca' => 'Volvo',
-                'modelo' => 'FH',
-                'año' => rand(2015, 2023),
-                'color' => 'Blanco',
-            ]));
-        }
+        $destinos = Destino::factory(5)->create();
+        $tractos = Tracto::factory(5)->create();
+        $ramplas = Rampla::factory(5)->create();
 
-        // Ramplas
-        $ramplas = collect();
-        for ($i = 1; $i <= 5; $i++) {
-            $ramplas->push(Rampla::firstOrCreate([
-                'patente' => "RMP" . str_pad($i, 3, '0', STR_PAD_LEFT),
-            ], [
-                'tipo' => 'Plataforma',
-                'marca' => 'Randon',
-                'capacidad' => 28000,
-                'longitud' => 13.5,
-            ]));
-        }
-
-        // Destinos
-        $destinosRaw = [
-            ['Santiago', 'RM', 0], ['Valparaíso', 'Valparaíso', 120], ['Concepción', 'Biobío', 500],
-            ['Antofagasta', 'Antofagasta', 1300], ['La Serena', 'Coquimbo', 470], ['Puerto Montt', 'Los Lagos', 1000],
-            ['Temuco', 'Araucanía', 680], ['Iquique', 'Tarapacá', 1800], ['Rancagua', 'O’Higgins', 90],
-            ['Copiapó', 'Atacama', 800], ['Chillán', 'Ñuble', 400], ['Talca', 'Maule', 250],
-            ['Arica', 'Arica y Parinacota', 2050], ['Punta Arenas', 'Magallanes', 2200], ['Quillota', 'Valparaíso', 135],
-            ['Ovalle', 'Coquimbo', 410], ['Curicó', 'Maule', 200], ['Los Ángeles', 'Biobío', 510],
-            ['Calama', 'Antofagasta', 1450], ['San Antonio', 'Valparaíso', 105], ['Melipilla', 'RM', 70],
-            ['San Fernando', 'O’Higgins', 160], ['Angol', 'Araucanía', 700], ['Vallenar', 'Atacama', 950],
-            ['Linares', 'Maule', 300], ['Castro', 'Los Lagos', 1200], ['Tocopilla', 'Antofagasta', 1350],
-            ['Osorno', 'Los Lagos', 1050], ['Coyhaique', 'Aysén', 1900], ['Puerto Natales', 'Magallanes', 2250],
-        ];
-
-        $destinos = collect();
-        foreach ($destinosRaw as [$nombre, $region, $km]) {
-            $destinos->push(Destino::firstOrCreate(['nombre' => $nombre], [
-                'region' => $region,
-                'km' => $km,
-            ]));
-        }
-
-        // Tarifas por cliente + destino + tipo
-        $tarifas = collect();
         foreach ($clientes as $cliente) {
             foreach ($destinos as $destino) {
                 foreach (['Directo', 'Reparto'] as $tipo) {
-                    $tarifas->push(Tarifa::firstOrCreate([
+                    Tarifa::firstOrCreate([
+                        'cliente_principal_id' => $cliente->id,
                         'destino_id' => $destino->id,
-                        'cliente_id' => $cliente->id,
                         'tipo' => $tipo,
                     ], [
-                        'valor_factura' => rand(150000, 500000),
-                        'valor_comision' => rand(20000, 60000),
-                    ]));
+                        'valor_factura' => 100000,
+                        'valor_comision' => 10000,
+                    ]);
                 }
             }
         }
 
-        $periodos = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'];
-
-        for ($i = 0; $i < 1000; $i++) {
-            $conductor = $conductores->random();
+        foreach (range(1, 500) as $i) {
             $cliente = $clientes->random();
+            $conductor = $conductores->random();
+            $destino = $destinos->random();
             $tracto = $tractos->random();
             $rampla = $ramplas->random();
-            $destino = $destinos->random();
-            $tipo = rand(0, 1) ? 'Directo' : 'Reparto';
+            $tipo = $faker->randomElement(['Directo', 'Reparto']);
 
-            $tarifa = $tarifas->firstWhere(fn($t) =>
-                $t->destino_id === $destino->id &&
-                $t->cliente_id === $cliente->id &&
-                $t->tipo === $tipo
-            );
+            $tarifa = Tarifa::where([
+                'cliente_principal_id' => $cliente->id,
+                'destino_id' => $destino->id,
+                'tipo' => $tipo
+            ])->first();
 
-            $fecha_salida = Carbon::now()->subDays(rand(0, 90));
-            $fecha_llegada = (clone $fecha_salida)->addDays(rand(1, 3));
-            $estadoFlete = rand(0, 1) ? 'Notificado' : 'Sin Notificar';
+            $fechaSalida = Carbon::now()->subDays(rand(10, 40));
+            $fechaLlegada = (clone $fechaSalida)->addDays(rand(1, 5));
 
+            $usarComisionManual = rand(1, 100) <= 10;
+            $comisionManual = $usarComisionManual ? rand(8000, 20000) : null;
+            $retorno = $usarComisionManual ? rand(10000, 50000) : null;
 
             $flete = Flete::create([
                 'conductor_id' => $conductor->id,
@@ -154,45 +102,57 @@ class FleteSeeder extends Seeder
                 'destino_id' => $destino->id,
                 'tarifa_id' => $tarifa->id,
                 'tipo' => $tipo,
-                'km_ida' => $destino->km,
-                'rendimiento' => round(mt_rand(30, 65) / 10, 1),
-                'estado' => $estadoFlete,
-                'fecha_salida' => $fecha_salida,
-                'fecha_llegada' => $fecha_llegada,
+                'estado' => rand(0, 1) ? 'Notificado' : 'Sin Notificar',
+                'fecha_salida' => $fechaSalida,
+                'fecha_llegada' => rand(1, 100) <= 70 ? $fechaLlegada : null,
+                'kilometraje' => rand(200, 900),
+                'rendimiento' => round(rand(30, 65) / 10, 1),
+                'comision' => $comisionManual ?? $tarifa->valor_comision,
+                'retorno' => $retorno,
+                'guiaruta' => $faker->numerify('GR-#####'),
+                'periodo' => $faker->randomElement($meses),
+                'pagado' => rand(1, 100) <= 30,
             ]);
 
-            $estadoRend = rand(0, 1) ? 'Activo' : 'Cerrado';
-            $caja = rand(150000, 300000);
-            $viaticoCalc = ($fecha_salida->diffInDays($fecha_llegada) + 1) * 15000;
-            $viatico = $estadoRend === 'cerrada' ? $viaticoCalc : 0;
-            $saldo = $estadoRend === 'cerrada' ? $caja - $viatico - rand(20000, 60000) : null;
-            $periodo = $estadoRend === 'cerrada' ? $periodos[array_rand($periodos)] : null;
-
-            Rendicion::create([
+            $rendicion = Rendicion::create([
                 'flete_id' => $flete->id,
                 'user_id' => $conductor->id,
-                'estado' => $estadoRend,
-                'caja_flete' => $caja,
-                'viatico_efectivo' => $viatico,
-                'viatico_calculado' => $viaticoCalc,
-                'viatico' => $estadoRend === 'cerrada' ? $viatico : null,
-                'saldo' => $saldo,
-                'periodo' => $periodo,
+                'estado' => rand(1, 100) <= 70 ? 'Cerrado' : 'Activo',
+                'periodo' => $flete->periodo,
+                'viatico_efectivo' => 30000,
+                'caja_flete' => 0,
+                'comision' => $flete->comision,
+                'pagado' => $flete->pagado,
             ]);
+
+            foreach (range(1, rand(1, 3)) as $a) {
+                AbonoCaja::create([
+                    'rendicion_id' => $rendicion->id,
+                    'monto' => rand(20000, 60000),
+                    'metodo' => $faker->randomElement(['Efectivo', 'Transferencia']),
+                ]);
+            }
+
+            foreach (range(1, rand(1, 2)) as $d) {
+                Diesel::create([
+                    'rendicion_id' => $rendicion->id,
+                    'flete_id' => $flete->id,
+                    'litros' => rand(50, 150),
+                    'monto' => rand(70000, 150000),
+                    'metodo_pago' => $faker->randomElement(['Efectivo', 'Transferencia', 'Crédito']),
+                ]);
+            }
+
+            foreach (range(1, rand(1, 3)) as $g) {
+                Gasto::create([
+                    'rendicion_id' => $rendicion->id,
+                    'flete_id' => $flete->id,
+                    'usuario_id' => $conductor->id,
+                    'tipo' => $faker->randomElement(['Peaje', 'Carga', 'Descarga', 'Estacionamiento', 'Otros']),
+                    'monto' => rand(5000, 25000),
+                    'descripcion' => $faker->sentence,
+                ]);
+            }
         }
-
-        User::firstOrCreate(['email' => 'colaborador@example.com'], [
-            'name' => 'Usuario Colaborador',
-            'email_verified_at' => now(),
-            'password' => bcrypt('password'),
-            'remember_token' => Str::random(10),
-        ])->assignRole('colaborador');
-
-        User::firstOrCreate(['email' => 'superadmin@example.com'], [
-            'name' => 'Súper Admin',
-            'email_verified_at' => now(),
-            'password' => bcrypt('password'),
-            'remember_token' => Str::random(10),
-        ])->assignRole('superadmin');
     }
 }

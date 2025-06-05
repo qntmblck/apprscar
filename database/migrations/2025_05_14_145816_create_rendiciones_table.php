@@ -14,16 +14,18 @@ return new class extends Migration
             $table->foreignId('flete_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            $table->string('estado')->default('activo');     // activo / cerrado
-            $table->string('periodo')->nullable();            // Ej: Enero, Febrero, etc.
+            $table->string('estado')->default('activo');         // activo / cerrado
+            $table->string('periodo')->nullable();               // Ej: Enero, Febrero, etc.
+            $table->boolean('pagado')->default(false);           // indica si fue pagado
+            $table->integer('comision')->nullable();             // comisión aplicada
 
             $table->text('observaciones')->nullable();
 
             $table->integer('caja_flete')->default(0);
-            $table->integer('viatico_efectivo')->default(0);   // Ingresado manualmente
-            $table->integer('viatico_calculado')->default(0);  // Calculado automáticamente
-            $table->integer('viatico')->nullable();            // Final, al cerrar flete
-            $table->integer('saldo')->nullable();              // Final, al cerrar flete
+            $table->integer('viatico_efectivo')->default(0);     // Ingresado manualmente
+            $table->integer('viatico_calculado')->default(0);    // Calculado automáticamente
+            $table->integer('viatico')->nullable();              // Final, al cerrar flete
+            $table->integer('saldo')->nullable();                // Final, al cerrar flete
 
             $table->timestamps();
         });

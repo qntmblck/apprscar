@@ -23,6 +23,12 @@ class Rendicion extends Model
         'viatico_calculado',
         'saldo',
         'periodo',
+        'comision',
+        'pagado',
+    ];
+
+    protected $casts = [
+        'pagado' => 'boolean',
     ];
 
     protected $appends = [
@@ -30,6 +36,7 @@ class Rendicion extends Model
         'total_diesel',
         'viatico_calculado',
         'saldo_temporal',
+        'caja_flete_acumulada',
     ];
 
     /*
@@ -56,6 +63,11 @@ class Rendicion extends Model
     public function diesels()
     {
         return $this->hasMany(Diesel::class);
+    }
+
+    public function abonos()
+    {
+        return $this->hasMany(AbonoCaja::class);
     }
 
     /*
@@ -97,34 +109,45 @@ class Rendicion extends Model
     }
 
     public function getSaldoTemporalAttribute()
-{
-    try {
-        $caja = $this->caja_flete ?? 0;
-        $gastos = $this->gastos()->sum('monto');
-        $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
-        $viatico = $this->viatico_efectivo ?? $this->viatico ?? $this->viatico_calculado ?? 0;
+    {
+        try {
+            $caja = $this->caja_flete_acumulada;
+            $gastos = $this->gastos()->sum('monto');
+            $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
+            $viatico = $this->viatico_efectivo ?? $this->viatico ?? $this->viatico_calculado ?? 0;
 
-        return $caja - $gastos - $diesel - $viatico;
-    } catch (\Throwable $e) {
-        \Log::error('Error en saldo_temporal: ' . $e->getMessage());
-        return 0;
+            return $caja - $gastos - $diesel - $viatico;
+        } catch (\Throwable $e) {
+            \Log::error('Error en saldo_temporal: ' . $e->getMessage());
+            return 0;
+        }
     }
-}
 
+    public function getCajaFleteAcumuladaAttribute()
+    {
+        return $this->abonos()->sum('monto');
+    }
 
     /*
     |--------------------------------------------------------------------------
     | Recalcular saldo final (persistente)
-    |--------------------------------------------------------------------------
+    |------------------------------------------------npm run build-------------------------
     */
 
     public function recalcularTotales()
-    {
+{
+    try {
         $gastos = $this->gastos()->sum('monto');
         $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
         $viatico = $this->viatico ?? $this->viatico_calculado ?? 0;
+        $abonos = $this->abonos()->sum('monto');
 
-        $this->saldo = $this->caja_flete - $gastos - $diesel - $viatico;
+        $this->saldo = $abonos - $gastos - $diesel - $viatico;
         $this->save();
+    } catch (\Throwable $e) {
+        \Log::error('Error al recalcular totales: ' . $e->getMessage());
     }
+}
+
+
 }

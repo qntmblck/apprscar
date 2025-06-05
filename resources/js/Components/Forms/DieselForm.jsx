@@ -20,25 +20,20 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
   const handleSend = async () => {
     setError(null)
 
-    // Validación simple antes de enviar (client-side opcional)
     if (!form.monto || !form.litros || !form.metodo_pago) {
       setError('Completa todos los campos obligatorios.')
       return
     }
 
-    const payload = {
-  flete_id: fleteId,
-  rendicion_id: rendicionId,
-  monto: form.monto,
-  litros: form.litros,
-  metodo_pago: form.metodo_pago,
-}
-
-// solo agregar foto si existe
-if (form.foto instanceof File) {
-  payload.foto = form.foto
-}
-
+    const payload = new FormData()
+    payload.append('flete_id', fleteId)
+    payload.append('rendicion_id', rendicionId)
+    payload.append('monto', form.monto)
+    payload.append('litros', form.litros)
+    payload.append('metodo_pago', form.metodo_pago)
+    if (form.foto instanceof File) {
+      payload.append('foto', form.foto)
+    }
 
     try {
       const res = await onSubmit(payload)
@@ -48,7 +43,7 @@ if (form.foto instanceof File) {
         setExito(true)
         setTimeout(() => setExito(false), 1800)
       } else {
-        throw new Error('No se pudo registrar el diesel.')
+        throw new Error('No se devolvió el flete actualizado.')
       }
     } catch (e) {
       const message =
@@ -63,88 +58,82 @@ if (form.foto instanceof File) {
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner text-xs w-full">
-  {error && (
-    <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded mb-2">
-      ❌ {error}
+      {error && (
+        <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded mb-2">
+          ❌ {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          name="monto"
+          placeholder="💰 Monto"
+          value={form.monto}
+          onChange={handleChange}
+          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+        />
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          name="litros"
+          placeholder="⛽ Litros"
+          value={form.litros}
+          onChange={handleChange}
+          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+        />
+
+        <select
+          name="metodo_pago"
+          value={form.metodo_pago}
+          onChange={handleChange}
+          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+        >
+          <option value="">Método de pago</option>
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Crédito">Crédito</option>
+        </select>
+
+        <label
+          htmlFor={`foto-${fleteId}`}
+          className="flex items-center justify-center gap-1 bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px] transition-colors"
+        >
+          <CameraIcon className="w-4 h-4" />
+          Foto
+          <input
+            id={`foto-${fleteId}`}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            name="foto"
+            onChange={handleChange}
+            className="hidden"
+          />
+        </label>
+
+        <button
+          onClick={onCancel}
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleSend}
+          className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
+        >
+          Enviar
+        </button>
+      </div>
+
+      {exito && (
+        <div className="text-green-600 text-[10px] text-right mt-2">
+          ✔️ Registrado correctamente
+        </div>
+      )}
     </div>
-  )}
-
-  <div className="grid grid-cols-2 gap-2">
-    {/* Fila 1: Monto / Litros */}
-    <input
-      type="text"
-      inputMode="numeric"
-      pattern="[0-9]*"
-      name="monto"
-      placeholder="💰 Monto"
-      value={form.monto}
-      onChange={handleChange}
-      className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
-    />
-    <input
-      type="text"
-      inputMode="numeric"
-      pattern="[0-9]*"
-      name="litros"
-      placeholder="⛽ Litros"
-      value={form.litros}
-      onChange={handleChange}
-      className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
-    />
-
-
-{/* Fila 2: Método / Subir Foto */}
-<select
-  name="metodo_pago"
-  value={form.metodo_pago}
-  onChange={handleChange}
-  className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
->
-  <option value="">Método de pago</option>
-  <option value="Efectivo">Efectivo</option>
-  <option value="Transferencia">Transferencia</option>
-  <option value="Crédito">Crédito</option>
-</select>
-
-<label
-  htmlFor={`foto-${fleteId}`}
-  className="flex items-center justify-center gap-1 bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px] transition-colors"
->
-  <CameraIcon className="w-4 h-4" />
-  Foto
-  <input
-    id={`foto-${fleteId}`}
-    type="file"
-    accept="image/*"
-    capture="environment"
-    name="foto"
-    onChange={handleChange}
-    className="hidden"
-  />
-</label>
-
-{/* Fila 3: Enviar / Cancelar */}
-<button
-  onClick={handleSend}
-  className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full"
->
-  Enviar
-</button>
-<button
-  onClick={onCancel}
-  className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded text-[11px] w-full"
->
-  Cancelar
-</button>
-
-  </div>
-
-  {exito && (
-    <div className="text-green-600 text-[10px] text-right mt-2">
-      ✔️ Registrado correctamente
-    </div>
-  )}
-</div>
-
   )
 }

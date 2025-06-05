@@ -12,11 +12,7 @@ export default function FinalizarForm({
   onCancel,
   onSuccess,
 }) {
-  const [form, setForm] = useState({
-    fecha_termino: '',
-    viatico_efectivo: '',
-  })
-
+  const [form, setForm] = useState({ fecha_termino: '', viatico_efectivo: '' })
   const [viaticoCalculado, setViaticoCalculado] = useState(0)
   const [exito, setExito] = useState(false)
   const [error, setError] = useState(null)
@@ -25,7 +21,6 @@ export default function FinalizarForm({
     if (form.fecha_termino && fechaSalida) {
       const start = new Date(fechaSalida)
       const end = new Date(form.fecha_termino)
-
       if (!isNaN(start) && !isNaN(end)) {
         let dias = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
         if (fletePosteriorEnMismoDia) dias = Math.max(0, dias - 1)
@@ -35,9 +30,9 @@ export default function FinalizarForm({
   }, [form.fecha_termino, fechaSalida, fletePosteriorEnMismoDia])
 
   const handleDateChange = (date) => {
-    const corregida = new Date(date)
-    corregida.setDate(corregida.getDate() + 1)
-    const fechaISO = corregida.toISOString().split('T')[0]
+    const datePlusOne = new Date(date)
+    datePlusOne.setDate(datePlusOne.getDate() + 1)
+    const fechaISO = datePlusOne.toISOString().split('T')[0]
     setForm(prev => ({ ...prev, fecha_termino: fechaISO }))
   }
 
@@ -63,7 +58,7 @@ export default function FinalizarForm({
   const handleSend = async () => {
     setError(null)
 
-    if (!form.fecha_termino && !form.viatico_efectivo) {
+    if (!form.fecha_termino && form.viatico_efectivo === '') {
       setError('Debes ingresar al menos la fecha o el viático efectivo.')
       return
     }
@@ -73,24 +68,18 @@ export default function FinalizarForm({
       rendicion_id: rendicionId,
     }
 
-    if (form.fecha_termino) {
-      payload.fecha_termino = form.fecha_termino
-    }
-
-    if (form.viatico_efectivo !== '') {
-      payload.viatico_efectivo = form.viatico_efectivo
-    }
+    if (form.fecha_termino) payload.fecha_termino = form.fecha_termino
+    if (form.viatico_efectivo !== '') payload.viatico_efectivo = form.viatico_efectivo
 
     try {
       const res = await onSubmit(payload)
       if (res?.data?.flete) {
         onSuccess(res.data.flete)
         setForm({ fecha_termino: '', viatico_efectivo: '' })
+        setViaticoCalculado(0)
         setExito(true)
         setTimeout(() => setExito(false), 1800)
-      } else {
-        throw new Error('No se pudo finalizar el flete.')
-      }
+      } else throw new Error('No se pudo finalizar el flete.')
     } catch (e) {
       const message =
         e.response?.data?.message ||
@@ -138,18 +127,17 @@ export default function FinalizarForm({
         />
 
         <button
-  onClick={handleSend}
-  className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
->
-  Enviar
-</button>
-<button
-  onClick={onCancel}
-  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
->
-  Cancelar
-</button>
-
+          onClick={onCancel}
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleSend}
+          className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
+        >
+          Enviar
+        </button>
       </div>
 
       {exito && (

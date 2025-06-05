@@ -44,14 +44,16 @@ class DieselController extends Controller
             $diesel->rendicion->recalcularTotales();
 
             $flete = Flete::with([
-                'cliente',
-                'destino',
-                'conductor',
-                'tracto',
-                'rampla',
-                'rendicion.gastos',
-                'rendicion.diesels',
-            ])->find($validated['flete_id']);
+    'cliente',
+    'destino',
+    'conductor',
+    'tracto',
+    'rampla',
+    'rendicion.abonos',  //
+    'rendicion.gastos',
+    'rendicion.diesels',
+])->find($validated['flete_id']);
+
 
             $flete->rendicion->makeVisible([
                 'saldo_temporal',

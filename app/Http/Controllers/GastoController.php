@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Gasto;
 use App\Models\Flete;
+use App\Models\Rendicion;
 
 class GastoController extends Controller
 {
@@ -13,51 +14,64 @@ class GastoController extends Controller
         $validated = $request->validate([
             'flete_id' => 'required|exists:fletes,id',
             'rendicion_id' => 'required|exists:rendiciones,id',
-            'tipo' => 'required|in:Carga,Descarga,Camioneta,Estacionamiento,Peaje,Otros',
             'monto' => 'required|numeric|min:0',
+            'tipo' => 'required|string',
             'descripcion' => 'nullable|string',
             'foto' => 'nullable|image|max:2048',
         ]);
 
-        $gasto = Gasto::create([
-            'flete_id' => $validated['flete_id'],
-            'rendicion_id' => $validated['rendicion_id'],
-            'usuario_id' => auth()->id(),
-            'tipo' => $validated['tipo'],
-            'monto' => $validated['monto'],
-            'descripcion' => $validated['descripcion'] ?? null,
-            'foto' => $request->hasFile('foto')
-                ? $request->file('foto')->store('gastos', 'public')
-                : null,
-        ]);
+        try {
+            $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
 
-        // Recalcula saldo con lógica centralizada en el modelo
-        $gasto->rendicion->recalcularTotales();
+            if (!$rendicion->user_id) {
+                return response()->json([
+                    'error' => 'La rendición no tiene un conductor asignado.'
+                ], 422);
+            }
 
-        // Refresca y carga relaciones actualizadas del flete
-        $flete = Flete::with([
-            'cliente',
-            'destino',
-            'conductor',
-            'tracto',
-            'rampla',
-            'rendicion.gastos',
-            'rendicion.diesels',
-        ])->find($validated['flete_id']);
+            Gasto::create([
+                'flete_id'     => $validated['flete_id'],
+                'rendicion_id' => $rendicion->id,
+                'usuario_id'   => $rendicion->user_id,
+                'monto'        => $validated['monto'],
+                'tipo'         => $validated['tipo'],
+                'descripcion'  => $validated['descripcion'] ?? null,
+                'foto'         => $request->hasFile('foto')
+                    ? $request->file('foto')->store('gastos', 'public')
+                    : null,
+            ]);
 
-        $flete->rendicion->refresh()->load('gastos', 'diesels');
+            $rendicion->recalcularTotales();
 
-        // Garantiza que los appends estén disponibles en la respuesta
-        $flete->rendicion->makeVisible([
-            'saldo_temporal',
-            'total_gastos',
-            'total_diesel',
-            'viatico_calculado',
-        ]);
+            $flete = Flete::with([
+                'cliente',
+                'destino',
+                'conductor',
+                'tracto',
+                'rampla',
+                'rendicion.abonos',
+                'rendicion.gastos',
+                'rendicion.diesels',
+            ])->findOrFail($validated['flete_id']);
 
-        return response()->json([
-            'message' => 'Gasto registrado correctamente.',
-            'flete' => $flete,
-        ]);
+            if ($flete->rendicion) {
+                $flete->rendicion->makeVisible([
+                    'saldo_temporal',
+                    'total_gastos',
+                    'total_diesel',
+                    'viatico_calculado',
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Gasto registrado correctamente.',
+                'flete' => $flete,
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Error al registrar gasto: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

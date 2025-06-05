@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Retorno extends Model
 {
@@ -11,9 +11,8 @@ class Retorno extends Model
 
     protected $fillable = [
         'flete_id',
-        'nombre',
-        'km',
-        'region',
+        'valor',
+        'descripcion',
     ];
 
     public function flete()

@@ -11,9 +11,10 @@ return new class extends Migration
         Schema::create('retornos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('flete_id')->unique()->constrained()->onDelete('cascade');
-            $table->string('nombre');
-            $table->integer('km');
-            $table->string('region');
+
+            $table->integer('valor'); // Monto monetario o valor del retorno
+            $table->string('descripcion')->nullable(); // Breve detalle
+
             $table->timestamps();
         });
     }

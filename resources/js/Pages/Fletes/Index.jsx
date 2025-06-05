@@ -25,126 +25,127 @@ export default function Fletes({ auth, fletes, filters, conductores, clientes, t
     get(route('fletes.index'), { preserveState: true, data })
   }, [data.conductor_id, data.cliente_id, data.tracto_id])
 
-  useEffect(() => {
-    setFletesState(fletes)
-  }, [fletes])
-
-  const clearFilters = () => {
-    const reset = { conductor_id: '', cliente_id: '', tracto_id: '' }
-    setData(reset)
-    get(route('fletes.index'), { preserveState: true, data: reset })
-  }
-
-  const handleToggleForm = (fleteId, tipo) => {
-    setOpenForm(prev => ({ ...prev, [fleteId]: prev[fleteId] === tipo ? null : tipo }))
+  const handleToggleForm = (fleteId, tipoFormulario) => {
+    setOpenForm(prev => ({
+      ...prev,
+      [fleteId]: prev[fleteId] === tipoFormulario ? null : tipoFormulario,
+    }))
   }
 
   const handleCloseForm = (fleteId) => {
     setOpenForm(prev => ({ ...prev, [fleteId]: null }))
   }
 
-  const actualizarFleteEnLista = (nuevoFlete) => {
+  const actualizarFleteEnLista = (fleteActualizado) => {
     setFletesState(prev =>
-      prev.map(f => (f.id === nuevoFlete.id ? { ...nuevoFlete } : f))
+      prev.map(f => f.id === fleteActualizado.id ? fleteActualizado : f)
     )
   }
 
-  const submitForm = async (url, payload, fleteId) => {
-    const formData = new FormData()
-    Object.entries(payload).forEach(([key, val]) => formData.append(key, val))
-
-    try {
-      const res = await axios.post(url, formData)
-      if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
-      setErrorMensaje(null)
-      return res
-    } catch (err) {
-      console.error(err)
-      setErrorMensaje(err.response?.data?.message || 'Error inesperado al enviar el formulario')
-    }
+  const handleFilterChange = (e) => {
+    setData(e.target.name, e.target.value)
   }
 
-  const handleEliminarRegistro = async (registroId) => {
-    try {
-      const res = await axios.delete(`/registro/${registroId}`)
+  const submitForm = async (ruta, payload, onSuccess, onError) => {
+  try {
+    let response
+    if (payload?.foto instanceof File) {
+      const formData = new FormData()
+      for (const key in payload) {
+        formData.append(key, payload[key])
+      }
+      response = await axios.post(ruta, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    } else {
+      response = await axios.post(ruta, payload)
+    }
 
-      if (res.data?.flete) {
-        actualizarFleteEnLista(res.data.flete)
-        setErrorMensaje(null)
-      } else {
-        setErrorMensaje('No se devolvió el flete actualizado.')
+    actualizarFleteEnLista(response.data.flete)
+    onSuccess && onSuccess(response.data.flete) // ✅ importante para FinalizarForm
+    return response // ✅ <--- esto es lo que faltaba
+  } catch (error) {
+    const mensaje = error.response?.data?.message || 'Error al procesar el formulario'
+    setErrorMensaje(mensaje)
+    onError && onError()
+    throw error // re-lanza para que FinalizarForm lo capture
+  }
+}
+
+
+  const eliminarRegistro = async (registroId) => {
+    try {
+      const response = await axios.delete(`/registro/${registroId}`)
+      if (response.data.flete) {
+        actualizarFleteEnLista(response.data.flete)
       }
     } catch (error) {
-      const mensaje =
-        error.response?.data?.message ||
-        error.message ||
-        'Error inesperado al eliminar el registro'
-      console.error('❌ Error:', mensaje)
-      setErrorMensaje(`❌ ${mensaje}`)
+      console.error('Error al eliminar registro:', error)
+      setErrorMensaje('No se pudo eliminar el registro.')
     }
   }
 
   return (
     <AuthenticatedLayout user={auth.user}>
-      <Head title="Gestión de Fletes" />
-      <div className="max-w-7xl mx-auto px-4 pt-6 pb-10 space-y-6">
+      <Head title="Fletes" />
+      <div className="max-w-7xl mx-auto">
+        {/* Filtros */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium">Conductor</label>
+            <select name="conductor_id" value={data.conductor_id} onChange={handleFilterChange}
+              className="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="">Todos</option>
+              {conductores.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Cliente</label>
+            <select name="cliente_id" value={data.cliente_id} onChange={handleFilterChange}
+              className="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="">Todos</option>
+              {clientes.map(c => (
+                <option key={c.id} value={c.id}>{c.razon_social}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Tracto</label>
+            <select name="tracto_id" value={data.tracto_id} onChange={handleFilterChange}
+              className="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="">Todos</option>
+              {tractos.map(t => (
+                <option key={t.id} value={t.id}>{t.patente}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Mensaje de error */}
         {errorMensaje && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm">
+          <div className="bg-red-100 text-red-800 text-sm p-2 rounded mb-4">
             ❌ {errorMensaje}
           </div>
         )}
 
-        <div className="flex flex-wrap items-end gap-4 bg-gray-50 p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-          {[
-            { label: 'Conductor', name: 'conductor_id', options: conductores, icon: UserCircleIcon, getLabel: o => o.name },
-            { label: 'Cliente', name: 'cliente_id', options: clientes, icon: BuildingOffice2Icon, getLabel: o => o.razon_social },
-            { label: 'Tracto', name: 'tracto_id', options: tractos, icon: TruckIcon, getLabel: o => o.patente },
-          ].map(({ label, name, options, icon: Icon, getLabel }) => (
-            <div key={name} className="flex items-center gap-2">
-              <Icon className="h-5 w-5 text-gray-500" />
-              <select
-                value={data[name]}
-                onChange={e => setData(name, e.target.value)}
-                className="border p-2 rounded w-40 shadow-sm text-sm"
-              >
-                <option value="">{label}</option>
-                {options.map(opt => (
-                  <option key={opt.id} value={opt.id}>{getLabel(opt)}</option>
-                ))}
-              </select>
-            </div>
+        {/* Lista de Fletes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {fletesState.map(flete => (
+            <FleteCard
+              key={flete.id}
+              flete={flete}
+              openForm={openForm}
+              handleToggleForm={handleToggleForm}
+              handleCloseForm={handleCloseForm}
+              actualizarFleteEnLista={actualizarFleteEnLista}
+              submitForm={submitForm}
+              onEliminarRegistro={eliminarRegistro}
+            />
           ))}
-
-          {(data.conductor_id || data.cliente_id || data.tracto_id) && (
-            <button
-              onClick={clearFilters}
-              className="ml-auto flex items-center gap-1 bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-2 rounded text-sm"
-            >
-              <ArrowPathIcon className="h-4 w-4" />
-              Limpiar
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {fletesState.length > 0 ? (
-            fletesState.map(flete => (
-              <FleteCard
-                key={flete.id}
-                flete={flete}
-                openForm={openForm}
-                handleToggleForm={handleToggleForm}
-                handleCloseForm={handleCloseForm}
-                actualizarFleteEnLista={actualizarFleteEnLista}
-                submitForm={submitForm}
-                onEliminarRegistro={handleEliminarRegistro}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center text-gray-500 py-12">
-              No hay fletes con los filtros seleccionados.
-            </div>
-          )}
         </div>
       </div>
     </AuthenticatedLayout>

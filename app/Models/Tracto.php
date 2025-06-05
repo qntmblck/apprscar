@@ -15,6 +15,7 @@ class Tracto extends Model
         'modelo',
         'color',
         'año',
+        'kilometraje', // Agregado
     ];
 
     public function fletes()
