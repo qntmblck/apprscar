@@ -32,7 +32,12 @@ class Rendicion extends Model
         'saldo_temporal',
     ];
 
-    // Relaciones
+    /*
+    |--------------------------------------------------------------------------
+    | Relaciones
+    |--------------------------------------------------------------------------
+    */
+
     public function flete()
     {
         return $this->belongsTo(Flete::class);
@@ -53,43 +58,66 @@ class Rendicion extends Model
         return $this->hasMany(Diesel::class);
     }
 
-    // Atributos dinámicos
+    /*
+    |--------------------------------------------------------------------------
+    | Atributos dinámicos
+    |--------------------------------------------------------------------------
+    */
+
     public function getTotalGastosAttribute()
     {
-        return $this->gastos->sum('monto');
+        return $this->gastos()->sum('monto');
     }
 
     public function getTotalDieselAttribute()
     {
-        return $this->diesels->where('metodo_pago', '!=', 'Crédito')->sum('monto');
+        return $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
     }
 
     public function getViaticoCalculadoAttribute()
     {
-        $salida = optional($this->flete->fecha_salida)?->startOfDay();
-        $llegada = optional($this->flete->fecha_llegada)?->startOfDay() ?? now()->startOfDay();
+        $salida = optional($this->flete?->fecha_salida)?->startOfDay();
+        $llegada = optional($this->flete?->fecha_llegada)?->startOfDay() ?? now()->startOfDay();
 
         if (!$salida || $salida->gt($llegada)) return 0;
 
         $dias = $salida->diffInDays($llegada) + 1;
 
+        // Excluir un día si hay otro flete comenzando el mismo día
         $fletePosterior = Flete::where('conductor_id', $this->flete->conductor_id)
             ->whereDate('fecha_salida', $llegada)
             ->where('id', '!=', $this->flete->id)
             ->exists();
 
-        if ($fletePosterior) $dias = max(0, $dias - 1);
+        if ($fletePosterior) {
+            $dias = max(0, $dias - 1);
+        }
 
         return $dias * 15000;
     }
 
     public function getSaldoTemporalAttribute()
-    {
-        $viatico = $this->viatico ?? $this->viatico_efectivo ?? $this->viatico_calculado ?? 0;
-        return $this->caja_flete - $this->total_diesel - $this->total_gastos - $viatico;
-    }
+{
+    try {
+        $caja = $this->caja_flete ?? 0;
+        $gastos = $this->gastos()->sum('monto');
+        $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
+        $viatico = $this->viatico_efectivo ?? $this->viatico ?? $this->viatico_calculado ?? 0;
 
-    // Calcula y guarda saldo real
+        return $caja - $gastos - $diesel - $viatico;
+    } catch (\Throwable $e) {
+        \Log::error('Error en saldo_temporal: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recalcular saldo final (persistente)
+    |--------------------------------------------------------------------------
+    */
+
     public function recalcularTotales()
     {
         $gastos = $this->gastos()->sum('monto');
@@ -99,5 +127,4 @@ class Rendicion extends Model
         $this->saldo = $this->caja_flete - $gastos - $diesel - $viatico;
         $this->save();
     }
-
 }

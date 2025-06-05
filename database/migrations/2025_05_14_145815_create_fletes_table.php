@@ -26,6 +26,9 @@ return new class extends Migration
             $table->timestamp('fecha_salida')->nullable();
             $table->timestamp('fecha_llegada')->nullable();
 
+            $table->string('periodo')->nullable(); // Ej: "Enero", "Febrero"
+            $table->boolean('pagado')->default(false);
+
             $table->timestamps();
         });
     }

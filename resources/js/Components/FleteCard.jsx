@@ -66,11 +66,16 @@ export default function FleteCard({
               Salida: {new Date(flete.fecha_salida).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
             <div className="flex w-full gap-x-2 items-center text-sm text-gray-700">
-              <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
-              Llegada: {flete.fecha_llegada
-                ? new Date(flete.fecha_llegada).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })
-                : 'No registrada'}
-            </div>
+  <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
+  Llegada: {flete.fecha_llegada
+  ? new Date(new Date(flete.fecha_llegada).setDate(new Date(flete.fecha_llegada).getDate() + 1)).toLocaleDateString('es-CL', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    })
+  : 'No registrada'}
+
+</div>
+
+
             <div className="flex w-full gap-x-2 items-center text-sm text-gray-700">
               <UserIcon className="h-5 w-5 text-gray-400" />
               {flete.conductor?.name}
@@ -83,12 +88,15 @@ export default function FleteCard({
               <BanknotesIcon className="h-5 w-5 text-gray-400" />
               Saldo: ${flete.rendicion?.saldo_temporal?.toLocaleString('es-CL') || 0}
             </div>
+            <div className="flex w-full gap-x-2 items-center text-sm text-gray-700">
+              <BanknotesIcon className="h-5 w-5 text-gray-400" />
+              Viático: ${flete.rendicion?.viatico_efectivo?.toLocaleString('es-CL') || 0}
+            </div>
           </dl>
 
           <div className="mt-3 text-sm text-gray-700">
             <p className="font-semibold mb-1">Últimos registros:</p>
             {[...(flete.rendicion?.gastos || []), ...(flete.rendicion?.diesels || [])]
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
               .slice(0, 2)
               .map((r, i) => (
                 <div key={i} className="flex justify-between text-xs">
@@ -129,7 +137,7 @@ export default function FleteCard({
                 fleteId={flete.id}
                 rendicionId={flete.rendicion?.id}
                 fechaSalida={flete.fecha_salida}
-                onSubmit={(payload) => submitForm(`/rendicion/${flete.rendicion?.id}/viatico`, payload, flete.id)}
+                onSubmit={(payload) => submitForm(route('fletes.finalizar'), payload, flete.id)}
                 onCancel={() => handleCloseForm(flete.id)}
                 onSuccess={actualizarFleteEnLista}
               />

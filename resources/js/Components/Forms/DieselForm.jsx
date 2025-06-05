@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CameraIcon } from '@heroicons/react/20/solid'
 
 export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, onSuccess }) {
   const [form, setForm] = useState({
@@ -91,48 +92,51 @@ if (form.foto instanceof File) {
       className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
     />
 
-    {/* Fila 2: Método / Subir Foto */}
-    <select
-      name="metodo_pago"
-      value={form.metodo_pago}
-      onChange={handleChange}
-      className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
-    >
-      <option value="">Método de pago</option>
-      <option value="Efectivo">Efectivo</option>
-      <option value="Transferencia">Transferencia</option>
-      <option value="Crédito">Crédito</option>
-    </select>
 
-    <label
-      htmlFor={`foto-${fleteId}`}
-      className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded text-[11px] text-center cursor-pointer w-full"
-    >
-      📷 Foto
-      <input
-        id={`foto-${fleteId}`}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        name="foto"
-        onChange={handleChange}
-        className="hidden"
-      />
-    </label>
+{/* Fila 2: Método / Subir Foto */}
+<select
+  name="metodo_pago"
+  value={form.metodo_pago}
+  onChange={handleChange}
+  className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+>
+  <option value="">Método de pago</option>
+  <option value="Efectivo">Efectivo</option>
+  <option value="Transferencia">Transferencia</option>
+  <option value="Crédito">Crédito</option>
+</select>
 
-    {/* Fila 3: Enviar / Cancelar */}
-    <button
-      onClick={handleSend}
-      className="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded text-[11px] w-full"
-    >
-      Enviar
-    </button>
-    <button
-      onClick={onCancel}
-      className="bg-gray-500 hover:bg-gray-400 text-white px-3 py-2 rounded text-[11px] w-full"
-    >
-      Cancelar
-    </button>
+<label
+  htmlFor={`foto-${fleteId}`}
+  className="flex items-center justify-center gap-1 bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px] transition-colors"
+>
+  <CameraIcon className="w-4 h-4" />
+  Foto
+  <input
+    id={`foto-${fleteId}`}
+    type="file"
+    accept="image/*"
+    capture="environment"
+    name="foto"
+    onChange={handleChange}
+    className="hidden"
+  />
+</label>
+
+{/* Fila 3: Enviar / Cancelar */}
+<button
+  onClick={handleSend}
+  className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full"
+>
+  Enviar
+</button>
+<button
+  onClick={onCancel}
+  className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded text-[11px] w-full"
+>
+  Cancelar
+</button>
+
   </div>
 
   {exito && (

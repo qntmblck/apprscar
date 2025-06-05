@@ -12,6 +12,7 @@ use App\Models\Rampla;
 use App\Models\Destino;
 use App\Models\Tarifa;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class FleteController extends Controller
 {
@@ -32,8 +33,8 @@ class FleteController extends Controller
                 'rampla:id,patente',
                 'destino:id,nombre',
                 'tarifa:id,valor_comision,destino_id,cliente_id',
-                'rendicion.gastos:id,rendicion_id,monto',
-                'rendicion.diesels:id,rendicion_id,monto,metodo_pago',
+                'rendicion.gastos:id,rendicion_id,monto,descripcion,tipo',
+                'rendicion.diesels:id,rendicion_id,monto,litros,metodo_pago',
             ]);
 
         if ($user->hasRole('conductor')) {
@@ -130,54 +131,95 @@ class FleteController extends Controller
     }
 
     public function finalizar(Request $request)
-    {
-        $validated = $request->validate([
-            'flete_id' => 'required|exists:fletes,id',
-            'rendicion_id' => 'required|exists:rendiciones,id',
-            'fecha_termino' => 'required|date',
-            'viatico_efectivo' => 'required|numeric|min:0',
-        ]);
+{
+    $validated = $request->validate([
+        'flete_id' => 'required|exists:fletes,id',
+        'rendicion_id' => 'required|exists:rendiciones,id',
+        'fecha_termino' => 'nullable|date',
+        'viatico_efectivo' => 'nullable|numeric|min:0',
+    ]);
 
-        $flete = Flete::findOrFail($validated['flete_id']);
-        $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
-
-        $rendicion = Rendicion::with(['diesels', 'gastos'])->findOrFail($validated['rendicion_id']);
-
-        $rendicion->update([
-            'viatico_efectivo' => $validated['viatico_efectivo'],
-            'viatico' => $validated['viatico_efectivo'],
-            'viatico_calculado' => $rendicion->viatico_calculado,
-            'saldo' => $rendicion->saldo,
-        ]);
-
-        $rendicion->recalcularTotales();
-
-        return response()->json([
-            'message' => 'Flete finalizado correctamente.',
-            'flete' => $flete->fresh(['rendicion']),
-        ]);
+    if (!$request->has('fecha_termino') && !$request->has('viatico_efectivo')) {
+        return response()->json(['message' => 'Debe ingresar al menos fecha o viático.'], 422);
     }
+
+    $flete = Flete::findOrFail($validated['flete_id']);
+
+    if ($request->has('fecha_termino')) {
+        $flete->fecha_llegada = Carbon::parse($validated['fecha_termino'])->format('Y-m-d');
+        $flete->save();
+    }
+
+    $rendicion = Rendicion::with(['diesels', 'gastos'])->findOrFail($validated['rendicion_id']);
+
+    if ($request->has('viatico_efectivo')) {
+        $rendicion->viatico_efectivo = $validated['viatico_efectivo'];
+        $rendicion->viatico = $validated['viatico_efectivo'];
+        $rendicion->save();
+        $rendicion->recalcularTotales();
+    }
+
+    $flete->refresh()->load([
+        'cliente:id,razon_social',
+        'conductor:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'tarifa:id,valor_comision,destino_id,cliente_id',
+        'rendicion.gastos:id,rendicion_id,monto,descripcion,tipo',
+        'rendicion.diesels:id,rendicion_id,monto,litros,metodo_pago',
+    ]);
+
+    $flete->rendicion?->makeVisible([
+        'saldo_temporal', 'total_gastos', 'total_diesel', 'viatico_calculado', 'viatico_efectivo'
+    ]);
+
+    return response()->json([
+        'message' => 'Flete actualizado correctamente.',
+        'flete' => $flete,
+    ]);
+}
 
     public function registrarViatico(Request $request)
     {
         $validated = $request->validate([
             'flete_id' => 'required|exists:fletes,id',
             'rendicion_id' => 'required|exists:rendiciones,id',
-            'viatico_efectivo' => 'required|numeric|min:0',
+            'viatico_efectivo' => 'nullable|numeric|min:0',
         ]);
 
         $rendicion = Rendicion::with(['diesels', 'gastos'])->findOrFail($validated['rendicion_id']);
 
-        $rendicion->update([
-            'viatico_efectivo' => $validated['viatico_efectivo'],
-            'viatico' => $validated['viatico_efectivo'],
-        ]);
+        $actualizar = [];
 
-        $rendicion->recalcularTotales();
+        if (array_key_exists('viatico_efectivo', $validated)) {
+            $actualizar['viatico_efectivo'] = $validated['viatico_efectivo'];
+            $actualizar['viatico'] = $validated['viatico_efectivo'];
+        }
+
+        if (!empty($actualizar)) {
+            $rendicion->update($actualizar);
+            $rendicion->recalcularTotales();
+        }
+
+        $flete = Flete::with([
+            'cliente:id,razon_social',
+            'conductor:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'tarifa:id,valor_comision,destino_id,cliente_id',
+            'rendicion.gastos:id,rendicion_id,monto,descripcion,tipo',
+            'rendicion.diesels:id,rendicion_id,monto,litros,metodo_pago',
+        ])->findOrFail($validated['flete_id']);
+
+        $flete->rendicion?->makeVisible([
+            'saldo_temporal', 'total_gastos', 'total_diesel', 'viatico_calculado', 'viatico_efectivo'
+        ]);
 
         return response()->json([
             'message' => 'Viático registrado correctamente.',
-            'flete' => Flete::with('rendicion')->findOrFail($validated['flete_id']),
+            'flete' => $flete,
         ]);
     }
 }

@@ -22,11 +22,17 @@ class Flete extends Model
         'estado',
         'fecha_salida',
         'fecha_llegada',
+        'periodo',
+        'pagado',
     ];
 
-    protected $dates = ['fecha_salida', 'fecha_llegada'];
+    protected $casts = [
+        'fecha_salida' => 'datetime',
+        'fecha_llegada' => 'datetime',
+        'pagado' => 'boolean',
+    ];
 
-    protected $appends = ['comision']; // 👈 Para incluir en JSON/API
+    protected $appends = ['comision'];
 
     // Relaciones principales
     public function conductor() {
@@ -65,7 +71,7 @@ class Flete extends Model
         return $this->belongsToMany(User::class, 'colaborador_flete', 'flete_id', 'colaborador_id');
     }
 
-    // Accesor para estado legible
+    // Colores para estado (opcional)
     public function getEstadoColorAttribute() {
         return match ($this->estado) {
             'Sin Notificar' => 'bg-red-500',
@@ -74,7 +80,7 @@ class Flete extends Model
         };
     }
 
-    // ✅ Atributo virtual: comision asociada al flete según su cliente, destino y tipo
+    // Comisión calculada
     public function getComisionAttribute()
     {
         $tarifa = Tarifa::where('cliente_id', $this->cliente_principal_id)

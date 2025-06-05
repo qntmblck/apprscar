@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CameraIcon } from '@heroicons/react/20/solid'
 
 const tipos = ['Carga', 'Descarga', 'Camioneta', 'Estacionamiento', 'Peaje', 'Otros']
 
@@ -96,43 +97,45 @@ export default function GastoForm({ fleteId, rendicionId, onSubmit, onCancel, on
 
     {/* Fila 2: Descripción / Subir Foto */}
     <input
-      type="text"
-      name="descripcion"
-      placeholder="✏️ Descripción"
-      value={form.descripcion}
-      onChange={handleChange}
-      className="px-2 py-2 rounded-md border border-gray-300 bg-white w-full text-[11px] col-span-1"
-    />
+  type="text"
+  name="descripcion"
+  placeholder="✏️ Descripción"
+  value={form.descripcion}
+  onChange={handleChange}
+  className="px-2 py-2 rounded-md border border-gray-300 bg-white w-full text-[11px] col-span-1"
+/>
 
-    <label
-      htmlFor={`foto-${fleteId}`}
-      className="text-center bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px]"
-    >
-      📸 Foto
-      <input
-        id={`foto-${fleteId}`}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        name="foto"
-        onChange={handleChange}
-        className="hidden"
-      />
-    </label>
+<label
+  htmlFor={`foto-${fleteId}`}
+  className="flex items-center justify-center gap-1 bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px] transition-colors"
+>
+  <CameraIcon className="w-4 h-4" />
+  Foto
+  <input
+    id={`foto-${fleteId}`}
+    type="file"
+    accept="image/*"
+    capture="environment"
+    name="foto"
+    onChange={handleChange}
+    className="hidden"
+  />
+</label>
 
     {/* Fila 3: Enviar / Cancelar */}
     <button
-      onClick={handleSend}
-      className="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded text-[11px] w-full"
-    >
-      Enviar
-    </button>
-    <button
-      onClick={onCancel}
-      className="bg-gray-500 hover:bg-gray-400 text-white px-3 py-2 rounded text-[11px] w-full"
-    >
-      Cancelar
-    </button>
+  onClick={handleSend}
+  className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
+>
+  Enviar
+</button>
+<button
+  onClick={onCancel}
+  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
+>
+  Cancelar
+</button>
+
   </div>
 
   {exito && (

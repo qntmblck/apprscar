@@ -3,8 +3,10 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\ProfileController;
+use Spatie\Permission\Models\Role;
+
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactoController;
 use App\Http\Controllers\RoleRedirectController;
 use App\Http\Controllers\SuperDashboardController;
@@ -17,18 +19,21 @@ use App\Http\Controllers\FleteController;
 use App\Http\Controllers\FleteConductorController;
 use App\Http\Controllers\DieselController;
 use App\Http\Controllers\GastoController;
-use Spatie\Permission\Models\Role;
+use App\Http\Controllers\FleteBatchController;
+use App\Http\Controllers\RegistroController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
+        'canLogin'       => Route::has('login'),
+        'canRegister'    => Route::has('register'),
         'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'phpVersion'     => PHP_VERSION,
     ]);
 });
 
-Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', fn () => Inertia::render('Dashboard'))
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // Perfil
 Route::middleware('auth')->group(function () {
@@ -50,37 +55,43 @@ Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name
 Route::get('/redirect-by-role', RoleRedirectController::class)->middleware('auth');
 
 // Dashboards por rol
-Route::middleware(['auth', 'role:superadmin'])->get('/super/dashboard', [SuperDashboardController::class, 'index']);
-Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', [AdminDashboardController::class, 'index']);
-Route::middleware(['auth', 'role:cliente'])->get('/cliente/dashboard', [ClienteDashboardController::class, 'index']);
-Route::middleware(['auth', 'role:conductor'])->get('/conductor/dashboard', [ConductorDashboardController::class, 'index']);
-Route::middleware(['auth', 'role:colaborador'])->get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index']);
+Route::middleware(['auth'])->group(function () {
+    Route::get('/super/dashboard',       [SuperDashboardController::class, 'index'])->middleware('role:superadmin');
+    Route::get('/admin/dashboard',       [AdminDashboardController::class, 'index'])->middleware('role:admin');
+    Route::get('/cliente/dashboard',     [ClienteDashboardController::class, 'index'])->middleware('role:cliente');
+    Route::get('/conductor/dashboard',   [ConductorDashboardController::class, 'index'])->middleware('role:conductor');
+    Route::get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index'])->middleware('role:colaborador');
+});
 
 // Usuarios (solo superadmin)
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('/usuarios', [UserController::class, 'index'])->name('usuarios.index');
     Route::post('/usuarios/{user}/role', [UserController::class, 'updateRole'])->name('usuarios.updateRole');
     Route::delete('/usuarios/{user}/role', [UserController::class, 'removeRole'])->name('usuarios.removeRole');
+
+    // Eliminar registro diesel/gasto (✔️ aquí estaba el error si faltaba importar el controlador)
+    Route::delete('/registro/{id}', [RegistroController::class, 'destroy'])->name('registro.destroy');
 });
 
-// Fletes (todos los roles según permisos)
+// Fletes y rendiciones
 Route::middleware(['auth'])->group(function () {
-    // Vista principal de fletes (superadmin, admin, colaborador, cliente)
-    Route::middleware(['role:superadmin|admin|colaborador|cliente'])->get('/fletes', [FleteController::class, 'index'])->name('fletes.index');
+    Route::middleware(['role:superadmin|admin|colaborador|cliente'])
+        ->get('/fletes', [FleteController::class, 'index'])->name('fletes.index');
 
-    // Vista personalizada para conductor
-    Route::middleware(['role:conductor'])->prefix('conductor')->group(function () {
-        Route::get('/fletes', [FleteConductorController::class, 'index'])->name('conductor.fletes.index');
-    });
+    Route::middleware(['role:conductor'])
+        ->prefix('conductor')
+        ->group(function () {
+            Route::get('/fletes', [FleteConductorController::class, 'index'])->name('conductor.fletes.index');
+        });
 
-    // Crear flete (superadmin y admin)
-    Route::middleware(['role:superadmin|admin'])->post('/fletes', [FleteController::class, 'store'])->name('fletes.store');
+    Route::middleware(['role:superadmin|admin'])
+        ->post('/fletes', [FleteController::class, 'store'])->name('fletes.store');
 
-    // Formularios: diesel, gasto, finalizar, viático
     Route::post('/diesel', [DieselController::class, 'store'])->name('diesel.store');
     Route::post('/gasto', [GastoController::class, 'store'])->name('gasto.store');
     Route::post('/fletes/finalizar', [FleteController::class, 'finalizar'])->name('fletes.finalizar');
     Route::post('/rendicion/{id}/viatico', [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
+    Route::post('/fletes/asignar-periodo', [FleteBatchController::class, 'asignarPeriodo'])->name('fletes.asignarPeriodo');
 });
 
 // Activar superadmin manualmente

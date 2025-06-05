@@ -45,7 +45,7 @@ export default function Fletes({ auth, fletes, filters, conductores, clientes, t
 
   const actualizarFleteEnLista = (nuevoFlete) => {
     setFletesState(prev =>
-      prev.map(f => (f.id === nuevoFlete.id ? nuevoFlete : f))
+      prev.map(f => (f.id === nuevoFlete.id ? { ...nuevoFlete } : f))
     )
   }
 
@@ -65,12 +65,22 @@ export default function Fletes({ auth, fletes, filters, conductores, clientes, t
   }
 
   const handleEliminarRegistro = async (registroId) => {
-    if (!confirm('¿Eliminar este registro?')) return
     try {
       const res = await axios.delete(`/registro/${registroId}`)
-      if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+
+      if (res.data?.flete) {
+        actualizarFleteEnLista(res.data.flete)
+        setErrorMensaje(null)
+      } else {
+        setErrorMensaje('No se devolvió el flete actualizado.')
+      }
     } catch (error) {
-      console.error('Error al eliminar registro:', error)
+      const mensaje =
+        error.response?.data?.message ||
+        error.message ||
+        'Error inesperado al eliminar el registro'
+      console.error('❌ Error:', mensaje)
+      setErrorMensaje(`❌ ${mensaje}`)
     }
   }
 
