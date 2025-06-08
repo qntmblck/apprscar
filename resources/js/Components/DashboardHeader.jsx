@@ -43,14 +43,15 @@ export default function DashboardHeader() {
 
       <div className="relative mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8 justify-between">
         <div className="flex-shrink-0">
-          <Link href="/">
-            <img
-              className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-1"
-              src="/img/scar3.png"
-              alt="Transportes SCAR"
-            />
-          </Link>
-        </div>
+  <Link href={getDashboardUrl(roles)}>
+    <img
+      className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-1"
+      src="/img/scar3.png"
+      alt="Transportes SCAR"
+    />
+  </Link>
+</div>
+
 
         <div className="hidden lg:flex gap-x-4 items-center">
           {navigation.map((item) => (
@@ -146,30 +147,24 @@ export default function DashboardHeader() {
 }
 
 function getNavigation(roles) {
-  const navigation = [{ name: 'Panel', href: getDashboardUrl(roles) }]
+  const navigation = [
+    { name: 'Panel', href: getDashboardUrl(roles) }
+  ]
 
   if (roles.includes('superadmin')) {
     navigation.push(
       { name: 'Usuarios', href: '/usuarios' },
-      { name: 'Conductores', href: '/conductores' },
-      { name: 'Clientes', href: '/clientes' },
-      { name: 'Fletes', href: '/fletes' }
+      { name: 'Fletes',   href: '/fletes'   },
     )
   } else if (roles.includes('admin')) {
     navigation.push(
-      { name: 'Conductores', href: '/conductores' },
-      { name: 'Clientes', href: '/clientes' }
+      { name: 'Fletes', href: '/fletes' },
     )
-  } else if (roles.includes('colaborador')) {
-    navigation.push({ name: 'Clientes', href: '/clientes' })
-  } else if (roles.includes('cliente')) {
-    navigation.push({ name: 'Mis Fletes', href: '/cliente/fletes' })
-  } else if (roles.includes('conductor')) {
-    navigation.push({ name: 'Fletes', href: '/conductor/fletes' })
   }
 
   return navigation
 }
+
 
 
 function getDashboardUrl(roles) {

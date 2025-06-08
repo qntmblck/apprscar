@@ -1,15 +1,14 @@
-import axios from 'axios';
+// resources/js/bootstrap.js
 
+import axios from 'axios'
 
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
-
-const token = document.head.querySelector('meta[name="csrf-token"]')
-
-if (token) {
-  axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content
+// 1. Tomar el CSRF token desde la meta tag y asignarlo a todos los requests
+const tokenMetaTag = document.head.querySelector('meta[name="csrf-token"]')
+if (tokenMetaTag) {
+  axios.defaults.headers.common['X-CSRF-TOKEN'] = tokenMetaTag.content
 } else {
-  console.error('⚠️ CSRF token not found in document head.')
+  console.warn('CSRF token meta tag no encontrado: asegúrate de tener <meta name="csrf-token"> en el <head>.')
 }
 
-window.axios = axios;
-
+// 2. Indicar que todas las peticiones serán AJAX (opcional pero recomendado)
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'

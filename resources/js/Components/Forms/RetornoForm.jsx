@@ -1,39 +1,35 @@
-// resources/js/Components/Forms/AbonoForm.jsx
+// resources/js/Components/Forms/RetornoForm.jsx
 import { useState } from 'react';
 
-const METODOS = ['Efectivo', 'Transferencia'];
-
-export default function AbonoForm({
+export default function RetornoForm({
   fleteId,
   rendicionId,
   onSubmit,   // (payload) => Promise(axios response)
   onCancel,
   onSuccess,  // callback con el flete actualizado
 }) {
-  const [form, setForm] = useState({ metodo: '', monto: '' });
+  const [monto, setMonto] = useState('');
   const [error, setError] = useState(null);
   const [exito, setExito] = useState(false);
 
   const handleSend = async () => {
     setError(null);
-    // validación simple
-    if (!form.metodo || !form.monto) {
-      setError('Debes completar todos los campos.');
+    if (!monto) {
+      setError('Debes ingresar un monto.');
       return;
     }
-    // armar payload
     const payload = {
       flete_id: fleteId,
       rendicion_id: rendicionId,
-      tipo: form.metodo,
-      monto: Number(form.monto),
+      tipo: 'Retorno',
+      monto: Number(monto),
     };
 
     try {
       const res = await onSubmit(payload);
       if (res?.data?.flete) {
         onSuccess(res.data.flete);
-        setForm({ metodo: '', monto: '' });
+        setMonto('');
         setExito(true);
         setTimeout(() => setExito(false), 2000);
       } else {
@@ -45,7 +41,7 @@ export default function AbonoForm({
         e.response?.data?.error ||
         (e.response?.data?.errors
           ? Object.values(e.response.data.errors).flat().join(' ')
-          : 'Error inesperado al registrar el abono.');
+          : 'Error inesperado al registrar el retorno.');
       setError(msg);
     }
   };
@@ -58,25 +54,11 @@ export default function AbonoForm({
         </div>
       )}
 
-      <label className="block text-[11px] font-medium text-gray-700">Método</label>
-      <select
-        value={form.metodo}
-        onChange={(e) => setForm({ ...form, metodo: e.target.value })}
-        className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
-      >
-        <option value="">Selecciona método</option>
-        {METODOS.map((m) => (
-          <option key={m} value={m}>
-            {m}
-          </option>
-        ))}
-      </select>
-
-      <label className="block text-[11px] font-medium text-gray-700 mt-2">Monto</label>
+      <label className="block text-[11px] font-medium text-gray-700">Monto Retorno</label>
       <input
         type="number"
-        value={form.monto}
-        onChange={(e) => setForm({ ...form, monto: e.target.value })}
+        value={monto}
+        onChange={(e) => setMonto(e.target.value)}
         className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
       />
 
@@ -97,7 +79,7 @@ export default function AbonoForm({
 
       {exito && (
         <div className="text-green-600 text-[10px] bg-green-100 p-2 rounded mt-2">
-          ✔️ Abono registrado
+          ✔️ Retorno registrado
         </div>
       )}
     </div>

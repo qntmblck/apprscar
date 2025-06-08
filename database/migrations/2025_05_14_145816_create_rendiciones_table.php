@@ -11,23 +11,31 @@ return new class extends Migration
         Schema::create('rendiciones', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('flete_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('flete_id')
+                  ->constrained('fletes')
+                  ->onDelete('cascade');
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
 
-            $table->string('estado')->default('activo');         // activo / cerrado
-            $table->string('periodo')->nullable();               // Ej: Enero, Febrero, etc.
-            $table->boolean('pagado')->default(false);           // indica si fue pagado
-            $table->integer('comision')->nullable();             // comisión aplicada
+            $table->string('estado')->default('activo');
+            $table->string('periodo')->nullable();
+            $table->boolean('pagado')->default(false);
+            $table->integer('comision')->nullable();
 
             $table->text('observaciones')->nullable();
 
             $table->integer('caja_flete')->default(0);
-            $table->integer('viatico_efectivo')->default(0);     // Ingresado manualmente
-            $table->integer('viatico_calculado')->default(0);    // Calculado automáticamente
-            $table->integer('viatico')->nullable();              // Final, al cerrar flete
-            $table->integer('saldo')->nullable();                // Final, al cerrar flete
+            $table->integer('viatico_efectivo')->default(0);
+            $table->integer('viatico_calculado')->default(0);
+            $table->integer('viatico')->nullable();
+            $table->integer('saldo')->nullable();
 
             $table->timestamps();
+
+            // ─── Índices para acelerar filtrado por flete y usuario ───────────
+            $table->index('flete_id');
+            $table->index('user_id');
         });
     }
 

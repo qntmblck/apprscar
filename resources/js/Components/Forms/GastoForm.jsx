@@ -148,4 +148,5 @@ export default function GastoForm({ fleteId, rendicionId, submitForm, onCancel, 
       )}
     </div>
   )
+
 }

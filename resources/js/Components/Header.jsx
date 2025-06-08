@@ -1,43 +1,42 @@
 import { useState, useEffect } from 'react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { usePage } from '@inertiajs/react'
 
 const navigation = [
-  { name: 'Inicio', href: '/#inicio', target: 'inicio' },
+  { name: 'Inicio',    href: '/#inicio',    target: 'inicio'    },
   { name: 'Servicios', href: '/#servicios', target: 'servicios' },
-  { name: 'Nosotros', href: '/#alliances', target: 'alliances' },
-  { name: 'Contacto', href: '/contacto', target: 'contacto' },
+  { name: 'Nosotros',  href: '/#alliances', target: 'alliances' },
+  { name: 'Contacto',  href: '/contacto',   target: 'contacto'  },
 ]
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeItem, setActiveItem] = useState('inicio')
+  const { auth } = usePage().props
+  const user = auth.user
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = navigation.map((item) => item.target)
-      for (const id of sections) {
-        const el = document.getElementById(id)
-        if (el) {
-          const rect = el.getBoundingClientRect()
-          const inView = rect.top <= 120 && rect.bottom >= 120
-          if (inView) {
-            setActiveItem(id)
-            return
-          }
+      for (const { target } of navigation) {
+        const el = document.getElementById(target)
+        if (!el) continue
+        const rect = el.getBoundingClientRect()
+        if (rect.top <= 120 && rect.bottom >= 120) {
+          setActiveItem(target)
+          return
         }
       }
-      if (window.location.pathname === '/contacto') setActiveItem('contacto')
+      if (window.location.pathname === '/contacto') {
+        setActiveItem('contacto')
+      }
     }
-
     handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const isActive = (target) => activeItem === target
-  console.log('Navigation:', navigation)
-console.log('Mobile Menu Open:', mobileMenuOpen)
-console.log('Active Item:', activeItem)
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-transparent shadow-md">
       {/* Partículas */}
@@ -77,22 +76,24 @@ console.log('Active Item:', activeItem)
             <a
               key={item.name}
               href={item.href}
-              className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${isActive(item.target)
-                ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
-                : 'text-white hover:text-[#0094d9] hover:bg-white/10'}`}
+              className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+                isActive(item.target)
+                  ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
+                  : 'text-white hover:text-[#0094d9] hover:bg-white/10'
+              }`}
             >
               {item.name}
             </a>
           ))}
         </div>
 
-        {/* Botón Ingresar escritorio */}
+        {/* Botón “Ingresar” / “Mi Panel” */}
         <div className="hidden lg:flex">
           <button
             onClick={() => (window.location.href = '/redirect-by-role')}
             className="ml-4 rounded-md bg-gradient-to-r from-[#0094d9] to-[#003f8c] px-4 py-2 text-sm font-semibold text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition"
           >
-            Ingresar →
+            {user ? 'Mi Panel →' : 'Ingresar →'}
           </button>
         </div>
 
@@ -121,10 +122,12 @@ console.log('Active Item:', activeItem)
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${isActive(item.target)
-                  ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
-                  : 'text-white hover:text-[#0094d9] hover:bg-white/10'}`}
-                         >
+                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+                  isActive(item.target)
+                    ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
+                    : 'text-white hover:text-[#0094d9] hover:bg-white/10'
+                }`}
+              >
                 {item.name}
               </a>
             ))}
@@ -135,7 +138,7 @@ console.log('Active Item:', activeItem)
               }}
               className="rounded-md bg-gradient-to-r from-[#0094d9] to-[#003f8c] px-4 py-2 text-sm font-semibold text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition"
             >
-              Ingresar →
+              {user ? 'Mi Panel →' : 'Ingresar →'}
             </button>
           </div>
         </div>

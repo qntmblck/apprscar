@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,12 @@ return new class extends Migration {
             $table->text('mensaje')->nullable(); // cuerpo del correo
             $table->text('observaciones')->nullable();
             $table->timestamps();
+
+            // Índices para optimizar consultas y filtros
+            $table->index('flete_id');
+            $table->index('user_id');
+            $table->index('fecha');
+            $table->index('tipo');
         });
     }
 

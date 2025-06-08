@@ -32,7 +32,7 @@ class DieselController extends Controller
             $diesel = Diesel::create([
                 'flete_id' => $validated['flete_id'],
                 'rendicion_id' => $rendicion->id,
-                'usuario_id' => $rendicion->user_id, // ✅ conductor asignado
+                'user_id' => $rendicion->user_id, // ✅ conductor asignado
                 'monto' => $validated['monto'],
                 'litros' => $validated['litros'],
                 'metodo_pago' => $validated['metodo_pago'],
@@ -73,4 +73,15 @@ class DieselController extends Controller
             ], 500);
         }
     }
+    public function destroy(Diesel $diesel)
+{
+    try {
+        $diesel->delete();
+        return response()->json(null, 204);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => 'Error al eliminar diesel: ' . $e->getMessage(),
+        ], 500);
+    }
+}
 }

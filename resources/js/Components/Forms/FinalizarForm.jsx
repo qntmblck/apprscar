@@ -33,12 +33,12 @@ export default function FinalizarForm({
     const datePlusOne = new Date(date)
     datePlusOne.setDate(datePlusOne.getDate() + 1)
     const fechaISO = datePlusOne.toISOString().split('T')[0]
-    setForm(prev => ({ ...prev, fecha_termino: fechaISO }))
+    setForm((prev) => ({ ...prev, fecha_termino: fechaISO }))
   }
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
+    setForm((prev) => ({ ...prev, [name]: value }))
   }
 
   const marcarFechaSalida = ({ date, view }) => {
@@ -79,7 +79,9 @@ export default function FinalizarForm({
         setViaticoCalculado(0)
         setExito(true)
         setTimeout(() => setExito(false), 1800)
-      } else throw new Error('No se pudo finalizar el flete.')
+      } else {
+        throw new Error('No se pudo finalizar el flete.')
+      }
     } catch (e) {
       const message =
         e.response?.data?.message ||

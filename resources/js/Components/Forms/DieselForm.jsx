@@ -1,3 +1,5 @@
+// resources/js/Components/Forms/DieselForm.jsx
+
 import { useState } from 'react'
 import { CameraIcon } from '@heroicons/react/20/solid'
 
@@ -8,23 +10,27 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
     metodo_pago: '',
     foto: null,
   })
-
-  const [exito, setExito] = useState(false)
   const [error, setError] = useState(null)
+  const [exito, setExito] = useState(false)
 
   const handleChange = (e) => {
     const { name, value, files } = e.target
-    setForm(prev => ({ ...prev, [name]: files ? files[0] : value }))
+    setForm((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }))
   }
 
   const handleSend = async () => {
     setError(null)
 
+    // Validaciones simples
     if (!form.monto || !form.litros || !form.metodo_pago) {
       setError('Completa todos los campos obligatorios.')
       return
     }
 
+    // Armar FormData (porque puede venir una foto)
     const payload = new FormData()
     payload.append('flete_id', fleteId)
     payload.append('rendicion_id', rendicionId)
@@ -36,12 +42,20 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
     }
 
     try {
+      // onSubmit(payload) internamente hace axios.post('/diesel', payload)
       const res = await onSubmit(payload)
+
+      // Si recibimos el flete actualizado, disparar onSuccess y mostrar mensaje
       if (res?.data?.flete) {
         onSuccess(res.data.flete)
+
+        // Limpiar campos del formulario
         setForm({ monto: '', litros: '', metodo_pago: '', foto: null })
+
+        // Mostrar mensaje de éxito
         setExito(true)
-        setTimeout(() => setExito(false), 1800)
+        // Ocultar mensaje tras 2 segundos
+        setTimeout(() => setExito(false), 2000)
       } else {
         throw new Error('No se devolvió el flete actualizado.')
       }
@@ -64,6 +78,7 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
         </div>
       )}
 
+      {/* Formulario principal */}
       <div className="grid grid-cols-2 gap-2">
         <input
           type="text"
@@ -129,8 +144,9 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
         </button>
       </div>
 
+      {/* Mensaje de éxito */}
       {exito && (
-        <div className="text-green-600 text-[10px] text-right mt-2">
+        <div className="text-green-600 text-[10px] bg-green-100 p-2 rounded mt-2">
           ✔️ Registrado correctamente
         </div>
       )}

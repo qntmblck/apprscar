@@ -12,18 +12,18 @@ class GastoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'flete_id' => 'required|exists:fletes,id',
+            'flete_id'     => 'required|exists:fletes,id',
             'rendicion_id' => 'required|exists:rendiciones,id',
-            'monto' => 'required|numeric|min:0',
-            'tipo' => 'required|string',
-            'descripcion' => 'nullable|string',
-            'foto' => 'nullable|image|max:2048',
+            'monto'        => 'required|numeric|min:0',
+            'tipo'         => 'required|string',
+            'descripcion'  => 'nullable|string',
+            'foto'         => 'nullable|image|max:2048',
         ]);
 
         try {
             $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
 
-            if (!$rendicion->user_id) {
+            if (! $rendicion->user_id) {
                 return response()->json([
                     'error' => 'La rendición no tiene un conductor asignado.'
                 ], 422);
@@ -32,13 +32,13 @@ class GastoController extends Controller
             Gasto::create([
                 'flete_id'     => $validated['flete_id'],
                 'rendicion_id' => $rendicion->id,
-                'usuario_id'   => $rendicion->user_id,
+                'user_id'      => $rendicion->user_id, // ← Cambié aquí
                 'monto'        => $validated['monto'],
                 'tipo'         => $validated['tipo'],
                 'descripcion'  => $validated['descripcion'] ?? null,
                 'foto'         => $request->hasFile('foto')
-                    ? $request->file('foto')->store('gastos', 'public')
-                    : null,
+                                    ? $request->file('foto')->store('gastos', 'public')
+                                    : null,
             ]);
 
             $rendicion->recalcularTotales();
@@ -65,12 +65,23 @@ class GastoController extends Controller
 
             return response()->json([
                 'message' => 'Gasto registrado correctamente.',
-                'flete' => $flete,
+                'flete'   => $flete,
             ]);
-
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Error al registrar gasto: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroy(Gasto $gasto)
+    {
+        try {
+            $gasto->delete();
+            return response()->json(null, 204);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Error al eliminar gasto: ' . $e->getMessage(),
             ], 500);
         }
     }

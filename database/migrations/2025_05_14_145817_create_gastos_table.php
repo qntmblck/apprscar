@@ -11,16 +11,43 @@ return new class extends Migration
         Schema::create('gastos', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('flete_id')->constrained()->onDelete('cascade');
-            $table->foreignId('rendicion_id')->constrained('rendiciones')->onDelete('cascade');
-            $table->foreignId('usuario_id')->constrained('users')->onDelete('restrict');
+            // foráneas
+            $table->foreignId('flete_id')
+                  ->constrained('fletes')
+                  ->onDelete('cascade');
 
-            $table->enum('tipo', ['Carga', 'Descarga', 'Camioneta', 'Estacionamiento', 'Peaje', 'Otros']);
-            $table->integer('monto'); // En pesos chilenos, sin decimales
-            $table->text('descripcion')->nullable();
-            $table->string('foto')->nullable(); // Imagen opcional del gasto
+            $table->foreignId('rendicion_id')
+                  ->constrained('rendiciones')
+                  ->onDelete('cascade');
+
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
+
+            // tipo: incluimos ahora 'Comisión'
+            $table->enum('tipo', [
+                'Carga',
+                'Descarga',
+                'Camioneta',
+                'Estacionamiento',
+                'Peaje',
+                'Otros',
+                'Comisión',
+            ])->default('Otros');
+
+            // descripción opcional
+            $table->string('descripcion')->nullable();
+
+            // ruta de la foto (opcional)
+            $table->string('foto')->nullable();
+
+            // monto del gasto
+            $table->integer('monto');
 
             $table->timestamps();
+
+            // índices para acelerar búsquedas
+            $table->index(['flete_id', 'rendicion_id', 'user_id', 'tipo']);
         });
     }
 

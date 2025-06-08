@@ -11,16 +11,33 @@ return new class extends Migration
         Schema::create('diesels', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('flete_id')->constrained()->onDelete('cascade');
-            $table->foreignId('rendicion_id')->nullable()->constrained('rendiciones')->onDelete('cascade');
-            $table->foreignId('usuario_id')->nullable()->constrained('users')->onDelete('restrict');
+            // 1) Clave foránea al flete
+            $table->foreignId('flete_id')
+                  ->constrained('fletes')
+                  ->onDelete('cascade');
 
-            $table->decimal('monto', 10, 2);
+            // 2) Clave foránea a la rendición
+            $table->foreignId('rendicion_id')
+                  ->constrained('rendiciones')
+                  ->onDelete('cascade');
+
+            // 3) Clave foránea al usuario (conductor que registra)
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
+
+            // 4) Campos de datos
             $table->integer('litros');
-            $table->string('metodo_pago'); // Efectivo, Transferencia, Crédito
-            $table->string('foto')->nullable(); // ✅ agregada correctamente
+            $table->integer('monto');
+            $table->string('metodo_pago'); // Ej: Efectivo, Transferencia, Crédito
+            $table->string('foto')->nullable();
 
             $table->timestamps();
+
+            // 5) Índices secundarios (opcional, pero recomendado)
+            $table->index('flete_id');
+            $table->index('rendicion_id');
+            $table->index('user_id');
         });
     }
 

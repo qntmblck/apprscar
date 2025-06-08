@@ -10,10 +10,15 @@ return new class extends Migration
     {
         Schema::create('retornos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('flete_id')->unique()->constrained()->onDelete('cascade');
 
-            $table->integer('valor'); // Monto monetario o valor del retorno
-            $table->string('descripcion')->nullable(); // Breve detalle
+            // Unique en flete_id crea automáticamente un índice único, no necesita index adicional
+            $table->foreignId('flete_id')
+                  ->unique()
+                  ->constrained('fletes')
+                  ->onDelete('cascade');
+
+            $table->integer('valor');
+            $table->string('descripcion')->nullable();
 
             $table->timestamps();
         });

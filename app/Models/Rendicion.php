@@ -12,142 +12,189 @@ class Rendicion extends Model
 
     protected $table = 'rendiciones';
 
+    /**
+     * Campos asignables.
+     * - 'user_id' es el conductor asignado a esta rendición.
+     * - 'caja_flete' suma de abonos, diesel, etc.
+     * - 'viatico' y 'viatico_efectivo' se guardan cuando se cierra rendición.
+     * - 'saldo' se calcula al cerrar.
+     * - 'periodo' (ej: 'Marzo', 'Abril', etc.) para filtrado.
+     * - 'comision' y 'pagado' si manejas pagos mensuales.
+     */
     protected $fillable = [
         'flete_id',
         'user_id',
         'estado',
         'observaciones',
         'caja_flete',
+        'viatico_calculado',
         'viatico_efectivo',
         'viatico',
-        'viatico_calculado',
         'saldo',
         'periodo',
         'comision',
         'pagado',
     ];
 
-    protected $casts = [
-        'pagado' => 'boolean',
-    ];
-
+    /**
+     * Atributos virtuales que queremos exponer en JSON.
+     */
     protected $appends = [
         'total_gastos',
         'total_diesel',
         'viatico_calculado',
         'saldo_temporal',
-        'caja_flete_acumulada',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relaciones
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Relación con Flete.
+     * Solo seleccionamos los campos mínimos de flete para mostrar nombre de destino, cliente, etc.
+     */
     public function flete()
     {
-        return $this->belongsTo(Flete::class);
+        return $this->belongsTo(Flete::class)
+                    ->select(['id', 'destino_id', 'cliente_principal_id']);
     }
 
+    /**
+     * Relación con Usuario (conductor) asignado a esta rendición.
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id')
+                    ->select(['id', 'name']);
     }
 
+    /**
+     * Todos los gastos vinculados a esta rendición.
+     * Seleccionamos solo columnas mínimas para mostrar en la tabla de desglose.
+     */
     public function gastos()
     {
-        return $this->hasMany(Gasto::class);
+        return $this->hasMany(Gasto::class)
+                    ->select(['id', 'rendicion_id', 'tipo', 'monto']);
     }
 
+    /**
+     * Todos los diesel vinculados a esta rendición.
+     * Traemos solo id, monto, litros, método de pago, foto, etc.
+     */
     public function diesels()
     {
-        return $this->hasMany(Diesel::class);
+        return $this->hasMany(Diesel::class)
+                    ->select(['id', 'rendicion_id', 'monto', 'litros', 'metodo_pago', 'foto']);
     }
 
+    /**
+     * Todos los abonos de caja de esta rendición.
+     */
     public function abonos()
     {
-        return $this->hasMany(AbonoCaja::class);
+        return $this->hasMany(AbonoCaja::class)
+                    ->select(['id', 'rendicion_id', 'metodo', 'monto']);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Atributos dinámicos
-    |--------------------------------------------------------------------------
-    */
+    /**
+     * Relación polimórfica a documentos si es que adjuntas comprobantes a la rendición.
+     */
+    public function documentos()
+    {
+        return $this->morphMany(Documento::class, 'documentable');
+    }
 
-    public function getTotalGastosAttribute()
+    /**
+     * Accessor: total de gastos (suma de 'monto' en Gasto).
+     */
+    public function getTotalGastosAttribute(): int
     {
         return $this->gastos()->sum('monto');
     }
 
-    public function getTotalDieselAttribute()
+    /**
+     * Accessor: total de diesel (excluyendo los de método 'Crédito' si aplica).
+     */
+    public function getTotalDieselAttribute(): int
     {
         return $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
     }
 
-    public function getViaticoCalculadoAttribute()
+    /**
+     * Accessor: si existe viatico_efectivo lo usamos,
+     * si no, mostramos viatico_calculado (previamente seteado).
+     */
+    public function getViaticoCalculadoAttribute(): int
     {
-        $salida = optional($this->flete?->fecha_salida)?->startOfDay();
-        $llegada = optional($this->flete?->fecha_llegada)?->startOfDay() ?? now()->startOfDay();
-
-        if (!$salida || $salida->gt($llegada)) return 0;
-
-        $dias = $salida->diffInDays($llegada) + 1;
-
-        // Excluir un día si hay otro flete comenzando el mismo día
-        $fletePosterior = Flete::where('conductor_id', $this->flete->conductor_id)
-            ->whereDate('fecha_salida', $llegada)
-            ->where('id', '!=', $this->flete->id)
-            ->exists();
-
-        if ($fletePosterior) {
-            $dias = max(0, $dias - 1);
-        }
-
-        return $dias * 15000;
+        // Si ya hay un viatico_efectivo guardado (rendición en curso o cerrada),
+        // entonces devolvemos ese; si no, tomamos el viatico_calculado real.
+        return $this->attributes['viatico_efectivo']
+               ?? $this->attributes['viatico_calculado']
+               ?? 0;
     }
 
-    public function getSaldoTemporalAttribute()
+    /**
+     * Accessor: calcula el saldo temporal en base a:
+     *  abonos - total_gastos - total_diesel - viatico_calculado
+     */
+    public function getSaldoTemporalAttribute(): int
+    {
+        $abonos = $this->abonos()->sum('monto');
+        $gastos = $this->total_gastos;     // usa el accessor
+        $diesel = $this->total_diesel;     // usa el accessor
+        $viatico = $this->viatico_calculado;
+
+        return $abonos - $gastos - $diesel - $viatico;
+    }
+
+    /**
+     * Método que recalcula y persiste el saldo definitivo:
+     *  saldo = abonos - total_gastos - total_diesel - viatico
+     */
+    public function recalcularTotales(): void
     {
         try {
-            $caja = $this->caja_flete_acumulada;
+            $abonos = $this->abonos()->sum('monto');
             $gastos = $this->gastos()->sum('monto');
             $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
-            $viatico = $this->viatico_efectivo ?? $this->viatico ?? $this->viatico_calculado ?? 0;
+            $viatico = $this->viatico ?? $this->viatico_calculado ?? 0;
 
-            return $caja - $gastos - $diesel - $viatico;
+            $this->saldo = $abonos - $gastos - $diesel - $viatico;
+            $this->save();
         } catch (\Throwable $e) {
-            \Log::error('Error en saldo_temporal: ' . $e->getMessage());
-            return 0;
+            \Log::error('Error al recalcular totales: ' . $e->getMessage());
         }
     }
 
-    public function getCajaFleteAcumuladaAttribute()
+    /**
+     * Scope para filtrar por flete.
+     *  Rendicion::ofFlete($fleteId)->get();
+     */
+    public function scopeOfFlete($query, int $fleteId)
     {
-        return $this->abonos()->sum('monto');
+        return $query->where('flete_id', $fleteId);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Recalcular saldo final (persistente)
-    |------------------------------------------------npm run build-------------------------
-    */
-
-    public function recalcularTotales()
-{
-    try {
-        $gastos = $this->gastos()->sum('monto');
-        $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
-        $viatico = $this->viatico ?? $this->viatico_calculado ?? 0;
-        $abonos = $this->abonos()->sum('monto');
-
-        $this->saldo = $abonos - $gastos - $diesel - $viatico;
-        $this->save();
-    } catch (\Throwable $e) {
-        \Log::error('Error al recalcular totales: ' . $e->getMessage());
+    /**
+     * Scope para filtrar solo rendiciones abiertas (estado = "Activo").
+     */
+    public function scopeActivo($query)
+    {
+        return $query->where('estado', 'Activo');
     }
-}
 
+    /**
+     * Scope para filtrar rendiciones cerradas (estado = "Cerrado").
+     */
+    public function scopeCerrado($query)
+    {
+        return $query->where('estado', 'Cerrado');
+    }
 
+    /**
+     * Scope para ordenar por fecha de creación descendente.
+     *  Rendicion::latestFirst()->get();
+     */
+    public function scopeLatestFirst($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
 }
