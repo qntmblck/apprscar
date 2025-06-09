@@ -2,13 +2,22 @@
 
 import axios from 'axios'
 
-// 1. Tomar el CSRF token desde la meta tag y asignarlo a todos los requests
-const tokenMetaTag = document.head.querySelector('meta[name="csrf-token"]')
-if (tokenMetaTag) {
-  axios.defaults.headers.common['X-CSRF-TOKEN'] = tokenMetaTag.content
+// Verificar si existe el token CSRF en el HTML
+const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+
+// Si el token CSRF está presente, configurarlo para todas las solicitudes de Axios
+if (token) {
+  axios.defaults.headers.common['X-CSRF-TOKEN'] = token
 } else {
-  console.warn('CSRF token meta tag no encontrado: asegúrate de tener <meta name="csrf-token"> en el <head>.')
+  console.warn('CSRF token no encontrado, recargando página...')
+  window.location.reload()  // Recargar la página si el token no está disponible
 }
 
-// 2. Indicar que todas las peticiones serán AJAX (opcional pero recomendado)
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+// Configurar axios para que use las cookies para autenticación en Laravel Sanctum
+axios.defaults.withCredentials = true
+
+// Si no existe el token CSRF, forzamos un ciclo de recarga (no debe repetirse)
+if (!token && !window.__csrf_retry__) {
+  window.__csrf_retry__ = true
+  window.location.reload()
+}

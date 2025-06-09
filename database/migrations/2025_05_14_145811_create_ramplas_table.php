@@ -8,13 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('ramplas');
+
         Schema::create('ramplas', function (Blueprint $table) {
             $table->id();
             $table->string('patente')->unique();
             $table->string('tipo');
             $table->string('marca');
-            $table->float('capacidad'); // en kilogramos o toneladas
-            $table->float('longitud'); // en metros
+            $table->string('modelo');
+            $table->float('capacidad');    // en toneladas
+            $table->float('longitud');     // en metros
+            $table->integer('kilometraje'); // en km
+            $table->enum('estado', ['Activo', 'Inactivo'])->default('Activo');
             $table->timestamps();
         });
     }

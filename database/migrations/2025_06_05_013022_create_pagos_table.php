@@ -11,21 +11,23 @@ return new class extends Migration
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id')
-                  ->constrained('users')
-                  ->onDelete('cascade');
+            // 1) Relación polimórfica: conductor o colaborador
+            $table->morphs('pagable'); // crea pagable_id + pagable_type (ambos indexados)
+
+            // 2) Periodo de pago (mes en texto, e.g. "Junio")
             $table->string('periodo');
 
-            $table->decimal('total_comision', 12, 0)->default(0);
-            $table->decimal('total_saldo', 12, 0)->default(0);
+            // 3) Totales
+            $table->decimal('total_comision', 12, 2)->default(0);
+            $table->decimal('total_saldo',     12, 2)->default(0);
 
+            // 4) Fecha y detalle
             $table->date('fecha_pago')->nullable();
             $table->text('detalle')->nullable();
 
             $table->timestamps();
 
-            // ─── Índices para búsquedas por usuario y periodo ────────────────
-            $table->index('user_id');
+            // 5) Índice para filtrar por periodo
             $table->index('periodo');
         });
     }

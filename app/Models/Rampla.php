@@ -1,4 +1,5 @@
 <?php
+// app/Models/Rampla.php
 
 namespace App\Models;
 
@@ -13,8 +14,11 @@ class Rampla extends Model
         'patente',
         'tipo',
         'marca',
+        'modelo',
         'capacidad',
         'longitud',
+        'kilometraje',
+        'estado',
     ];
 
     public function fletes()
@@ -23,9 +27,9 @@ class Rampla extends Model
     }
 
     public function mantenciones()
-    {
-        return $this->hasMany(Mantencion::class);
-    }
+{
+    return $this->morphMany(Mantencion::class, 'mantencionable');
+}
 
     public function documentos()
     {

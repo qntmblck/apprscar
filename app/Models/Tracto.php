@@ -1,4 +1,5 @@
 <?php
+// app/Models/Tracto.php
 
 namespace App\Models;
 
@@ -14,8 +15,9 @@ class Tracto extends Model
         'marca',
         'modelo',
         'color',
-        'año',
-        'kilometraje', // Agregado
+        'anio',
+        'kilometraje', // ya existía
+        'estado',      // ← agregado
     ];
 
     public function fletes()
@@ -24,9 +26,9 @@ class Tracto extends Model
     }
 
     public function mantenciones()
-    {
-        return $this->hasMany(Mantencion::class);
-    }
+{
+    return $this->morphMany(Mantencion::class, 'mantencionable');
+}
 
     public function documentos()
     {

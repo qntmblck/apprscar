@@ -246,9 +246,9 @@ function FleteCard({
         Salida: {fechaSalidaFormatted}
       </div>
       <div className="flex items-center gap-x-2 text-sm text-gray-700">
-        <UserIcon className="h-5 w-5 text-gray-400" />
-        {flete.conductor?.name || '—'}
-      </div>
+  <UserIcon className="h-5 w-5 text-gray-400" />
+  {flete.conductor?.name || flete.colaborador?.name || '—'}
+</div>
       <div className="flex items-center gap-x-2 text-sm text-gray-700">
         <BanknotesIcon className="h-5 w-5 text-gray-400" />
         Viático: ${viaticoEfec.toLocaleString('es-CL')}
@@ -637,9 +637,6 @@ function FleteCard({
   </div>
 
 </div>
-
-
-
 
 
 

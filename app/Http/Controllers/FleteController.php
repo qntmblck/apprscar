@@ -18,80 +18,78 @@ use Carbon\Carbon;
 class FleteController extends Controller
 {
     public function index(Request $request)
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        $fletes = Flete::query()
-            ->select([
-                'id',
-                'destino_id',
-                'cliente_principal_id',
-                'conductor_id',
-                'tracto_id',
-                'rampla_id',
-                'fecha_salida',
-                'fecha_llegada',
-                'estado',
-                'periodo',
-                'pagado',
-                'retorno',   // viene de flete
-            ])
-            ->with([
-                'clientePrincipal:id,razon_social',
-                'conductor:id,name',
-                'tracto:id,patente',
-                'rampla:id,patente',
-                'destino:id,nombre',
-                'rendicion:id,flete_id,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
-                'rendicion.gastos' => function ($q) {
-                    $q->select(['id','rendicion_id','monto','descripcion','tipo','created_at'])
-                      ->orderBy('id','desc');
-                },
-                'rendicion.diesels' => function ($q) {
-                    $q->select(['id','rendicion_id','monto','litros','metodo_pago','created_at'])
-                      ->orderBy('id','desc');
-                },
-                'rendicion.abonos' => function ($q) {
-                    $q->select(['id','rendicion_id','monto','metodo','created_at'])
-                      ->orderBy('id','desc');
-                },
-            ])
-            ->when(
-                $request->filled('conductor_ids') && is_array($request->conductor_ids),
-                fn($q) => $q->whereIn('conductor_id', $request->conductor_ids)
-            )
-            ->when(
-                $request->filled('cliente_ids') && is_array($request->cliente_ids),
-                fn($q) => $q->whereIn('cliente_principal_id', $request->cliente_ids)
-            )
-            ->when(
-                $request->filled('tracto_ids') && is_array($request->tracto_ids),
-                fn($q) => $q->whereIn('tracto_id', $request->tracto_ids)
-            )
-            ->when(
-                $request->filled('periodo'),
-                fn($q) => $q->where('periodo', $request->periodo)
-            )
-            ->orderBy('fecha_salida','desc')
-            ->paginate(48);
+    $fletes = Flete::query()
+        ->select([
+            'id',
+            'destino_id',
+            'cliente_principal_id',
+            'conductor_id',
+            'colaborador_id',
+            'tracto_id',
+            'rampla_id',
+            'fecha_salida',
+            'fecha_llegada',
+            'estado',
+            'pagado',
+            'retorno',
+        ])
+        ->with([
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            // Aquí agregamos 'estado' a la rendición:
+            'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
+            'rendicion.gastos' => function ($q) {
+                $q->select(['id','rendicion_id','monto','descripcion','tipo','created_at'])
+                  ->orderBy('id','desc');
+            },
+            'rendicion.diesels' => function ($q) {
+                $q->select(['id','rendicion_id','monto','litros','metodo_pago','created_at'])
+                  ->orderBy('id','desc');
+            },
+            'rendicion.abonos' => function ($q) {
+                $q->select(['id','rendicion_id','monto','metodo','created_at'])
+                  ->orderBy('id','desc');
+            },
+        ])
+        ->when(
+            $request->filled('conductor_ids') && is_array($request->conductor_ids),
+            fn($q) => $q->whereIn('conductor_id', $request->conductor_ids)
+        )
+        ->when(
+            $request->filled('cliente_ids') && is_array($request->cliente_ids),
+            fn($q) => $q->whereIn('cliente_principal_id', $request->cliente_ids)
+        )
+        ->when(
+            $request->filled('tracto_ids') && is_array($request->tracto_ids),
+            fn($q) => $q->whereIn('tracto_id', $request->tracto_ids)
+        )
+        ->orderBy('fecha_salida','desc')
+        ->paginate(48);
 
-        return Inertia::render('Fletes/Index', [
-            'fletes'      => $fletes,
-            'filters'     => [
-                'conductor_ids' => $request->input('conductor_ids', []),
-                'cliente_ids'   => $request->input('cliente_ids', []),
-                'tracto_ids'    => $request->input('tracto_ids', []),
-                'periodo'       => $request->input('periodo',''),
-            ],
-            'conductores' => User::role('conductor')->get(['id','name']),
-            'clientes'    => Cliente::select('id','razon_social')->get(),
-            'tractos'     => Tracto::select('id','patente')->get(),
-            'auth'        => [
-                'user'  => $user,
-                'roles' => $user->getRoleNames()->toArray(),
-            ],
-        ]);
-    }
+    return Inertia::render('Fletes/Index', [
+        'fletes'      => $fletes,
+        'filters'     => [
+            'conductor_ids' => $request->input('conductor_ids', []),
+            'cliente_ids'   => $request->input('cliente_ids', []),
+            'tracto_ids'    => $request->input('tracto_ids', []),
+        ],
+        'conductores' => User::orderBy('name')->get(['id','name']),
+        'clientes'    => Cliente::select('id','razon_social')->get(),
+        'tractos'     => Tracto::select('id','patente')->get(),
+        'auth'        => [
+            'user'  => $user,
+            'roles' => $user->getRoleNames()->toArray(),
+        ],
+    ]);
+}
+
 
     public function store(Request $request)
     {
@@ -115,8 +113,6 @@ class FleteController extends Controller
 
         $tracto = Tracto::inRandomOrder()->first();
         $rampla = Rampla::inRandomOrder()->first();
-        $periodo = Carbon::parse($request->fecha_salida)
-                        ->locale('es')->isoFormat('MMMM');
 
         $flete = Flete::create([
             'conductor_id'           => $conductor->id,
@@ -130,9 +126,8 @@ class FleteController extends Controller
             'rendimiento'            => round(mt_rand(30,65)/10,1),
             'estado'                 => 'Sin Notificar',
             'fecha_salida'           => $request->fecha_salida,
-            'periodo'                => $periodo,
             'pagado'                 => false,
-            'retorno'                => 0,  // inicializamos en cero
+            'retorno'                => 0,
         ]);
 
         Rendicion::create([
@@ -143,7 +138,7 @@ class FleteController extends Controller
             'viatico_efectivo' => 0,
             'viatico_calculado'=> 0,
             'saldo'            => 0,
-            'comision'         => 0,  // inicializamos en cero
+            'comision'         => 0,
         ]);
 
         return redirect()->route('fletes.index')
@@ -151,56 +146,49 @@ class FleteController extends Controller
     }
 
     public function finalizar(Request $request)
-{
-    $validated = $request->validate([
-        'flete_id'          => 'required|exists:fletes,id',
-        'rendicion_id'      => 'required|exists:rendiciones,id',
-        'fecha_termino'     => 'nullable|date',
-        'viatico_efectivo'  => 'nullable|numeric|min:0',
-    ]);
+    {
+        $validated = $request->validate([
+            'flete_id'          => 'required|exists:fletes,id',
+            'rendicion_id'      => 'required|exists:rendiciones,id',
+            'fecha_termino'     => 'nullable|date',
+            'viatico_efectivo'  => 'nullable|numeric|min:0',
+        ]);
 
-    $flete     = Flete::findOrFail($validated['flete_id']);
-    $rendicion = Rendicion::with(['diesels','gastos','abonos'])
-                          ->findOrFail($validated['rendicion_id']);
+        $flete     = Flete::findOrFail($validated['flete_id']);
+        $rendicion = Rendicion::with(['diesels','gastos','abonos'])
+                              ->findOrFail($validated['rendicion_id']);
 
-    // Si enviaron fecha_termino, cerramos la rendición
-    if (!empty($validated['fecha_termino'])) {
-        $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
-        $rendicion->estado = 'Cerrado';
+        if (!empty($validated['fecha_termino'])) {
+            $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
+            $rendicion->estado = 'Cerrado';
+        } else {
+            $rendicion->estado = 'Activo';
+        }
+
+        if (isset($validated['viatico_efectivo'])) {
+            $rendicion->viatico_efectivo  = $validated['viatico_efectivo'];
+            $rendicion->viatico_calculado = $validated['viatico_efectivo'];
+        }
+
+        $rendicion->recalcularTotales();
+        $rendicion->save();
+
+        $fresh = $flete->fresh([
+            'clientePrincipal',
+            'destino',
+            'conductor',
+            'tracto',
+            'rampla',
+            'rendicion.abonos',
+            'rendicion.diesels',
+            'rendicion.gastos',
+        ]);
+
+        return response()->json([
+            'message' => 'Flete finalizado correctamente.',
+            'flete'   => $fresh,
+        ], 200);
     }
-    // Si fecha_termino viene nulo, reabrimos la rendición
-    else {
-        $rendicion->estado = 'Activo';
-    }
-
-    // Actualizamos viático si se envió
-    if (isset($validated['viatico_efectivo'])) {
-        $rendicion->viatico_efectivo  = $validated['viatico_efectivo'];
-        $rendicion->viatico_calculado = $validated['viatico_efectivo'];
-    }
-
-    // Recalcular totales y guardar
-    $rendicion->recalcularTotales();
-    $rendicion->save();
-
-    // Refrescamos el flete con todas las relaciones necesarias
-    $fresh = $flete->fresh([
-        'clientePrincipal',
-        'destino',
-        'conductor',
-        'tracto',
-        'rampla',
-        'rendicion.abonos',
-        'rendicion.diesels',
-        'rendicion.gastos',
-    ]);
-
-    return response()->json([
-        'message' => 'Flete finalizado correctamente.',
-        'flete'   => $fresh,
-    ], 200);
-}
-
 
     public function registrarViatico(Request $request)
     {
@@ -252,13 +240,13 @@ class FleteController extends Controller
         ])->findOrFail($flete->id);
 
         if ($flete->rendicion) {
-            $flete->makeVisible(['retorno']); // retorno viene de Flete
+            $flete->makeVisible(['retorno']);
             $flete->rendicion->makeVisible([
-                'saldo',            // columna real
+                'saldo',
                 'total_gastos',
                 'total_diesel',
                 'viatico_calculado',
-                'comision',         // comision viene de Rendicion
+                'comision',
             ]);
         }
 

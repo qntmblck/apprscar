@@ -29,6 +29,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    // ─── Relaciones ─────────────────────────────────────────
+
     public function fletes()
     {
         return $this->hasMany(Flete::class, 'conductor_id');
@@ -41,7 +43,7 @@ class User extends Authenticatable
 
     public function rendiciones()
     {
-        return $this->hasMany(Rendicion::class);
+        return $this->hasMany(Rendicion::class, 'conductor_id');
     }
 
     public function documentos()
@@ -62,5 +64,11 @@ class User extends Authenticatable
     public function mantenciones()
     {
         return $this->hasMany(Mantencion::class);
+    }
+
+    // ⬅️ NUEVO: Relación con pagos
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class);
     }
 }

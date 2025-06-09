@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('fletes', function (Blueprint $table) {
             $table->id();
 
-            // 1) Claves foráneas: mantenemos exactamente esos campos
+            // 1) Claves foráneas
             $table->foreignId('cliente_principal_id')
                   ->constrained('clientes')
                   ->onDelete('cascade');
@@ -19,6 +19,11 @@ return new class extends Migration
                   ->constrained()
                   ->onDelete('cascade');
             $table->foreignId('conductor_id')
+                  ->nullable()
+                  ->constrained('users')
+                  ->onDelete('cascade');
+            $table->foreignId('colaborador_id')
+                  ->nullable()
                   ->constrained('users')
                   ->onDelete('cascade');
             $table->foreignId('tracto_id')
@@ -33,9 +38,9 @@ return new class extends Migration
                   ->constrained()
                   ->onDelete('set null');
 
-            // 2) Campos adicionales tal como estaban
+            // 2) Campos adicionales
             $table->enum('tipo', ['Directo', 'Reparto']);
-            $table->enum('estado', ['Sin Notificar', 'Notificado'])
+            $table->enum('estado', ['Sin Notificar', 'Notificado', 'Activo', 'Cerrado'])
                   ->default('Sin Notificar');
 
             $table->integer('kilometraje')->nullable();
@@ -45,22 +50,21 @@ return new class extends Migration
             $table->date('fecha_llegada')->nullable();
 
             $table->integer('comision')->default(0);
-            $table->integer('retorno')->nullable();
+            $table->integer('retorno')->default(0);
             $table->string('guiaruta')->nullable();
 
             $table->boolean('pagado')->default(false);
-            $table->string('periodo')->nullable();
 
             $table->timestamps();
 
-            // 3) Índices agregados para optimizar búsquedas y ordenamientos
+            // 3) Índices
             $table->index('cliente_principal_id');
             $table->index('destino_id');
             $table->index('conductor_id');
+            $table->index('colaborador_id');
             $table->index('tracto_id');
             $table->index('rampla_id');
             $table->index('fecha_salida');
-            $table->index('periodo');
         });
     }
 
