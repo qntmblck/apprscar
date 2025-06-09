@@ -21,12 +21,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FleteController;
 use App\Http\Controllers\FleteConductorController;
 use App\Http\Controllers\FleteBatchController;
-
-// Controladores de formularios “frontal”
 use App\Http\Controllers\DieselController;
 use App\Http\Controllers\GastoController;
-
-// Controladores de formularios “trasera”
 use App\Http\Controllers\AbonoController;
 use App\Http\Controllers\RetornoController;
 use App\Http\Controllers\ComisionController;
@@ -35,9 +31,13 @@ use App\Http\Controllers\ComisionController;
 // RUTAS PÚBLICAS
 // ——————————————
 
-// Redirección tras login según rol
+// Redirección tras login según rol (protegida para evitar loops)
 Route::get('/login-success', function () {
     $user = auth()->user();
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
 
     if ($user->hasRole('superadmin')) {
         return redirect()->route('super.dashboard');
@@ -52,7 +52,7 @@ Route::get('/login-success', function () {
     }
 
     return redirect()->route('dashboard');
-});
+})->middleware(['auth']); // Protección agregada aquí
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -86,25 +86,11 @@ Route::get('/redirect-by-role', RoleRedirectController::class)->middleware('auth
 // DASHBOARDS por rol
 // ——————————————
 Route::middleware(['auth'])->group(function () {
-    Route::get('/super/dashboard',       [SuperDashboardController::class, 'index'])
-        ->middleware('role:superadmin')
-        ->name('super.dashboard');
-
-    Route::get('/admin/dashboard',       [AdminDashboardController::class, 'index'])
-        ->middleware('role:admin')
-        ->name('admin.dashboard');
-
-    Route::get('/cliente/dashboard',     [ClienteDashboardController::class, 'index'])
-        ->middleware('role:cliente')
-        ->name('cliente.dashboard');
-
-    Route::get('/conductor/dashboard',   [ConductorDashboardController::class, 'index'])
-        ->middleware('role:conductor')
-        ->name('conductor.dashboard');
-
-    Route::get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index'])
-        ->middleware('role:colaborador')
-        ->name('colaborador.dashboard');
+    Route::get('/super/dashboard',       [SuperDashboardController::class, 'index'])->middleware('role:superadmin')->name('super.dashboard');
+    Route::get('/admin/dashboard',       [AdminDashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
+    Route::get('/cliente/dashboard',     [ClienteDashboardController::class, 'index'])->middleware('role:cliente')->name('cliente.dashboard');
+    Route::get('/conductor/dashboard',   [ConductorDashboardController::class, 'index'])->middleware('role:conductor')->name('conductor.dashboard');
+    Route::get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index'])->middleware('role:colaborador')->name('colaborador.dashboard');
 });
 
 // ——————————————
