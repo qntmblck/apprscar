@@ -74,15 +74,43 @@ class GastoController extends Controller
         }
     }
 
-    public function destroy(Gasto $gasto)
-    {
-        try {
-            $gasto->delete();
-            return response()->json(null, 204);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'error' => 'Error al eliminar gasto: ' . $e->getMessage(),
-            ], 500);
-        }
+    public function destroy($id)
+{
+    $registro = \App\Models\Gasto::find($id);
+    if (! $registro) {
+        return response()->json(['message' => 'Gasto no encontrado'], 404);
     }
+
+    $rendicion = $registro->rendicion;
+    $flete_id  = $rendicion->flete_id;
+    $registro->delete();
+
+    $flete = \App\Models\Flete::with([
+        'cliente',
+        'conductor',
+        'tracto',
+        'rampla',
+        'destino',
+        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+    ])->find($flete_id);
+
+    if ($flete->rendicion) {
+        $flete->rendicion->makeVisible([
+            'saldo_temporal',
+            'total_diesel',
+            'total_gastos',
+            'viatico_efectivo',
+            'viatico_calculado',
+            'caja_flete_acumulada',
+        ]);
+    }
+
+    return response()->json([
+        'message' => '✅ Gasto eliminado correctamente.',
+        'flete'   => $flete,
+    ]);
+}
+
 }

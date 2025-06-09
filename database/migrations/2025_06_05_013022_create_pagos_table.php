@@ -11,24 +11,32 @@ return new class extends Migration
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
 
-            // 1) Relación polimórfica: conductor o colaborador
-            $table->morphs('pagable'); // crea pagable_id + pagable_type (ambos indexados)
+            //
+            // 1) Relación polimórfica: conductor o colaborador (pagable)
+            //
+            $table->morphs('pagable'); // crea pagable_id + pagable_type, y su índice automáticamente
 
-            // 2) Periodo de pago (mes en texto, e.g. "Junio")
-            $table->string('periodo');
-
-            // 3) Totales
+            //
+            // 2) Periodo de pago y totales
+            //
+            $table->string('periodo'); // e.g. "Junio"
             $table->decimal('total_comision', 12, 2)->default(0);
             $table->decimal('total_saldo',     12, 2)->default(0);
 
-            // 4) Fecha y detalle
+            //
+            // 3) Fecha de pago y detalle
+            //
             $table->date('fecha_pago')->nullable();
             $table->text('detalle')->nullable();
 
             $table->timestamps();
 
-            // 5) Índice para filtrar por periodo
+            //
+            // 4) Índices adicionales
+            //
             $table->index('periodo');
+            // Eliminamos la siguiente línea, porque 'morphs' ya creó este índice:
+            // $table->index(['pagable_type', 'pagable_id']);
         });
     }
 

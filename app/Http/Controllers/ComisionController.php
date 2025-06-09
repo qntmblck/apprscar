@@ -66,42 +66,45 @@ class ComisionController extends Controller
      * Remove the specified Comisión (eliminar el gasto con tipo="Comisión").
      */
     public function destroy($id)
-    {
-        $registro = Gasto::find($id);
-        if (! $registro) {
-            return response()->json(['message' => 'Comisión no encontrada'], 404);
-        }
+{
+    $registro = \App\Models\Comision::find($id);
 
-        $rendicion = $registro->rendicion;
-        $flete_id  = $rendicion->flete_id;
-        $registro->delete();
+    if (! $registro) {
+        return response()->json(['message' => 'Comisión no encontrada'], 404);
+    }
 
-        $flete = Flete::with([
-            'cliente',
-            'conductor',
-            'tracto',
-            'rampla',
-            'destino',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-        ])->find($flete_id);
+    $rendicion = $registro->rendicion;
+    $flete_id  = $rendicion->flete_id;
+    $registro->delete();
 
-        if ($flete->rendicion) {
-            $flete->rendicion->makeVisible([
-                'saldo_temporal',
-                'total_diesel',
-                'total_gastos',
-                'viatico_efectivo',
-                'viatico_calculado',
-                'caja_flete_acumulada',
-                'comision_manual',
-            ]);
-        }
+    $flete = \App\Models\Flete::with([
+        'cliente',
+        'conductor',
+        'tracto',
+        'rampla',
+        'destino',
+        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.comisiones' => fn($q) => $q->orderByDesc('created_at'),
+    ])->find($flete_id);
 
-        return response()->json([
-            'message' => '✅ Comisión eliminada correctamente.',
-            'flete'   => $flete,
+    if ($flete->rendicion) {
+        $flete->rendicion->makeVisible([
+            'saldo_temporal',
+            'total_diesel',
+            'total_gastos',
+            'viatico_efectivo',
+            'viatico_calculado',
+            'caja_flete_acumulada',
+            'comision_manual',
         ]);
     }
+
+    return response()->json([
+        'message' => '✅ Comisión eliminada correctamente.',
+        'flete'   => $flete,
+    ]);
+}
+
 }

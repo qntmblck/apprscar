@@ -11,60 +11,68 @@ return new class extends Migration
         Schema::create('fletes', function (Blueprint $table) {
             $table->id();
 
-            // 1) Claves foráneas
+            // ─── Claves foráneas (nullable + nullOnDelete) ──────────────
             $table->foreignId('cliente_principal_id')
+                  ->nullable()
                   ->constrained('clientes')
-                  ->onDelete('cascade');
-            $table->foreignId('destino_id')
-                  ->constrained()
-                  ->onDelete('cascade');
+                  ->nullOnDelete();
+            $table->string('cliente_nombre')->nullable();
+
             $table->foreignId('conductor_id')
                   ->nullable()
                   ->constrained('users')
-                  ->onDelete('cascade');
+                  ->nullOnDelete();
+            $table->string('conductor_nombre')->nullable();
+
             $table->foreignId('colaborador_id')
                   ->nullable()
                   ->constrained('users')
-                  ->onDelete('cascade');
-            $table->foreignId('tracto_id')
-                  ->constrained()
-                  ->onDelete('cascade');
-            $table->foreignId('rampla_id')
-                  ->nullable()
-                  ->constrained()
-                  ->onDelete('set null');
+                  ->nullOnDelete();
+            $table->string('colaborador_nombre')->nullable();
+
             $table->foreignId('tarifa_id')
                   ->nullable()
-                  ->constrained()
-                  ->onDelete('set null');
+                  ->constrained('tarifas')
+                  ->nullOnDelete();
+            $table->decimal('tarifa_valor', 12, 2)->nullable();
 
-            // 2) Campos adicionales
-            $table->enum('tipo', ['Directo', 'Reparto']);
-            $table->enum('estado', ['Sin Notificar', 'Notificado', 'Activo', 'Cerrado'])
-                  ->default('Sin Notificar');
+            $table->foreignId('destino_id')
+                  ->constrained('destinos')
+                  ->cascadeOnDelete();
+
+            $table->foreignId('tracto_id')
+                  ->constrained('tractos')
+                  ->cascadeOnDelete();
+
+            $table->foreignId('rampla_id')
+                  ->nullable()
+                  ->constrained('ramplas')
+                  ->nullOnDelete();
+
+            // ─── Atributos del flete ────────────────────────────────────
+            $table->enum('tipo', ['Directo','Reparto'])->default('Directo');
+            $table->enum('estado', ['Sin Notificar','Notificado','Activo','Cerrado'])->default('Sin Notificar');
 
             $table->integer('kilometraje')->nullable();
-            $table->float('rendimiento')->nullable();
+            $table->float('rendimiento', 8, 2)->nullable();
 
             $table->date('fecha_salida')->nullable();
             $table->date('fecha_llegada')->nullable();
 
             $table->integer('comision')->default(0);
-            $table->integer('retorno')->default(0);
+            $table->integer('valor_factura')->default(0);
+            $table->integer('utilidad')->default(0);
+            $table->string('retorno')->nullable(); // ← antes era boolean
             $table->string('guiaruta')->nullable();
 
             $table->boolean('pagado')->default(false);
+            $table->json('adicionales')->nullable();
 
             $table->timestamps();
 
-            // 3) Índices
-            $table->index('cliente_principal_id');
-            $table->index('destino_id');
-            $table->index('conductor_id');
-            $table->index('colaborador_id');
-            $table->index('tracto_id');
-            $table->index('rampla_id');
+            // ─── Índices ─────────────────────────────────────────────────
             $table->index('fecha_salida');
+            $table->index(['cliente_principal_id', 'conductor_id', 'colaborador_id']);
         });
     }
 

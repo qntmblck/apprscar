@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Flete;
 
 class Tarifa extends Model
 {
@@ -31,11 +32,18 @@ class Tarifa extends Model
     }
 
     // 4. Relación inversa con Fletes
-    //    Esta relación sirve para saber “todos los fletes que usaron esta tarifa”,
-    //    pero dado que usamos cliente_principal_id + destino_id + tipo como llave,
-    //    lo más directo suele ser buscar tarifa desde Flete, no viceversa.
     public function fletes()
     {
-        return $this->hasMany(Flete::class, 'cliente_principal_id', 'cliente_principal_id');
+        return $this->hasMany(Flete::class, 'tarifa_id');
+    }
+
+    // 5. Hook: antes de eliminar una tarifa,
+    //    preserva su valor en todos los fletes huérfanos
+    protected static function booted()
+    {
+        static::deleting(function (self $tarifa) {
+            Flete::where('tarifa_id', $tarifa->id)
+                ->update(['tarifa_valor' => $tarifa->valor_factura]);
+        });
     }
 }

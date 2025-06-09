@@ -4,14 +4,23 @@ namespace Database\Factories;
 
 use App\Models\Destino;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Exception;
 
 class DestinoFactory extends Factory
 {
+    /**
+     * El modelo asociado
+     *
+     * @var string
+     */
     protected $model = Destino::class;
 
-    public function definition(): array
-    {
-        $lookup = [
+    /**
+     * Presets para destinos
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    protected static array $presets = [
             ['nombre' => 'ANCUD',                   'region' => 'Los Lagos',              'km' => 1105],
             ['nombre' => 'ANDACOLLO',               'region' => 'Coquimbo',              'km' => 511],
             ['nombre' => 'ANGOL',                   'region' => 'La Araucanía',          'km' => 550],
@@ -176,18 +185,38 @@ class DestinoFactory extends Factory
             ['nombre' => 'CALERA DE TANGO',         'region' => 'Metropolitana',         'km' => 34],
         ];
 
-        static $index = 0;
+    /**
+     * Número exacto de presets disponibles
+     */
+    public const PRESET_COUNT = 100; // Ajusta este número al total de entradas en $presets
 
-        if ($index >= count($lookup)) {
-            throw new \Exception('No quedan destinos únicos disponibles en DestinoFactory. Agrega más presets.');
+    /**
+     * Índice interno para recorrer presets
+     *
+     * @var int
+     */
+    protected static int $index = 0;
+
+    /**
+     * Define el estado por defecto del factory
+     *
+     * @return array<string, mixed>
+     * @throws Exception si ya no quedan presets
+     */
+    public function definition(): array
+    {
+        if (static::$index >= self::PRESET_COUNT) {
+            throw new Exception('No quedan destinos únicos disponibles en DestinoFactory. Agrega más presets.');
         }
 
-        $item = $lookup[$index++];
+        $choice = self::$presets[static::$index++];
 
         return [
-            'nombre' => $item['nombre'],
-            'region' => $item['region'],
-            'km'     => $item['km'],
+            'nombre' => $choice['nombre'],
+            'region' => $choice['region'],
+            'km'     => $choice['km'],
         ];
     }
 }
+
+

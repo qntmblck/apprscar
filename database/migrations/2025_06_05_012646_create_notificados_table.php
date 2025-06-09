@@ -8,18 +8,35 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('notificados', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('flete_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            //
+            // 1) Claves foráneas
+            //
+            // No eliminamos notificados si se borra el flete o el usuario,
+            // para conservar el histórico
+            $table->foreignId('flete_id')
+                  ->constrained('fletes')
+                  ->nullOnDelete();
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->nullOnDelete();
+
+            //
+            // 2) Datos de la notificación
+            //
             $table->timestamp('fecha')->nullable();
-            $table->string('tipo')->nullable(); // carga, descarga, peaje, otros...
-            $table->decimal('monto', 10, 0)->nullable();
-            $table->text('descripcion')->nullable();
-            $table->string('imagen')->nullable(); // ruta archivo o base64
-            $table->text('mensaje')->nullable(); // cuerpo del correo
-            $table->text('observaciones')->nullable();
+            $table->string('tipo')->nullable();         // carga, descarga, peaje, etc.
+            $table->decimal('monto', 12, 2)->nullable(); // monto asociado
+            $table->text('descripcion')->nullable();     // cuerpo del correo
+            $table->string('imagen')->nullable();        // ruta o base64
+            $table->text('mensaje')->nullable();         // texto adicional
+            $table->text('observaciones')->nullable();   // notas internas
+
             $table->timestamps();
 
-            // Índices para optimizar consultas y filtros
+            //
+            // 3) Índices
+            //
             $table->index('flete_id');
             $table->index('user_id');
             $table->index('fecha');

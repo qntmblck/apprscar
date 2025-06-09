@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Flete;
+use App\Models\Tarifa;
+use App\Models\Documento;
 
 class Cliente extends Model
 {
@@ -44,5 +48,14 @@ class Cliente extends Model
     public function documentos()
     {
         return $this->morphMany(Documento::class, 'documentable');
+    }
+
+    // 6. Hook: antes de borrar, vuelca la razón social en todos los fletes
+    protected static function booted()
+    {
+        static::deleting(function (self $cliente) {
+            Flete::where('cliente_principal_id', $cliente->id)
+                 ->update(['cliente_nombre' => $cliente->razon_social]);
+        });
     }
 }
