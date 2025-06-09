@@ -12,11 +12,7 @@ import { createRoot } from 'react-dom/client'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
 
-// 🛠 Fuerza una recarga inicial para prevenir error del token CSDK
-if (performance.navigation.type === 1 || sessionStorage.getItem('reloaded') === null) {
-  sessionStorage.setItem('reloaded', 'true')
-  window.location.reload()
-}
+
 
 // 2. Creamos la aplicación Inertia + React.
 //    - title: función que recibe el title de cada página (configurable en cada componente).
