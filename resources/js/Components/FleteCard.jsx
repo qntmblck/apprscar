@@ -8,6 +8,7 @@ import AbonoForm from './Forms/AbonoForm'
 import RetornoForm from './Forms/RetornoForm'
 import ComisionForm from './Forms/ComisionForm'
 import axios from 'axios'
+import AdicionalForm from './Forms/AdicionalForm'
 import {
   CalendarDaysIcon,
   UserIcon,
@@ -118,6 +119,15 @@ function FleteCard({
         count: 0,
         current: formAbierto === 'finalizar',
       },
+
+      {
+  name: 'Adicional',
+  key: 'adicional',
+  icon: BankIcon,
+  count: flete.rendicion?.adicionales?.length ?? 0,
+  current: formAbierto === 'adicional',
+},
+
     ],
     [flete.rendicion, formAbierto]
   )
@@ -620,6 +630,30 @@ function FleteCard({
                 />
               </div>
             )}
+{formAbierto === 'adicional' && (
+  <div className="px-2 pt-2">
+    <AdicionalForm
+      fleteId={flete.id}
+      rendicionId={flete.rendicion?.id}
+      onSubmit={async (payload) => {
+        setIsSubmitting(true)
+        try {
+          return await submitForm('/adicionales', payload, (f) => {
+            actualizarFleteEnLista(f)
+            handleCloseForm(flete.id)
+          })
+        } finally {
+          setIsSubmitting(false)
+        }
+      }}
+      onCancel={() => handleCloseForm(flete.id)}
+      onSuccess={(f) => actualizarFleteEnLista(f)} // 🔥 ESTA LÍNEA es clave
+    />
+  </div>
+)}
+
+
+
           </div>
         </div>
 

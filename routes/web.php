@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Formularios “frontal”
+    Route::post('/adicionales', [\App\Http\Controllers\AdicionalController::class, 'store'])->name('adicionales.store');
     Route::post('/diesel', [DieselController::class, 'store'])->name('diesel.store');
     Route::delete('/diesels/{id}', [DieselController::class, 'destroy'])->name('diesel.destroy');
     Route::post('/gasto', [GastoController::class, 'store'])->name('gasto.store');

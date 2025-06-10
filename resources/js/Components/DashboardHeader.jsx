@@ -25,7 +25,8 @@ export default function DashboardHeader() {
   const isActive = (name) => activeItem === name
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-white via-[#0c1e3aa0] to-[#0c1e3a] shadow-md">
+    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-t from-white via-[#0c1e3aa0] to-[#0c1e3a] shadow-md">
+
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <svg className="absolute w-full h-full animate-pulse opacity-70 blur-[0.5px] mix-blend-screen">
           {Array.from({ length: 30 }).map((_, i) => (
