@@ -425,55 +425,66 @@ function FleteCard({
     </div>
   )}
 
-  {/* ─── Últimos 2 registros (Cara Frontal) ─────────────────────────────────── */}
-  <div className="mt-4 space-y-1 text-xs">
-    {ultimosRegistros.map((r, i) => {
-      const esDiesel = 'metodo_pago' in r && 'litros' in r
-      const esGasto = 'tipo' in r && !('litros' in r)
-      const tipo = esDiesel ? 'Diesel' : esGasto ? 'Gasto' : 'Abono'
+  {/* ─── Últimos 2 registros (Cara Frontal) ─────────────────────────────── */}
+<div className="mt-4 space-y-1 text-xs">
+  {ultimosRegistros.map((r, i) => {
+    const esDiesel = 'metodo_pago' in r && 'litros' in r
+    const esGasto = 'tipo' in r && !('litros' in r)
+    const esComision = esGasto && r.tipo === 'Comisión'
+    const tipo = esDiesel
+      ? 'Diesel'
+      : esComision
+      ? 'Comisión'
+      : esGasto
+      ? 'Gasto'
+      : 'Abono'
 
-      const textColor = esDiesel
-        ? 'text-blue-700'
-        : esGasto
-        ? 'text-red-700'
-        : 'text-green-700'
+    const textColor = esDiesel
+      ? 'text-blue-700'
+      : esComision
+      ? 'text-green-700'
+      : esGasto
+      ? 'text-red-700'
+      : 'text-green-700'
 
-      let detalle
-      if (esDiesel) {
-        detalle = r.metodo_pago
-      } else if (esGasto) {
-        detalle = r.tipo === 'Otro' ? `Otros: ${r.descripcion}` : r.tipo
-      } else {
-        detalle = r.metodo
-      }
+    let detalle
+    if (esDiesel) {
+      detalle = r.metodo_pago
+    } else if (esComision) {
+      detalle = 'Comisión'
+    } else if (esGasto) {
+      detalle = r.tipo === 'Otro' ? `Otros: ${r.descripcion}` : r.tipo
+    } else {
+      detalle = r.metodo
+    }
 
-      return (
-        <div
-          key={i}
-          className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] items-center py-0.5 gap-x-2 border-b last:border-b-0"
-        >
-          <div className={`${textColor} font-medium`}>{tipo}</div>
-          <div className={`${textColor} truncate`}>{detalle}</div>
-          <div className="flex justify-between items-center w-max">
-            <span className={`${textColor}`}>
-              ${(r.monto ?? r.total).toLocaleString('es-CL')}
-            </span>
-            <button
-  onClick={() => handleEliminarRegistro(r)}
-  disabled={isSubmitting}
-  className={`
-    ml-2
-    ${isSubmitting ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'}
-  `}
->
-  ✕
-</button>
-
-          </div>
+    return (
+      <div
+        key={i}
+        className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] items-center py-0.5 gap-x-2 border-b last:border-b-0"
+      >
+        <div className={`${textColor} font-medium`}>{tipo}</div>
+        <div className={`${textColor} truncate`}>{detalle}</div>
+        <div className="flex justify-between items-center w-max">
+          <span className={`${textColor}`}>
+            ${(r.monto ?? r.total).toLocaleString('es-CL')}
+          </span>
+          <button
+            onClick={() => handleEliminarRegistro(r)}
+            disabled={isSubmitting}
+            className={`
+              ml-2
+              ${isSubmitting ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'}
+            `}
+          >
+            ✕
+          </button>
         </div>
-      )
-    })}
-  </div>
+      </div>
+    )
+  })}
+</div>
+
 
   {/* ─── Pestañas + Checkbox/Pagado (última fila) ───────────────────────────────── */}
   <div className="mt-4">

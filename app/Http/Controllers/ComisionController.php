@@ -21,18 +21,15 @@ class ComisionController extends Controller
             'descripcion'   => 'nullable|string|max:255',
         ]);
 
-
-        // Creamos un gasto con tipo="Comisión"
         $registro = Gasto::create([
             'flete_id'      => $validated['flete_id'],
             'rendicion_id'  => $validated['rendicion_id'],
-            'tipo'          => $validated['tipo'],             // "Comisión"
+            'tipo'          => $validated['tipo'], // Comisión
             'descripcion'   => $validated['descripcion'] ?? 'Comisión manual',
             'monto'         => $validated['monto'],
-            'user_id'    => auth()->id(),
+            'user_id'       => auth()->id(),
         ]);
 
-        // Cargamos el flete completo con las relaciones necesarias
         $flete = Flete::with([
             'cliente',
             'conductor',
@@ -52,7 +49,7 @@ class ComisionController extends Controller
                 'viatico_efectivo',
                 'viatico_calculado',
                 'caja_flete_acumulada',
-                'comision_manual',   // si manejas este campo explícito
+                'comision_manual',
             ]);
         }
 
@@ -63,48 +60,46 @@ class ComisionController extends Controller
     }
 
     /**
-     * Remove the specified Comisión (eliminar el gasto con tipo="Comisión").
+     * Remove the specified Comisión (elimina el gasto con tipo = "Comisión").
      */
     public function destroy($id)
-{
-    $registro = \App\Models\Comision::find($id);
+    {
+        $registro = Gasto::find($id);
 
-    if (! $registro) {
-        return response()->json(['message' => 'Comisión no encontrada'], 404);
-    }
+        if (! $registro || $registro->tipo !== 'Comisión') {
+            return response()->json(['message' => 'Comisión no encontrada'], 404);
+        }
 
-    $rendicion = $registro->rendicion;
-    $flete_id  = $rendicion->flete_id;
-    $registro->delete();
+        $rendicion = $registro->rendicion;
+        $flete_id  = $rendicion->flete_id;
+        $registro->delete();
 
-    $flete = \App\Models\Flete::with([
-        'cliente',
-        'conductor',
-        'tracto',
-        'rampla',
-        'destino',
-        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.comisiones' => fn($q) => $q->orderByDesc('created_at'),
-    ])->find($flete_id);
+        $flete = Flete::with([
+            'cliente',
+            'conductor',
+            'tracto',
+            'rampla',
+            'destino',
+            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+        ])->find($flete_id);
 
-    if ($flete->rendicion) {
-        $flete->rendicion->makeVisible([
-            'saldo_temporal',
-            'total_diesel',
-            'total_gastos',
-            'viatico_efectivo',
-            'viatico_calculado',
-            'caja_flete_acumulada',
-            'comision_manual',
+        if ($flete && $flete->rendicion) {
+            $flete->rendicion->makeVisible([
+                'saldo_temporal',
+                'total_diesel',
+                'total_gastos',
+                'viatico_efectivo',
+                'viatico_calculado',
+                'caja_flete_acumulada',
+                'comision_manual',
+            ]);
+        }
+
+        return response()->json([
+            'message' => '✅ Comisión eliminada correctamente.',
+            'flete'   => $flete,
         ]);
     }
-
-    return response()->json([
-        'message' => '✅ Comisión eliminada correctamente.',
-        'flete'   => $flete,
-    ]);
-}
-
 }
