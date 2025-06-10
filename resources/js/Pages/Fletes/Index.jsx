@@ -454,7 +454,7 @@ export default function Index({ auth, fletes: paginatedFletes, filters, conducto
 
       {/* Página actual */}
       <span className="text-sm text-gray-500">
-        Página {paginatedFletes.current_page} de {paginatedFletes.last_page}
+         {paginatedFletes.current_page} de {paginatedFletes.last_page}
       </span>
 
       {/* Botón Siguiente */}

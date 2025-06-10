@@ -114,7 +114,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:superadmin|admin'])->post('/fletes', [FleteController::class, 'store'])->name('fletes.store');
     Route::middleware(['role:superadmin|admin'])->post('/fletes/{flete}/cerrar', [FleteController::class, 'cerrarRendicion'])->name('fletes.cerrarRendicion');
 
-    Route::post('/fletes/finalizar', [FleteController::class, 'finalizar'])->name('fletes.finalizar');
+    Route::post('/fletes/{flete}/finalizar', [FleteController::class, 'finalizar'])
+     ->name('fletes.finalizar');
     Route::post('/rendicion/{id}/viatico', [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
     Route::post('/fletes/asignar-periodo', [FleteBatchController::class,'asignarPeriodo'])->name('fletes.asignarPeriodo');
 

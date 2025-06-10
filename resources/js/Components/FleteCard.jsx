@@ -1,5 +1,5 @@
 // resources/js/Components/FleteCard.jsx
-
+import { formatDateSimple } from '@/helpers/date'
 import React, { useState, useMemo, useCallback, memo } from 'react'
 import DieselForm from './Forms/DieselForm'
 import GastoForm from './Forms/GastoForm'
@@ -43,27 +43,30 @@ function FleteCard({
   const formAbierto = openForm[flete.id]
 
   // ─── Memoizados: Fechas y montos ─────────────────────────────────────────────
-  const fechaSalidaFormatted = useMemo(() => {
-    return flete.fecha_salida
-      ? new Date(flete.fecha_salida).toLocaleDateString('es-CL')
-      : '—'
-  }, [flete.fecha_salida])
+  const fechaSalidaFormatted = useMemo(
+    () =>
+      flete.fecha_salida
+        ? new Date(flete.fecha_salida).toLocaleDateString('es-CL')
+        : '—',
+    [flete.fecha_salida]
+  )
+  const fechaLlegadaFormatted = useMemo(
+    () =>
+      flete.fecha_llegada
+        ? new Date(flete.fecha_llegada).toLocaleDateString('es-CL')
+        : 'No registrada',
+    [flete.fecha_llegada]
+  )
+  const viaticoEfec = useMemo(
+    () => flete.rendicion?.viatico_efectivo ?? 0,
+    [flete.rendicion?.viatico_efectivo]
+  )
+  const saldoTemporal = useMemo(
+    () => flete.rendicion?.saldo_temporal ?? 0,
+    [flete.rendicion?.saldo_temporal]
+  )
 
-  const fechaLlegadaFormatted = useMemo(() => {
-    return flete.fecha_llegada
-      ? new Date(flete.fecha_llegada).toLocaleDateString('es-CL')
-      : 'No registrada'
-  }, [flete.fecha_llegada])
-
-  const viaticoEfec = useMemo(() => {
-    return flete.rendicion?.viatico_efectivo ?? 0
-  }, [flete.rendicion?.viatico_efectivo])
-
-  const saldoTemporal = useMemo(() => {
-    return flete.rendicion?.saldo_temporal ?? 0
-  }, [flete.rendicion?.saldo_temporal])
-
-  // ─── Memoizados: Registros recientes y detalle completo ──────────────────────
+  // ─── Registros recientes ────────────────────────────────────────────────────
   const ultimosRegistros = useMemo(() => {
     const lista = [
       ...(flete.rendicion?.abonos || []),
@@ -91,9 +94,9 @@ function FleteCard({
     flete.rendicion?.gastos,
   ])
 
-  // ─── Definición de pestañas ───────────────────────────────────────────────────
-  const frontTabs = useMemo(() => {
-    return [
+  // ─── Pestañas Front / Back ──────────────────────────────────────────────────
+  const frontTabs = useMemo(
+    () => [
       {
         name: 'Diesel',
         key: 'diesel',
@@ -115,11 +118,12 @@ function FleteCard({
         count: 0,
         current: formAbierto === 'finalizar',
       },
-    ]
-  }, [flete.rendicion, formAbierto])
+    ],
+    [flete.rendicion, formAbierto]
+  )
 
-  const backTabs = useMemo(() => {
-    return [
+  const backTabs = useMemo(
+    () => [
       {
         name: 'Abono',
         key: 'abono',
@@ -141,11 +145,12 @@ function FleteCard({
         count: flete.rendicion?.comision != null ? 1 : 0,
         current: formAbierto === 'comision',
       },
-    ]
-  }, [flete.rendicion, formAbierto])
+    ],
+    [flete.rendicion, formAbierto]
+  )
 
-  // ─── Handlers ─────────────────────────────────────────────────────────────────
-  const handleFlip = useCallback(() => setFlipped((prev) => !prev), [])
+  // ─── Handlers ───────────────────────────────────────────────────────────────
+  const handleFlip = useCallback(() => setFlipped((p) => !p), [])
 
   const cerrarRendicion = useCallback(
     async (fleteId) => {
@@ -153,17 +158,15 @@ function FleteCard({
       setIsSubmitting(true)
       try {
         const res = await axios.post(`/fletes/${fleteId}/cerrar`)
-        if (res.data?.flete) {
-          actualizarFleteEnLista(res.data.flete)
-        }
+        if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
       } catch (e) {
-        const mensaje =
+        const msg =
           e.response?.data?.message ||
           e.response?.data?.error ||
           (e.response?.data?.errors
             ? Object.values(e.response.data.errors).flat().join(' ')
             : e.message)
-        setErrorCierre('❌ ' + mensaje)
+        setErrorCierre('❌ ' + msg)
       } finally {
         setIsSubmitting(false)
       }
@@ -172,780 +175,683 @@ function FleteCard({
   )
 
   const handleEliminarRegistro = useCallback(
-  async (registro) => {
-    if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+    async (registro) => {
+      if (!confirm('¿Eliminar este registro?')) return
+      setIsSubmitting(true)
+      try {
+        let url
+        if ('litros' in registro) url = `/diesels/${registro.id}`
+        else if (registro.tipo === 'Comisión') url = `/comisiones/${registro.id}`
+        else if (registro.tipo) url = `/gastos/${registro.id}`
+        else if (registro.metodo === 'Retorno') url = `/retornos/${registro.id}`
+        else url = `/abonos/${registro.id}`
 
-    setIsSubmitting(true);
-    try {
-      // Debug: ver qué registro llega
-      console.log('Eliminando registro:', registro);
-
-      // Determina la URL según el tipo de registro
-      let url;
-      if ('litros' in registro) {
-        url = `/diesels/${registro.id}`;                // Diesel
-      } else if (registro.tipo === 'Comisión') {
-        url = `/comisiones/${registro.id}`;             // Comisión
-      } else if (registro.tipo) {
-        url = `/gastos/${registro.id}`;                 // Gasto (incluye otros tipos)
-      } else if (registro.metodo === 'Retorno') {
-        url = `/retornos/${registro.id}`;               // Retorno
-      } else {
-        url = `/abonos/${registro.id}`;                 // Abono
+        await axios.delete(url)
+        const res = await axios.get(`/fletes/${flete.id}`)
+        if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+      } catch (e) {
+        alert('Error eliminando: ' + (e.response?.data?.message || e.message))
+      } finally {
+        setIsSubmitting(false)
       }
+    },
+    [flete.id, actualizarFleteEnLista]
+  )
 
-      // Debug: ver qué URL usamos
-      console.log('URL para DELETE:', url);
-
-      const response = await axios.delete(url);
-      console.log('Respuesta DELETE:', response);
-
-      // Después de borrar, refresca el flete
-      const res = await axios.get(`/fletes/${flete.id}`);
-      console.log('Flete recargado:', res.data?.flete);
-
-      if (res.data?.flete) {
-        actualizarFleteEnLista(res.data.flete);
-      }
-    } catch (e) {
-      console.error('Error al eliminar registro:', e.response || e);
-      alert('Error eliminando registro: ' + (e.response?.data?.message || e.message));
-    } finally {
-      setIsSubmitting(false);
-    }
-  },
-  [flete.id, actualizarFleteEnLista]
-);
-
-
-
-  // ─── Renderizado ──────────────────────────────────────────────────────────────
+  // ─── Renderizado ────────────────────────────────────────────────────────────
   return (
-    <div className={`flete-card ${formAbierto ? 'expanded' : ''}`}>
+    <div className={`flete-card w-full ${formAbierto ? 'expanded' : ''}`}>
       <div className={`flete-card-inner ${flipped ? 'rotate-y-180' : ''}`}>
-
         {/* ─── Cara Frontal ──────────────────────────────────────────────────── */}
-<div
-  className={`
-    flete-card-front
-    bg-gray-50
-    ring-1 ring-gray-900/5
-    shadow-sm rounded-lg p-4
-    ${!flipped ? 'active' : ''}
-  `}
->
-  {/* Información principal: Destino, cliente, conductor, fechas, montos */}
-  <div className="grid grid-cols-[2fr_2fr_min-content] gap-x-4">
-    {/* Columna 1: Destino, Salida, Conductor, Viático */}
-    <div className="space-y-2">
-      <div className="text-sm font-semibold text-gray-900">
-        {flete.destino?.nombre || 'Sin destino'}
-      </div>
-      <div className="flex items-center gap-x-2 text-sm text-gray-700">
-        <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
-        Salida: {fechaSalidaFormatted}
-      </div>
-      <div className="flex items-center gap-x-2 text-sm text-gray-700">
-  <UserIcon className="h-5 w-5 text-gray-400" />
-  {flete.conductor?.name || flete.colaborador?.name || '—'}
-</div>
-      <div className="flex items-center gap-x-2 text-sm text-gray-700">
-        <BanknotesIcon className="h-5 w-5 text-gray-400" />
-        Viático: ${viaticoEfec.toLocaleString('es-CL')}
-      </div>
+        <div
+          className={`
+            flete-card-front w-full
+            bg-white border border-gray-200
+            shadow-md rounded-lg p-4
+            ${!flipped ? 'active' : ''}
+          `}
+        >
+          {/* Primera fila: Destino, Cliente y Botones */}
+<div className="flex justify-between items-center mb-4">
+  <div className="flex space-x-6">
+    <div className="text-sm font-semibold text-gray-900">
+      {flete.destino?.nombre || 'Sin destino'}
     </div>
-
-    {/* Columna 2: Cliente, Llegada, Tracto, Saldo */}
-    <div className="space-y-2">
-      <div className="text-sm font-semibold text-gray-900">
-        {flete.cliente_principal?.razon_social || 'Sin cliente'}
-      </div>
-      <div className="flex items-center gap-x-2 text-sm text-gray-700">
-        <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
-        Llegada: {fechaLlegadaFormatted}
-      </div>
-      <div className="flex items-center gap-x-2 text-sm text-gray-700">
-        <TruckIcon className="h-5 w-5 text-gray-400" />
-        Tracto: {flete.tracto?.patente || '—'}
-      </div>
-      <div className="flex items-center gap-x-2 text-sm text-gray-700">
-        <BanknotesIcon className="h-5 w-5 text-gray-400" />
-        Saldo: ${saldoTemporal.toLocaleString('es-CL')}
-      </div>
+    <div className="text-sm font-semibold text-gray-900">
+      {flete.cliente_principal?.razon_social || 'Sin cliente'}
     </div>
+  </div>
+  <div className="flex space-x-2 items-center">
+    {/* Cerrar / Reabrir */}
+    {flete.rendicion?.estado === 'Activo' ? (
+      <button
+        onClick={() => cerrarRendicion(flete.id)}
+        disabled={isSubmitting}
+        className={classNames(
+          'p-2 rounded-full',
+          isSubmitting
+            ? 'cursor-not-allowed opacity-50'
+            : 'hover:bg-green-50'
+        )}
+      >
+        {/* SVG Activo (verde) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="h-6 w-6 text-green-600 flex-shrink-0"
+        >
+          <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z" />
+        </svg>
+      </button>
+    ) : (
+      <button
+        onClick={() => cerrarRendicion(flete.id)}
+        disabled={isSubmitting}
+        className={classNames(
+          'p-2 rounded-full',
+          isSubmitting
+            ? 'cursor-not-allowed opacity-50'
+            : 'hover:bg-black/10'
+        )}
+      >
+        {/* SVG Cerrado (negro) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="h-6 w-6 text-black flex-shrink-0"
+        >
+          <path
+            fillRule="evenodd"
+            d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+    )}
 
-    {/* Columna 3: Ojo, Cerrar/Cerrado, Notificar/Notificado */}
-<div className="flex flex-col items-end space-y-1 text-xs">
-  {/* Botón “Ojo” */}
-  <button
-    onClick={handleFlip}
-    className="
-      inline-flex items-center justify-center
-      rounded-md p-1 text-gray-400 hover:text-gray-600
-      ring-1 ring-inset ring-gray-300
-    "
-  >
-    <EyeIcon className="w-5 h-5" />
-  </button>
-
-  {/* Cerrar / Cerrado (clicable) */}
-{(() => {
-  const llegada      = Boolean(flete.fecha_llegada);
-  const comision     = flete.rendicion?.comision ?? 0;
-  const retornoMonto = flete.retorno ?? 0;
-  const puedeCerrar  = llegada && (comision > 0 ? retornoMonto > 0 : true);
-
-  // Si está ACTIVO, mostramos “Cerrar”
-  if (flete.rendicion?.estado === 'Activo') {
-    return (
+    {/* Notificar / Notificado */}
+    {flete.estado === 'Sin Notificar' ? (
       <button
         onClick={async () => {
-          if (!puedeCerrar) {
-            alert('No puedes cerrar: falta retorno o comisión.');
-            return;
-          }
-          setIsSubmitting(true);
-          try {
-            const resp = await axios.post(route('fletes.finalizar'), {
-              flete_id: flete.id,
-              rendicion_id: flete.rendicion.id,
-              fecha_termino: new Date().toISOString().split('T')[0],
-              viatico_efectivo: flete.rendicion.viatico_efectivo,
-            });
-            // Aquí actualizas solo este flete, sin recargar
-            actualizarFleteEnLista(resp.data.flete);
-          } catch (e) {
-            alert('Error cierre: ' + e.message);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-        disabled={isSubmitting}
-        className={`
-          inline-flex items-center justify-center
-          rounded px-2 py-0.5 font-medium text-white text-[11px]
-          ${isSubmitting
-            ? 'bg-green-200 text-green-100 cursor-not-allowed'
-            : !puedeCerrar
-            ? 'bg-gray-300 text-gray-500'
-            : 'bg-green-600 hover:bg-green-700 ring-1 ring-inset ring-green-300'}
-        `}
-      >
-        Cerrar
-      </button>
-    );
-  } else {
-    // Si está CERRADO, mostramos “Cerrado” y al click reabrimos
-    return (
-      <button
-        onClick={async () => {
-          setIsSubmitting(true);
-          try {
-            const resp = await axios.post(route('fletes.finalizar'), {
-              flete_id: flete.id,
-              rendicion_id: flete.rendicion.id,
-              fecha_termino: null,  // reabrir
-              viatico_efectivo: flete.rendicion.viatico_efectivo,
-            });
-            actualizarFleteEnLista(resp.data.flete);
-          } catch (e) {
-            alert('Error reabrir: ' + e.message);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-        disabled={isSubmitting}
-        className={`
-          inline-flex items-center justify-center
-          rounded px-2 py-0.5 font-medium text-white text-[11px]
-          ${isSubmitting
-            ? 'bg-black/30 cursor-not-allowed'
-            : 'bg-black hover:bg-gray-800 ring-1 ring-inset ring-black/20'}
-        `}
-      >
-        Cerrado
-      </button>
-    );
-  }
-})()}
-
-
-
-
-
-
-  {/* Notificar / Notificado */}
-  {flete.estado === 'Sin Notificar' ? (
-    <button
-      onClick={async () => {
-        setIsSubmitting(true)
-        try {
+          setIsSubmitting(true)
           await submitForm(
             `/fletes/${flete.id}/notificar`,
             { flete_id: flete.id },
             actualizarFleteEnLista
           )
-        } finally {
           setIsSubmitting(false)
-        }
-      }}
-      disabled={isSubmitting}
-      className={`
-        inline-flex items-center justify-center
-        rounded px-2 py-0.5 font-medium text-white text-[11px]
-        ${
+        }}
+        disabled={isSubmitting}
+        className={classNames(
+          'p-2 rounded-full',
           isSubmitting
-            ? 'bg-green-200 text-green-100 cursor-not-allowed'
-            : 'bg-green-600 hover:bg-green-700 ring-1 ring-inset ring-green-300'
-        }
-      `}
-    >
-      Notificar
-    </button>
-  ) : (
-    <span className="
-      inline-flex items-center justify-center
-      rounded px-2 py-0.5 font-medium
-      bg-black text-white
-      ring-1 ring-inset ring-black/20 text-[11px]
-    ">
-      Notificado
-    </span>
-  )}
-</div>
-
-  </div>
-
-
-
-    {/* Mensaje de error al cerrar, si existe */}
-  {errorCierre && (
-    <div className="text-red-600 text-[11px] bg-red-100 p-2 rounded mt-2">
-      {errorCierre}
-    </div>
-  )}
-
-  {/* ─── Últimos 2 registros (Cara Frontal) ─────────────────────────────── */}
-<div className="mt-4 space-y-1 text-xs">
-  {ultimosRegistros.map((r, i) => {
-    const esDiesel = 'metodo_pago' in r && 'litros' in r
-    const esGasto = 'tipo' in r && !('litros' in r)
-    const esComision = esGasto && r.tipo === 'Comisión'
-    const tipo = esDiesel
-      ? 'Diesel'
-      : esComision
-      ? 'Comisión'
-      : esGasto
-      ? 'Gasto'
-      : 'Abono'
-
-    const textColor = esDiesel
-      ? 'text-blue-700'
-      : esComision
-      ? 'text-green-700'
-      : esGasto
-      ? 'text-red-700'
-      : 'text-green-700'
-
-    let detalle
-    if (esDiesel) {
-      detalle = r.metodo_pago
-    } else if (esComision) {
-      detalle = 'Comisión'
-    } else if (esGasto) {
-      detalle = r.tipo === 'Otro' ? `Otros: ${r.descripcion}` : r.tipo
-    } else {
-      detalle = r.metodo
-    }
-
-    return (
-      <div
-        key={i}
-        className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] items-center py-0.5 gap-x-2 border-b last:border-b-0"
+            ? 'cursor-not-allowed opacity-50'
+            : 'hover:bg-green-50'
+        )}
       >
-        <div className={`${textColor} font-medium`}>{tipo}</div>
-        <div className={`${textColor} truncate`}>{detalle}</div>
-        <div className="flex justify-between items-center w-max">
-          <span className={`${textColor}`}>
-            ${(r.monto ?? r.total).toLocaleString('es-CL')}
-          </span>
-          <button
-            onClick={() => handleEliminarRegistro(r)}
-            disabled={isSubmitting}
-            className={`
-              ml-2
-              ${isSubmitting ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'}
-            `}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    )
-  })}
-</div>
-
-
-  {/* ─── Pestañas + Checkbox/Pagado (última fila) ───────────────────────────────── */}
-  <div className="mt-4">
-    <div className="overflow-x-auto">
-      <nav className="flex items-center space-x-1 border-b border-gray-200">
-        {/* Contenedor de pestañas: ocupan todo el ancho y se ajustan */}
-        <div className="flex-1 flex space-x-1 overflow-auto">
-          {frontTabs.map((tab) => {
-            // Asignar color según key
-            const textColor =
-              tab.key === 'diesel'
-                ? formAbierto === 'diesel'
-                  ? 'text-blue-700'
-                  : 'text-blue-500 hover:text-blue-700'
-                : tab.key === 'gasto'
-                ? formAbierto === 'gasto'
-                  ? 'text-red-700'
-                  : 'text-red-500 hover:text-red-700'
-                : formAbierto === 'finalizar'
-                ? 'text-yellow-800'
-                : 'text-yellow-600 hover:text-yellow-800'
-
-            return (
-              <button
-                key={tab.key}
-                onClick={() => handleToggleForm(flete.id, tab.key)}
-                className={classNames(
-                  formAbierto === tab.key
-                    ? `border-indigo-500 ${textColor}`
-                    : `border-transparent ${textColor} hover:border-gray-300`,
-                  'group flex-shrink-0 inline-flex items-center border-b-2 px-2 py-2 text-sm font-medium transition'
-                )}
-                style={{ minWidth: '80px' }}
-              >
-                <tab.icon
-                  aria-hidden="true"
-                  className={classNames(
-                    formAbierto === tab.key
-                      ? `text-current`
-                      : 'text-gray-400 group-hover:text-gray-500',
-                    'mr-1 h-4 w-4'
-                  )}
-                />
-                {tab.name}
-                {tab.count > 0 && (
-                  <span
-                    className={classNames(
-                      formAbierto === tab.key
-                        ? 'bg-indigo-100 text-indigo-600'
-                        : 'bg-gray-100 text-gray-900',
-                      'ml-1 rounded-full px-1 py-0.5 text-[10px] font-medium'
-                    )}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Al final de la fila de pestañas: Checkbox o “Pagado” */}
-        <div className="flex-shrink-0">
-          {flete.pagado ? (
-            <span className="
-              inline-flex items-center justify-center
-              rounded px-2 py-0.5 font-medium
-              bg-black text-white
-              ring-1 ring-inset ring-black/20 text-[11px]
-            ">
-              Pagado
-            </span>
-          ) : (
-            <input
-              type="checkbox"
-              className="h-4 w-4 text-green-600 border-gray-300 rounded"
-              onChange={(e) => {
-                // lógica adicional si se requiere
-              }}
-            />
-          )}
-        </div>
-      </nav>
-    </div>
-
-    {/* Renderizado condicional de formularios (Cara Frontal) */}
-    {formAbierto === 'diesel' && (
-      <div className="px-2 pt-2">
-        <DieselForm
-          fleteId={flete.id}
-          rendicionId={flete.rendicion?.id}
-          onSubmit={async (payload) => {
-            setIsSubmitting(true)
-            try {
-              return await submitForm('/diesel', payload, (fleteActualizado) => {
-                actualizarFleteEnLista(fleteActualizado)
-                handleCloseForm(flete.id)
-              })
-            } finally {
-              setIsSubmitting(false)
-            }
-          }}
-          onCancel={() => handleCloseForm(flete.id)}
-          onSuccess={(fleteActualizado) => {
-            actualizarFleteEnLista(fleteActualizado)
-            handleCloseForm(flete.id)
-          }}
-        />
-      </div>
+        {/* SVG Sin Notificar (verde) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="h-6 w-6 text-green-600 flex-shrink-0"
+        >
+          <path d="M19.5 22.5a3 3 0 0 0 3-3v-8.174l-6.879 4.022 3.485 1.876a.75.75 0 1 1-.712 1.321l-5.683-3.06a1.5 1.5 0 0 0-1.422 0l-5.683 3.06a.75.75 0 0 1-.712-1.32l3.485-1.877L1.5 11.326V19.5a3 3 0 0 0 3 3h15Z" />
+          <path d="M1.5 9.589v-.745a3 3 0 0 1 1.578-2.642l7.5-4.038a3 3 0 0 1 2.844 0l7.5 4.038A3 3 0 0 1 22.5 8.844v.745l-8.426 4.926-.652-.351a3 3 0 0 0-2.844 0l-.652.351L1.5 9.589Z" />
+        </svg>
+      </button>
+    ) : (
+      <span className="p-2 rounded-full">
+        {/* SVG Notificado (negro) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="h-6 w-6 text-black flex-shrink-0"
+        >
+          <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" />
+          <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
+        </svg>
+      </span>
     )}
-    {formAbierto === 'gasto' && (
-      <div className="px-2 pt-2">
-        <GastoForm
-          fleteId={flete.id}
-          rendicionId={flete.rendicion?.id}
-          submitForm={async (ruta, payload) => {
-            setIsSubmitting(true)
-            try {
-              await submitForm(ruta, payload, (fleteActualizado) => {
-                actualizarFleteEnLista(fleteActualizado)
-                handleCloseForm(flete.id)
-              })
-            } finally {
-              setIsSubmitting(false)
-            }
-          }}
-          onCancel={() => handleCloseForm(flete.id)}
-          onSuccess={actualizarFleteEnLista}
-        />
-      </div>
-    )}
-    {formAbierto === 'finalizar' && (
-      <div className="px-2 pt-2">
-        <FinalizarForm
-          fleteId={flete.id}
-          rendicionId={flete.rendicion?.id}
-          fechaSalida={flete.fecha_salida}
-          onSubmit={async (payload) => {
-            setIsSubmitting(true)
-            try {
-              return await submitForm(
-                route('fletes.finalizar'),
-                payload,
-                (fleteActualizado) => {
-                  actualizarFleteEnLista(fleteActualizado)
-                  handleCloseForm(flete.id)
-                }
-              )
-            } finally {
-              setIsSubmitting(false)
-            }
-          }}
-          onCancel={() => handleCloseForm(flete.id)}
-          onSuccess={(fleteActualizado) => {
-            actualizarFleteEnLista(fleteActualizado)
-            handleCloseForm(flete.id)
-          }}
-        />
-      </div>
-    )}
-  </div>
 
-</div>
-
-
-
-
-        {/* ─── Cara Trasera ─────────────────────────────────────────────────────── */}
-<div
-  className={`
-    flete-card-back
-    bg-white border border-gray-200 p-4 shadow-md rounded-xl
-    ${flipped ? 'active' : ''}
-  `}
->
-  <div className="flex justify-end">
-    <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
-      <XMarkIcon className="w-5 h-5" />
+    {/* Ojo */}
+    <button
+      onClick={handleFlip}
+      className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+    >
+      <EyeIcon className="h-5 w-5 text-gray-600" />
     </button>
   </div>
-  <h3 className="text-sm font-semibold text-gray-800 mb-2">Detalle</h3>
+</div>
 
-  {/* Listado completo de registros */}
-  <div className="space-y-1 text-xs">
-    {detallesBack.map((r, i) => {
-      const esDiesel = 'metodo_pago' in r && 'litros' in r
-      const esGasto = 'tipo' in r && !('litros' in r)
-      // Para diferenciar Abono vs Retorno vs Comisión:
-      const esAbono   = !esDiesel && !esGasto && 'metodo' in r
-      const tipo =
-        esDiesel
-          ? 'Diesel'
-          : esGasto
-            ? 'Gasto'
-            : esAbono
-              ? (r.metodo === 'Retorno' ? 'Retorno' : 'Abono')
-              : 'Comisión'
 
-      let detalle
-      if (esDiesel) {
-        detalle = r.metodo_pago
-      } else if (esGasto) {
-        detalle = r.tipo === 'Otro' ? `Otros: ${r.descripcion}` : r.tipo
-      } else if (esAbono) {
-        detalle = r.metodo
-      } else {
-        // Comisión (modelo Gasto con tipo='Comisión')
-        detalle = r.tipo === 'Comisión' ? 'Comisión' : r.tipo
-      }
+          {/* Grid de detalles */}
+<div className="grid grid-cols-3 gap-x-4 gap-y-2 mb-4 text-sm text-gray-700">
+  {/* Fila 1: Titular, Salida, Viático */}
+  <div className="flex items-center gap-x-2 truncate">
+    <UserIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+    <span className="truncate">{flete.conductor?.name || flete.colaborador?.name || '—'}</span>
+  </div>
+  <div className="flex items-center gap-x-2 truncate">
+    {/* SVG Salida */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      <path fillRule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5
+        1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5
+        0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0
+        1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5
+        1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75
+        0 0 1 1.06 0l3 3a.75.75 0 0 1 0
+        1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75
+        0 0 1 0-1.5h10.94l-1.72-1.72a.75.75
+        0 0 1 0-1.06Z" clipRule="evenodd" />
+    </svg>
+    <span className="truncate">{fechaSalidaFormatted}</span>
+  </div>
+  <div className="flex items-center gap-x-2 text-green-600 truncate">
+    <CalendarDaysIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+    <span className="truncate">${viaticoEfec.toLocaleString('es-CL')}</span>
+  </div>
 
-      const bgColor = esDiesel
-        ? 'bg-blue-50 text-blue-700'
-        : esGasto
-        ? 'bg-red-50 text-red-700'
-        : tipo === 'Retorno'
-        ? 'bg-yellow-50 text-yellow-700'
-        : tipo === 'Abono'
-        ? 'bg-green-50 text-green-700'
-        : 'bg-purple-50 text-purple-700' // Comisión
+  {/* Fila 2: Tracto, Llegada, Saldo */}
+  <div className="flex items-center gap-x-2 truncate">
+    <TruckIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+    <span className="truncate">{flete.tracto?.patente || '—'}</span>
+  </div>
+  <div className="flex items-center gap-x-2 truncate">
+    {/* SVG Llegada */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      <path fillRule="evenodd" d="M16.5 3.75a1.5 1.5 0 0 1 1.5
+        1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5
+        0 0 1-1.5-1.5V15a.75.75 0 0 0-1.5
+        0v3.75a3 3 0 0 0 3
+        3h6a3 3 0 0 0 3-3V5.25a3 3 0 0 0-3
+        -3h-6a3 3 0 0 0-3 3V9A.75.75 0
+        1 0 9 9V5.25a1.5 1.5 0 0 1 1.5
+        -1.5h6Zm-5.03 4.72a.75.75 0 0 0
+        0 1.06l1.72 1.72H2.25a.75.75
+        0 0 0 0 1.5h10.94l-1.72
+        1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75
+        0 0 0 0-1.06l-3-3a.75.75
+        0 0 0-1.06 0Z" clipRule="evenodd" />
+    </svg>
+    <span className="truncate">{fechaLlegadaFormatted}</span>
+  </div>
+  <div className={`flex items-center gap-x-2 ${saldoTemporal >= 0 ? 'text-green-600' : 'text-red-600'} truncate`}>
+    <BanknotesIcon className="h-5 w-5 flex-shrink-0" />
+    <span className="truncate">${saldoTemporal.toLocaleString('es-CL')}</span>
+  </div>
 
-      return (
-        <div
-          key={i}
-          className={`
-            grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)]
-            items-start py-1 gap-x-2 border-b last:border-b-0
-            ${bgColor} px-2 rounded-md
-          `}
-        >
-          <div className="font-medium">{tipo}</div>
-          <div className="break-words">{detalle}</div>
-          <div className="flex justify-between items-center w-max">
-            <span>${(r.monto ?? r.total)?.toLocaleString('es-CL')}</span>
-            <button
-  onClick={() => handleEliminarRegistro(r)}
-  disabled={isSubmitting}
-  className={`
-    ml-2
-    ${isSubmitting ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'}
-  `}
->
-  ✕
-</button>
+  {/* Fila 3: Rampla, Guía/Ruta, Comisión */}
+  <div className="flex items-center gap-x-2 truncate">
+    {/* SVG Rampla */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      <path d="M2.25 2.25a.75.75 0 0 0 0
+        1.5h1.386c.17 0 .318.114.362.278l2.558
+        9.592a3.752 3.752 0 0 0-2.806 3.63c0
+        .414.336.75.75.75h15.75a.75.75 0
+        0 0 0-1.5H5.378A2.25 2.25 0 0 1 7.5
+        15h11.218a.75.75 0 0 0 .674-.421
+        60.358 60.358 0 0 0 2.96-7.228.75.75
+        0 0 0-.525-.965A60.864 60.864 0 0 0
+        5.68 4.509l-.232-.867A1.875 1.875 0
+        0 0 3.636 2.25H2.25ZM3.75 20.25a1.5
+        1.5 0 1 1 3 0 1.5 1.5 0 0 1-3
+        0ZM16.5 20.25a1.5 1.5 0 1 1 3 0
+        1.5 1.5 0 0 1-3 0Z" />
+    </svg>
+    <span className="truncate">{flete.rampla?.patente || '—'}</span>
+  </div>
+  <div className="flex items-center gap-x-2 truncate">
+    {/* SVG Guía/Ruta */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      <path fillRule="evenodd" d="M7.491 5.992a.75.75
+        0 0 1 .75-.75h12a.75.75 0 1
+        1 0 1.5h-12a.75.75 0 0
+        1-.75-.75ZM7.49 11.995a.75.75 0
+        0 1 .75-.75h12a.75.75 0 0 1 0
+        1.5h-12a.75.75 0 0 1-.75-.75ZM7.491
+        17.994a.75.75 0 0 1 .75-.75h12a.75.75
+        0 1 1 0 1.5h-12a.75.75 0 0
+        1-.75-.75ZM2.24 3.745a.75.75
+        0 0 1 .75-.75h1.125a.75.75 0
+        0 1 .75.75v3h.375a.75.75 0 0 1
+        0 1.5H2.99a.75.75 0 0 1 0-1.5h.375v-2.25H2.99a.75.75
+        0 0 1-.75-.75ZM2.79 10.602a.75.75
+        0 0 1 0-1.06 1.875 1.875 0 1
+        1 2.652 2.651l-.55.55h.35a.75.75
+        0 0 1 0 1.5h-2.16a.75.75 0 0
+        1-.53-1.281l1.83-1.83a.375.375 0
+        0 0-.53-.53.75.75 0 0 1-1.062
+        0ZM2.24 15.745a.75.75 0 0
+        1 .75-.75h1.125a1.875 1.875 0 0 1
+        1.501 2.999 1.875 1.875 0 0
+        1-1.501 3H2.99a.75.75 0 0
+        1 0-1.501h1.125a.375.375 0 0
+        0 .036-.748H3.74a.75.75 0 0
+        1-.75-.75v-.002a.75.75 0 0
+        1 .75-.75h.411a.375.375 0 0
+        0-.036-.748H2.99a.75.75 0 0
+        1-.75-.75Z" clipRule="evenodd" />
+    </svg>
+    <span className="truncate">{flete.guiaRuta || '—'}</span>
+  </div>
+  <div className="flex items-center gap-x-2 text-green-600 truncate">
+    <CurrencyDollarIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+    <span className="truncate">${flete.rendicion?.comision?.toLocaleString('es-CL') || '—'}</span>
+  </div>
+</div>
 
+
+
+
+
+
+
+          {/* Error de cierre */}
+          {errorCierre && (
+            <div className="text-red-600 text-[11px] bg-red-100 p-2 rounded mb-4">
+              {errorCierre}
+            </div>
+          )}
+
+          {/* Últimos 2 registros */}
+          <div className="space-y-1 text-xs">
+            {ultimosRegistros.map((r, i) => {
+              const esDiesel = 'metodo_pago' in r && 'litros' in r
+              const esGasto = 'tipo' in r && !('litros' in r)
+              const tipo = esDiesel ? 'Diesel' : esGasto ? 'Gasto' : 'Abono'
+              const textColor = esDiesel
+                ? 'text-blue-700'
+                : esGasto
+                ? 'text-red-700'
+                : 'text-green-700'
+              let detalle = esDiesel
+                ? r.metodo_pago
+                : esGasto
+                ? r.tipo === 'Otro'
+                  ? `Otros: ${r.descripcion}`
+                  : r.tipo
+                : r.metodo
+
+              return (
+                <div
+                  key={i}
+                  className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] items-center py-1 gap-x-2 border-b last:border-b-0"
+                >
+                  <div className={`${textColor} font-medium`}>{tipo}</div>
+                  <div className={`${textColor} truncate`}>{detalle}</div>
+                  <div className="flex items-center space-x-2">
+                    <span className={textColor}>
+                      ${(r.monto ?? r.total).toLocaleString('es-CL')}
+                    </span>
+                    <button
+                      onClick={() => handleEliminarRegistro(r)}
+                      disabled={isSubmitting}
+                      className={classNames(
+                        'ml-2',
+                        isSubmitting
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-red-500 hover:text-red-700'
+                      )}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Pestañas front + Pagado */}
+          <div className="mt-4">
+            <div className="overflow-x-auto">
+              <nav className="flex items-center space-x-1 border-b border-gray-200">
+                <div className="flex-1 flex space-x-1 overflow-auto">
+                  {frontTabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => handleToggleForm(flete.id, tab.key)}
+                      className={classNames(
+                        tab.current
+                          ? `border-indigo-500 text-current`
+                          : `border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700`,
+                        'group inline-flex items-center border-b-2 px-2 py-2 text-sm font-medium transition'
+                      )}
+                      style={{ minWidth: 80 }}
+                    >
+                      <tab.icon
+                        className={classNames(
+                          tab.current ? 'text-current' : 'text-gray-400 group-hover:text-gray-500',
+                          'mr-1 h-4 w-4'
+                        )}
+                      />
+                      {tab.name}
+                      {tab.count > 0 && (
+                        <span
+                          className={classNames(
+                            tab.current ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-900',
+                            'ml-1 rounded-full px-1 py-0.5 text-[10px] font-medium'
+                          )}
+                        >
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex-shrink-0">
+                  {flete.pagado ? (
+                    <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
+                      Pagado
+                    </span>
+                  ) : (
+                    <input type="checkbox" className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+                  )}
+                </div>
+              </nav>
+            </div>
+
+            {/* Formularios front */}
+            {formAbierto === 'diesel' && (
+              <div className="px-2 pt-2">
+                <DieselForm
+                  fleteId={flete.id}
+                  rendicionId={flete.rendicion?.id}
+                  onSubmit={async (payload) => {
+                    setIsSubmitting(true)
+                    try {
+                      await submitForm('/diesel', payload, (f) => {
+                        actualizarFleteEnLista(f)
+                        handleCloseForm(flete.id)
+                      })
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  onCancel={() => handleCloseForm(flete.id)}
+                />
+              </div>
+            )}
+            {formAbierto === 'gasto' && (
+              <div className="px-2 pt-2">
+                <GastoForm
+                  fleteId={flete.id}
+                  rendicionId={flete.rendicion?.id}
+                  submitForm={async (ruta, payload) => {
+                    setIsSubmitting(true)
+                    try {
+                      await submitForm(ruta, payload, (f) => {
+                        actualizarFleteEnLista(f)
+                        handleCloseForm(flete.id)
+                      })
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  onCancel={() => handleCloseForm(flete.id)}
+                />
+              </div>
+            )}
+            {formAbierto === 'finalizar' && (
+              <div className="px-2 pt-2">
+                <FinalizarForm
+                  fleteId={flete.id}
+                  rendicionId={flete.rendicion?.id}
+                  fechaSalida={flete.fecha_salida}
+                  onSubmit={async (payload) => {
+                    setIsSubmitting(true)
+                    try {
+                      await submitForm(`/fletes/${flete.id}/finalizar`, payload, (f) => {
+                        actualizarFleteEnLista(f)
+                        handleCloseForm(flete.id)
+                      })
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  onCancel={() => handleCloseForm(flete.id)}
+                />
+              </div>
+            )}
           </div>
         </div>
-      )
-    })}
 
-    {/* Viático fijo */}
-    <div className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] text-xs items-start py-1 border-b gap-x-2">
-      <div className="w-max font-medium">Viático</div>
-      <div className="break-words text-gray-700"></div>
-      <div className="flex justify-end items-center w-max text-gray-700 font-medium">
-        ${viaticoEfec.toLocaleString('es-CL')}
-      </div>
-    </div>
+        {/* ─── Cara Trasera ──────────────────────────────────────────────────── */}
+        <div
+          className={`
+            flete-card-back
+            bg-white border border-gray-200
+            shadow-md rounded-lg p-4
+            ${flipped ? 'active' : ''}
+          `}
+        >
+          <div className="flex justify-end">
+            <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Detalle completo</h3>
 
-    {/* Saldo final */}
-    <div className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] font-semibold text-sm pt-1 border-t mt-2">
-      <div className="text-green-700 col-span-2">Saldo final</div>
-      <div className="text-green-700 text-right w-max">
-        ${saldoTemporal.toLocaleString('es-CL')}
-      </div>
-    </div>
-  </div>
+          <div className="space-y-1 text-xs">
+            {detallesBack.map((r, i) => {
+              const esDiesel = 'metodo_pago' in r && 'litros' in r
+              const esGasto = 'tipo' in r && !('litros' in r)
+              const esAbono = !esDiesel && !esGasto && 'metodo' in r
+              const tipo = esDiesel
+                ? 'Diesel'
+                : esGasto
+                ? 'Gasto'
+                : esAbono
+                ? r.metodo === 'Retorno'
+                  ? 'Retorno'
+                  : 'Abono'
+                : 'Comisión'
 
-  {/* ─── Pestañas y Formularios (Cara Trasera) ───────────────────────────────── */}
-  <div className="mt-4">
-    {/* SELECT para pantallas pequeñas */}
-    <div className="grid grid-cols-1 sm:hidden mb-2 px-4">
-      <select
-        defaultValue={backTabs.find((tab) => tab.current)?.name || ''}
-        aria-label="Select a form"
-        className="
-          col-start-1 row-start-1 w-full appearance-none
-          rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900
-          outline outline-1 -outline-offset-1 outline-gray-300
-          focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600
-        "
-        onChange={(e) => {
-          const selected = backTabs.find((t) => t.name === e.target.value)
-          handleToggleForm(flete.id, selected?.key || null)
-        }}
-      >
-        <option value="">Selecciona formulario</option>
-        {backTabs.map((tab) => (
-          <option key={tab.name}>
-            {tab.name} {tab.count > 0 ? `(${tab.count})` : ''}
-          </option>
-        ))}
-      </select>
-      <ChevronDownIcon
-        aria-hidden="true"
-        className="
-          pointer-events-none col-start-1 row-start-1 mr-2 size-5
-          self-center justify-self-end fill-gray-500
-        "
-      />
-    </div>
+              let detalle = esDiesel
+                ? r.metodo_pago
+                : esGasto
+                ? r.tipo === 'Otro'
+                  ? `Otros: ${r.descripcion}`
+                  : r.tipo
+                : esAbono
+                ? r.metodo
+                : r.tipo
 
-    {/* Nav para pantallas grandes */}
-    <div className="hidden sm:block border-b border-gray-200 mb-2 px-4">
-      <nav aria-label="Forms" className="-mb-px flex justify-center space-x-4">
-        {backTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleToggleForm(flete.id, tab.key)}
-            className={classNames(
-              formAbierto === tab.key
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              'group inline-flex items-center border-b-2 px-2 py-3 text-sm font-medium'
-            )}
-          >
-            <tab.icon
-              aria-hidden="true"
-              className={classNames(
-                formAbierto === tab.key
-                  ? 'text-indigo-500'
-                  : 'text-gray-400 group-hover:text-gray-500',
-                'mr-1 h-5 w-5'
-              )}
-            />
-            {tab.name}
-            {tab.count > 0 && (
-              <span
-                className={classNames(
-                  formAbierto === tab.key
-                    ? 'bg-indigo-100 text-indigo-600'
-                    : 'bg-gray-100 text-gray-900',
-                  'ml-2 rounded-full px-2 py-0.5 text-xs font-medium'
-                )}
+              const bgColor = esDiesel
+                ? 'bg-blue-50 text-blue-700'
+                : esGasto
+                ? 'bg-red-50 text-red-700'
+                : tipo === 'Retorno'
+                ? 'bg-yellow-50 text-yellow-700'
+                : tipo === 'Abono'
+                ? 'bg-green-50 text-green-700'
+                : 'bg-purple-50 text-purple-700'
+
+              return (
+                <div
+                  key={i}
+                  className={`
+                    grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)]
+                    items-start py-1 gap-x-2 border-b last:border-b-0
+                    ${bgColor} px-2 rounded-md
+                  `}
+                >
+                  <div className="font-medium">{tipo}</div>
+                  <div className="break-words">{detalle}</div>
+                  <div className="flex items-center space-x-2">
+                    <span>${(r.monto ?? r.total).toLocaleString('es-CL')}</span>
+                    <button
+                      onClick={() => handleEliminarRegistro(r)}
+                      disabled={isSubmitting}
+                      className={classNames(
+                        'ml-2',
+                        isSubmitting
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-red-500 hover:text-red-700'
+                      )}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Viático */}
+            <div className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] items-center text-xs py-1 border-b gap-x-2">
+              <div className="font-medium">Viático</div>
+              <div></div>
+              <div className="text-gray-700 font-medium text-right">
+                ${viaticoEfec.toLocaleString('es-CL')}
+              </div>
+            </div>
+            {/* Saldo final */}
+            <div className="grid grid-cols-[minmax(50px,max-content)_1fr_minmax(70px,max-content)] text-sm font-semibold pt-1 border-t mt-2">
+              <div className="col-span-2 text-green-700">Saldo final</div>
+              <div className="text-right text-green-700">
+                ${saldoTemporal.toLocaleString('es-CL')}
+              </div>
+            </div>
+          </div>
+
+          {/* Pestañas back */}
+          <div className="mt-4">
+            <div className="sm:hidden mb-2 px-4">
+              <select
+                defaultValue={backTabs.find((t) => t.current)?.name || ''}
+                onChange={(e) => {
+                  const sel = backTabs.find((t) => t.name === e.target.value)
+                  handleToggleForm(flete.id, sel?.key || null)
+                }}
+                className="w-full rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900 outline outline-1 outline-gray-300 focus:outline-indigo-600"
               >
-                {tab.count}
-              </span>
+                <option value="">Selecciona</option>
+                {backTabs.map((tab) => (
+                  <option key={tab.key}>
+                    {tab.name} {tab.count > 0 && `(${tab.count})`}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="pointer-events-none absolute right-4 top-3 h-5 w-5 text-gray-500" />
+            </div>
+            <div className="hidden sm:block border-b border-gray-200 mb-2 px-4">
+              <nav className="flex justify-center space-x-4">
+                {backTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => handleToggleForm(flete.id, tab.key)}
+                    className={classNames(
+                      tab.current
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                      'inline-flex items-center border-b-2 px-2 py-3 text-sm font-medium'
+                    )}
+                  >
+                    <tab.icon
+                      className={classNames(
+                        tab.current ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500',
+                        'mr-1 h-5 w-5'
+                      )}
+                    />
+                    {tab.name}
+                    {tab.count > 0 && (
+                      <span
+                        className={classNames(
+                          tab.current ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-900',
+                          'ml-2 rounded-full px-2 py-0.5 text-xs font-medium'
+                        )}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Formularios back */}
+            {formAbierto === 'abono' && (
+              <div className="px-4">
+                <AbonoForm
+                  fleteId={flete.id}
+                  rendicionId={flete.rendicion?.id}
+                  onSubmit={async (payload) => {
+                    setIsSubmitting(true)
+                    try {
+                      await submitForm(
+                        '/abonos',
+                        { ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id },
+                        (f) => {
+                          actualizarFleteEnLista(f)
+                          handleCloseForm(flete.id)
+                          handleFlip()
+                        }
+                      )
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  onCancel={() => handleCloseForm(flete.id)}
+                />
+              </div>
             )}
-          </button>
-        ))}
-      </nav>
-    </div>
-
-    {/* Renderizado condicional de formularios (Cara Trasera) */}
-
-{/* ─── Abono ────────────────────────────────────────────────────────── */}
-{formAbierto === 'abono' && flete.rendicion?.id && (
-  <div className="px-4">
-    <AbonoForm
-      fleteId={flete.id}
-      rendicionId={flete.rendicion.id}
-      onSubmit={async (payload) => {
-        setIsSubmitting(true)
-        try {
-          // payload already has { tipo, monto }
-          await submitForm(
-            '/abonos',
-            {
-              ...payload,
-              flete_id: flete.id,
-              rendicion_id: flete.rendicion.id,
-            },
-            (fleteActualizado) => {
-              actualizarFleteEnLista(fleteActualizado)
-              handleCloseForm(flete.id)
-              handleFlip()
-            }
-          )
-        } finally {
-          setIsSubmitting(false)
-        }
-      }}
-      onCancel={() => handleCloseForm(flete.id)}
-      onSuccess={(fleteActualizado) => {
-        actualizarFleteEnLista(fleteActualizado)
-        handleCloseForm(flete.id)
-        handleFlip()
-      }}
-    />
-  </div>
-)}
-
-{/* ─── Retorno ───────────────────────────────────────────────────────── */}
-{formAbierto === 'retorno' && (
-  <div className="px-4">
-    <RetornoForm
-      fleteId={flete.id}
-      onSubmit={async (payload) => {
-        setIsSubmitting(true)
-        try {
-          // payload has { monto } — asumimos que RetornoForm expone monto directamente
-          await submitForm(
-            '/retornos',
-            {
-              ...payload,
-              flete_id: flete.id,
-              rendicion_id: flete.rendicion.id,
-              tipo: 'Retorno',
-            },
-            (fleteActualizado) => {
-              actualizarFleteEnLista(fleteActualizado)
-              handleCloseForm(flete.id)
-              handleFlip()
-            }
-          )
-        } finally {
-          setIsSubmitting(false)
-        }
-      }}
-      onCancel={() => handleCloseForm(flete.id)}
-      onSuccess={(fleteActualizado) => {
-        actualizarFleteEnLista(fleteActualizado)
-        handleCloseForm(flete.id)
-        handleFlip()
-      }}
-    />
-  </div>
-)}
-
-{/* ─── Comisión ──────────────────────────────────────────────────────── */}
-{formAbierto === 'comision' && (
-  <div className="px-4">
-    <ComisionForm
-      rendicionId={flete.rendicion?.id}
-      onSubmit={async (payload) => {
-        setIsSubmitting(true)
-        try {
-          // payload tiene { monto: comision_manual, descripcion }
-          await submitForm(
-            '/comisiones',
-            {
-              tipo: 'Comisión',
-              ...payload,
-              flete_id: flete.id,
-              rendicion_id: flete.rendicion.id,
-            },
-            (fleteActualizado) => {
-              actualizarFleteEnLista(fleteActualizado)
-              handleCloseForm(flete.id)
-              handleFlip()
-            }
-          )
-        } finally {
-          setIsSubmitting(false)
-        }
-      }}
-      onCancel={() => handleCloseForm(flete.id)}
-      onSuccess={(fleteActualizado) => {
-        actualizarFleteEnLista(fleteActualizado)
-        handleCloseForm(flete.id)
-        handleFlip()
-      }}
-    />
-  </div>
-)}
-
-
-  </div>
-</div>
-
-
-
+            {formAbierto === 'retorno' && (
+              <div className="px-4">
+                <RetornoForm
+                  fleteId={flete.id}
+                  onSubmit={async (payload) => {
+                    setIsSubmitting(true)
+                    try {
+                      await submitForm(
+                        '/retornos',
+                        { ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id, tipo: 'Retorno' },
+                        (f) => {
+                          actualizarFleteEnLista(f)
+                          handleCloseForm(flete.id)
+                          handleFlip()
+                        }
+                      )
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  onCancel={() => handleCloseForm(flete.id)}
+                />
+              </div>
+            )}
+            {formAbierto === 'comision' && (
+              <div className="px-4">
+                <ComisionForm
+                  rendicionId={flete.rendicion?.id}
+                  onSubmit={async (payload) => {
+                    setIsSubmitting(true)
+                    try {
+                      await submitForm(
+                        '/comisiones',
+                        { tipo: 'Comisión', ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id },
+                        (f) => {
+                          actualizarFleteEnLista(f)
+                          handleCloseForm(flete.id)
+                          handleFlip()
+                        }
+                      )
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  onCancel={() => handleCloseForm(flete.id)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
