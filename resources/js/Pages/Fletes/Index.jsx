@@ -434,75 +434,46 @@ export default function Index({ auth, fletes: paginatedFletes, filters, conducto
         </div>
       </div>
 
-      {/* ─── Paginación ─────────────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-0">
-          {/* Anterior */}
-          <div className="-mt-px flex w-0 flex-1">
-            {paginatedFletes.prev_page_url ? (
-              <a
-                href={paginatedFletes.prev_page_url}
-                className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                <ArrowLongLeftIcon className="mr-3 h-5 w-5 text-gray-400" />
-                Anterior
-              </a>
-            ) : (
-              <span className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-300">
-                <ArrowLongLeftIcon className="mr-3 h-5 w-5 text-gray-200" />
-                Anterior
-              </span>
-            )}
-          </div>
+      {/* Paginación */}
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-0">
+    <div className="flex justify-between items-center w-full">
+      {/* Botón Anterior */}
+      <button
+        onClick={() => paginatedFletes.prev_page_url && get(paginatedFletes.prev_page_url, { preserveState: true })}
+        disabled={!paginatedFletes.prev_page_url}
+        className={classNames(
+          'inline-flex items-center px-4 py-2 text-sm font-medium rounded',
+          paginatedFletes.prev_page_url
+            ? 'text-gray-600 hover:text-gray-800'
+            : 'text-gray-300 cursor-not-allowed'
+        )}
+      >
+        ← Anterior
+      </button>
 
-          {/* Páginas numéricas */}
-          <div className="hidden md:-mt-px md:flex">
-            {paginatedFletes.links.map((link, idx) => {
-              if (!link.url) {
-                return (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500"
-                  >
-                    ...
-                  </span>
-                )
-              }
-              return (
-                <a
-                  key={idx}
-                  href={link.url}
-                  className={classNames(
-                    link.active
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                    'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium'
-                  )}
-                  dangerouslySetInnerHTML={{ __html: link.label }}
-                />
-              )
-            })}
-          </div>
+      {/* Página actual */}
+      <span className="text-sm text-gray-500">
+        Página {paginatedFletes.current_page} de {paginatedFletes.last_page}
+      </span>
 
-          {/* Siguiente */}
-          <div className="-mt-px flex w-0 flex-1 justify-end">
-            {paginatedFletes.next_page_url ? (
-              <a
-                href={paginatedFletes.next_page_url}
-                className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                Siguiente
-                <ArrowLongRightIcon className="ml-3 h-5 w-5 text-gray-400" />
-              </a>
-            ) : (
-              <span className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-300">
-                Siguiente
-                <ArrowLongRightIcon className="ml-3 h-5 w-5 text-gray-200" />
-              </span>
-            )}
-          </div>
-        </nav>
-      </div>
+      {/* Botón Siguiente */}
+      <button
+        onClick={() => paginatedFletes.next_page_url && get(paginatedFletes.next_page_url, { preserveState: true })}
+        disabled={!paginatedFletes.next_page_url}
+        className={classNames(
+          'inline-flex items-center px-4 py-2 text-sm font-medium rounded',
+          paginatedFletes.next_page_url
+            ? 'text-gray-600 hover:text-gray-800'
+            : 'text-gray-300 cursor-not-allowed'
+        )}
+      >
+        Siguiente →
+      </button>
+    </div>
+  </nav>
+</div>
+
     </AuthenticatedLayout>
   )
 }
