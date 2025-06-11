@@ -214,179 +214,176 @@ export default function Index({
       <Head title="Fletes" />
 
       {/* FILTROS */}
-      <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center gap-x-2 gap-y-2">
+<div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center gap-2 w-full">
 
-          {/* Limpiar */}
-          <button onClick={handleClear} className="text-xs text-gray-600 hover:text-gray-800">
-            Limpiar filtros
-          </button>
 
-          {/* Titular */}
+    {/* Titular */}
+    <div className="relative flex-shrink-0" onMouseEnter={() => setActiveTab('Titular')} onMouseLeave={() => setActiveTab('')}>
+      <button
+        onClick={() => setActiveTab(activeTab==='Titular'?'':'Titular')}
+        className={classNames(
+          activeTab==='Titular'
+            ? 'border-indigo-500 text-indigo-600'
+            : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-indigo-700',
+          'inline-flex items-center bg-white px-2 py-1 text-xs font-medium border-b-2 rounded'
+        )}
+      >
+        {data.conductor_ids.length ? `Titulares (${data.conductor_ids.length})` : 'Titular'}
+        <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-1" />
+      </button>
+      <div className={classNames(
+        'absolute left-0 top-full mt-1 w-48 max-h-80 overflow-y-auto bg-white shadow-lg rounded z-50 divide-y divide-gray-100',
+        activeTab==='Titular' ? 'block' : 'hidden'
+      )}>
+        {conductores.map(u => (
           <div
+            key={u.id}
+            onClick={() => handleToggleMultiSelect('conductor_ids', u.id)}
             className={classNames(
-              activeTab === 'Titular'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              'group relative inline-flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs font-medium border-b-2'
+              data.conductor_ids.includes(String(u.id)) && 'bg-gray-100',
+              'flex items-center px-3 py-2 text-xs text-gray-700 cursor-pointer'
             )}
-            onMouseEnter={() => handleChangeTab('Titular')}
           >
-            {data.conductor_ids.length ? `Titulares (${data.conductor_ids.length})` : 'Titular'}
-            <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-1" />
-            <div className="absolute left-0 top-full mt-1 w-48 max-h-48 overflow-auto divide-y divide-gray-100 rounded bg-white shadow-lg ring-1 ring-black/5 hidden group-hover:block">
-              {conductores.map(u => (
-                <div
-                  key={u.id}
-                  onClick={() => handleToggleMultiSelect('conductor_ids', u.id)}
-                  className={classNames(
-                    data.conductor_ids.includes(String(u.id)) && 'bg-gray-100',
-                    'flex items-center px-3 py-2 text-xs text-gray-700 cursor-pointer'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={data.conductor_ids.includes(String(u.id))}
-                    readOnly
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                  <span className="ml-2">{u.name}</span>
-                </div>
-              ))}
-            </div>
+            <input
+              type="checkbox"
+              checked={data.conductor_ids.includes(String(u.id))}
+              readOnly
+              className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+            />
+            <span className="ml-2 truncate">{u.name}</span>
           </div>
+        ))}
+      </div>
+    </div>
 
-          {/* Cliente */}
+    {/* Cliente */}
+    <div className="relative flex-shrink-0" onMouseEnter={() => setActiveTab('Cliente')} onMouseLeave={() => setActiveTab('')}>
+      <button
+        onClick={() => setActiveTab(activeTab==='Cliente'?'':'Cliente')}
+        className={classNames(
+          activeTab==='Cliente'
+            ? 'border-indigo-500 text-indigo-600'
+            : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-indigo-700',
+          'inline-flex items-center bg-white px-2 py-1 text-xs font-medium border-b-2 rounded'
+        )}
+      >
+        {data.cliente_ids.length ? `Clientes (${data.cliente_ids.length})` : 'Clientes'}
+        <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-1" />
+      </button>
+      <div className={classNames(
+        'absolute left-0 top-full mt-1 w-44 max-h-80 overflow-y-auto bg-white shadow-lg rounded z-50 divide-y divide-gray-100',
+        activeTab==='Cliente' ? 'block' : 'hidden'
+      )}>
+        {clientes.map(c => (
           <div
+            key={c.id}
+            onClick={() => handleToggleMultiSelect('cliente_ids', c.id)}
             className={classNames(
-              activeTab === 'Cliente'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              'group relative inline-flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs font-medium border-b-2'
+              data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
+              'flex items-center px-3 py-2 text-xs text-gray-700 cursor-pointer'
             )}
-            onMouseEnter={() => handleChangeTab('Cliente')}
           >
-            {data.cliente_ids.length ? `Clientes (${data.cliente_ids.length})` : 'Clientes'}
-            <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-1" />
-            <div className="absolute left-0 top-full mt-1 w-44 max-h-48 overflow-auto divide-y divide-gray-100 rounded bg-white shadow-lg ring-1 ring-black/5 hidden group-hover:block">
-              {clientes.map(c => (
-                <div
-                  key={c.id}
-                  onClick={() => handleToggleMultiSelect('cliente_ids', c.id)}
-                  className={classNames(
-                    data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
-                    'flex items-center px-3 py-2 text-xs text-gray-700 cursor-pointer'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={data.cliente_ids.includes(String(c.id))}
-                    readOnly
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                  <span className="ml-2">{c.razon_social}</span>
-                </div>
-              ))}
-            </div>
+            <input
+              type="checkbox"
+              checked={data.cliente_ids.includes(String(c.id))}
+              readOnly
+              className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+            />
+            <span className="ml-2 truncate">{c.razon_social}</span>
           </div>
+        ))}
+      </div>
+    </div>
 
-          {/* Tracto */}
+    {/* Tracto */}
+    <div className="relative flex-shrink-0" onMouseEnter={() => setActiveTab('Tracto')} onMouseLeave={() => setActiveTab('')}>
+      <button
+        onClick={() => setActiveTab(activeTab==='Tracto'?'':'Tracto')}
+        className={classNames(
+          activeTab==='Tracto'
+            ? 'border-indigo-500 text-indigo-600'
+            : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-indigo-700',
+          'inline-flex items-center bg-white px-2 py-1 text-xs font-medium border-b-2 rounded'
+        )}
+      >
+        {data.tracto_ids.length ? `Tractos (${data.tracto_ids.length})` : 'Tractos'}
+        <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-1" />
+      </button>
+      <div className={classNames(
+        'absolute left-0 top-full mt-1 w-44 max-h-80 overflow-y-auto bg-white shadow-lg rounded z-50 divide-y divide-gray-100',
+        activeTab==='Tracto' ? 'block' : 'hidden'
+      )}>
+        {tractos.map(t => (
           <div
+            key={t.id}
+            onClick={() => handleToggleMultiSelect('tracto_ids', t.id)}
             className={classNames(
-              activeTab === 'Tracto'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              'group relative inline-flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs font-medium border-b-2'
+              data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
+              'flex items-center px-3 py-2 text-xs text-gray-700 cursor-pointer'
             )}
-            onMouseEnter={() => handleChangeTab('Tracto')}
           >
-            {data.tracto_ids.length ? `Tractos (${data.tracto_ids.length})` : 'Tractos'}
-            <ChevronDownIcon className="h-4 w-4 text-gray-400 ml-1" />
-            <div className="absolute left-0 top-full mt-1 w-44 max-h-48 overflow-auto divide-y divide-gray-100 rounded bg-white shadow-lg ring-1 ring-black/5 hidden group-hover:block">
-              {tractos.map(t => (
-                <div
-                  key={t.id}
-                  onClick={() => handleToggleMultiSelect('tracto_ids', t.id)}
-                  className={classNames(
-                    data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
-                    'flex items-center px-3 py-2 text-xs text-gray-700 cursor-pointer'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={data.tracto_ids.includes(String(t.id))}
-                    readOnly
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                  <span className="ml-2">{t.patente}</span>
-                </div>
-              ))}
-            </div>
+            <input
+              type="checkbox"
+              checked={data.tracto_ids.includes(String(t.id))}
+              readOnly
+              className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+            />
+            <span className="ml-2 truncate">{t.patente}</span>
           </div>
+        ))}
+      </div>
+    </div>
 
-          {/* Fecha: rango único */}
-          <div
-            ref={calendarToggleRef}
-            className={classNames(
-              activeTab === 'Fecha'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              'relative inline-flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs font-medium border-b-2 cursor-pointer'
-            )}
-            onClick={() => handleChangeTab('Fecha')}
-          >
-            <CalendarDaysIcon className="h-5 w-5" />
-            {range.from && range.to && (
-              <span className="ml-1">
-                {range.from.toLocaleDateString('es-CL')} – {range.to.toLocaleDateString('es-CL')}
-              </span>
-            )}
-            {activeTab === 'Fecha' && (
-              <div
-                ref={calendarRef}
-                className="absolute left-0 top-full mt-1 bg-white p-2 rounded shadow-lg z-30 text-xs"
-              >
-                <DayPicker
-                  mode="range"
-                  selected={range}
-                  onSelect={handleRangeSelect}
-                  numberOfMonths={2}
-                />
-                <div className="flex justify-between mt-2">
-                  <button
-                    onClick={() => setRange({ from: undefined, to: undefined })}
-                    className="text-xs text-gray-600 hover:text-gray-800"
-                  >
-                    X
-                  </button>
-                  <button
-                    onClick={() => {
-                      const desde = range.from?.toISOString().split('T')[0] || ''
-                      const hasta = range.to?.toISOString().split('T')[0] || ''
-                      setData('fecha_desde', desde)
-                      setData('fecha_hasta', hasta)
-                      setActiveTab('Titular')
-                      get(route('fletes.index'), {
-                        preserveState: true,
-                        data: {
-                          conductor_ids: data.conductor_ids,
-                          cliente_ids:   data.cliente_ids,
-                          tracto_ids:    data.tracto_ids,
-                          fecha_desde:   desde,
-                          fecha_hasta:   hasta,
-                        },
-                      })
-                    }}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    OK
-                  </button>
-                </div>
-              </div>
-            )}
+    {/* Fecha */}
+    <div className="relative flex-shrink-0" onClick={() => setActiveTab(activeTab==='Fecha'?'':'Fecha')} onMouseLeave={() => setActiveTab('')} ref={calendarToggleRef}>
+      <button
+        className={classNames(
+          activeTab==='Fecha'
+            ? 'border-indigo-500 text-indigo-600'
+            : 'border-transparent text-gray-500 hover:border-indigo-300 hover:text-indigo-700',
+          'inline-flex items-center bg-white px-2 py-1 text-xs font-medium border-b-2 rounded'
+        )}
+      >
+        <CalendarDaysIcon className="h-4 w-4 text-gray-600" />
+        {range.from && range.to && (
+          <span className="ml-1 truncate">
+            {range.from.toLocaleDateString('es-CL')} – {range.to.toLocaleDateString('es-CL')}
+          </span>
+        )}
+      </button>
+      {activeTab==='Fecha' && (
+        <div className="absolute left-0 top-full mt-1 bg-white p-1 rounded shadow-lg z-50 text-xs w-64" ref={calendarRef}>
+          <DayPicker mode="range" selected={range} onSelect={handleRangeSelect} numberOfMonths={1} />
+          <div className="flex justify-between mt-1">
+            <button onClick={() => setRange({ from: undefined, to: undefined })} className="text-[10px] text-gray-600 hover:text-gray-800">X</button>
+            <button onClick={() => {
+              const desde = range.from?.toISOString().split('T')[0]||''
+              const hasta = range.to?.toISOString().split('T')[0]||''
+              setData('fecha_desde',desde)
+              setData('fecha_hasta',hasta)
+              setActiveTab('')
+              get(route('fletes.index'),{preserveState:true,data:{conductor_ids:data.conductor_ids,cliente_ids:data.cliente_ids,tracto_ids:data.tracto_ids,fecha_desde:desde,fecha_hasta:hasta}})
+            }} className="text-[10px] text-blue-600 hover:underline">OK</button>
           </div>
         </div>
-      </div>
+      )}
+    </div>
+
+    {/* Limpiar filtros al inicio */}
+    <button
+      onClick={handleClear}
+      className="flex-shrink-0 text-xs text-gray-600 hover:text-gray-800"
+    >
+      Limpiar
+    </button>
+
+  </div>
+</div>
+
+
+
+
 
       {/* GRID DE TARJETAS */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
