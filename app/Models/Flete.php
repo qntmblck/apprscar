@@ -25,18 +25,17 @@ class Flete extends Model
 
     /** 1. Campos asignables **/
     protected $fillable = [
-    'cliente_principal_id','cliente_nombre',
-    'conductor_id','conductor_nombre',
-    'colaborador_id','colaborador_nombre',
-    'tarifa_id','tarifa_valor',
-    'destino_id','tracto_id','rampla_id',
-    'tipo','estado','kilometraje','rendimiento',
-    'fecha_salida','fecha_llegada',
-    'comision','retorno','guiaruta','pagado',
-    'valor_factura','utilidad',
-    'adicionales',
-];
-
+        'cliente_principal_id','cliente_nombre',
+        'conductor_id','conductor_nombre',
+        'colaborador_id','colaborador_nombre',
+        'tarifa_id','tarifa_valor',
+        'destino_id','tracto_id','rampla_id',
+        'tipo','estado','kilometraje','rendimiento',
+        'fecha_salida','fecha_llegada',
+        'comision','retorno','guiaruta','pagado',
+        'valor_factura','utilidad',
+        'adicionales',
+    ];
 
     /** 2. Accessors to append **/
     protected $appends = [
@@ -156,40 +155,40 @@ class Flete extends Model
 
     // Empareja con el flete anterior para calcular km recorridos
     public function fleteAnterior()
-{
-    return $this->hasOne(self::class)
-                ->where('tracto_id', $this->tracto_id)
-                ->where('rampla_id', $this->rampla_id)
-                ->where('fecha_salida', '<', $this->fecha_salida)
-                ->orderByDesc('fecha_salida')
-                ->limit(1);
-}
-
-
-    public function getKmRecorridosAttribute(): ?int
-{
-    if (! $this->kilometraje || ! $this->fecha_salida) {
-        return null;
+    {
+        return $this->hasOne(self::class)
+                    ->where('tracto_id', $this->tracto_id)
+                    ->where('rampla_id', $this->rampla_id)
+                    ->where('fecha_salida', '<', $this->fecha_salida)
+                    ->orderByDesc('fecha_salida')
+                    ->limit(1);
     }
 
-    $fleteAnterior = self::where('tracto_id', $this->tracto_id)
-        ->where('rampla_id', $this->rampla_id)
-        ->where('fecha_salida', '<', $this->fecha_salida)
-        ->orderByDesc('fecha_salida')
-        ->first();
+    public function getKmRecorridosAttribute(): ?int
+    {
+        if (! $this->kilometraje || ! $this->fecha_salida) {
+            return null;
+        }
 
-    return $fleteAnterior && $fleteAnterior->kilometraje
-        ? $this->kilometraje - $fleteAnterior->kilometraje
-        : null;
-}
-public function cliente()
-{
-    return $this->clientePrincipal();
-}
+        $fleteAnterior = self::where('tracto_id', $this->tracto_id)
+            ->where('rampla_id', $this->rampla_id)
+            ->where('fecha_salida', '<', $this->fecha_salida)
+            ->orderByDesc('fecha_salida')
+            ->first();
 
-public function getClienteAttribute()
-{
-    return $this->clientePrincipal;
-}
+        return $fleteAnterior && $fleteAnterior->kilometraje
+            ? $this->kilometraje - $fleteAnterior->kilometraje
+            : null;
+    }
 
+    // Alias a clientePrincipal
+    public function cliente()
+    {
+        return $this->clientePrincipal();
+    }
+
+    public function getClienteAttribute()
+    {
+        return $this->clientePrincipal;
+    }
 }

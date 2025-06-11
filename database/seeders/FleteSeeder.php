@@ -17,7 +17,6 @@ use App\Models\Rendicion;
 use App\Models\Diesel;
 use App\Models\Gasto;
 use App\Models\AbonoCaja;
-use App\Models\PagoMensualConductor;
 use Database\Factories\ClienteFactory;
 use Database\Factories\DestinoFactory;
 use Database\Factories\TractoFactory;
@@ -74,140 +73,128 @@ class FleteSeeder extends Seeder
                             'tipo'                 => $tp,
                         ],
                         [
-                            'valor_factura'  => $faker->numberBetween(80_000,300_000),
-                            'valor_comision' => $faker->numberBetween(10_000,50_000),
+                            'valor_factura'  => $faker->numberBetween(80000,300000),
+                            'valor_comision' => $faker->numberBetween(10000,50000),
                         ]
                     );
                 }
             }
         }
 
-        // 5) Generar 1.000 fletes + expendables + pagos mensuales
-        $inicioAnio  = Carbon::create(now()->year,1,1);
-        $diasPasados = now()->diffInDays($inicioAnio);
-        $rendPagadas = collect();
+        // 5) Generar 500 fletes + expendables (Ene–Jun 2025, llegada a 0–5 días)
+        $inicioPeriodo = Carbon::create(2025, 7, 30);   // 1 Ene 2025
+$finPeriodo    = Carbon::create(2025, 12, 30);  // 30 Jun 2025
+$diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
 
-        for ($i = 0; $i < 1000; $i++) {
-            // actor: 20% colaborador / 80% conductor
-            $actor    = rand(1,100) <= 20
-                        ? $colaboradores->random()
-                        : $conductores->random();
-            $actorKey = $actor->hasRole('conductor')
-                        ? 'conductor_id'
-                        : 'colaborador_id';
+        for ($i = 0; $i < 500; $i++) {
+            // Actor: 20% colaboradores, 80% conductores
+            if (rand(1, 100) <= 20) {
+                $actor    = $colaboradores->random();
+                $actorKey = 'colaborador_id';
+            } else {
+                $actor    = $conductores->random();
+                $actorKey = 'conductor_id';
+            }
 
-            // relaciones
-            $cli    = $clientes->random();
-            $des    = $destinos->random();
-            $tra    = $tractos->random();
-            $ram    = $ramplas->random();
-            $tp     = $faker->randomElement($tipos);
+            // Relaciones aleatorias
+            $cli = $clientes->random();
+            $des = $destinos->random();
+            $tra = $tractos->random();
+            $ram = $ramplas->random();
+            $tp  = $faker->randomElement($tipos);
+
+            // Obtener tarifa
             $tarifa = Tarifa::where([
-                         ['cliente_principal_id',$cli->id],
-                         ['destino_id',$des->id],
-                         ['tipo',$tp],
-                     ])->first();
+                ['cliente_principal_id', $cli->id],
+                ['destino_id',           $des->id],
+                ['tipo',                 $tp],
+            ])->first();
 
-            // fechas
-            $salida  = (clone $inicioAnio)->addDays(rand(0,$diasPasados-5));
-            $llegada = (clone $salida)->addDays(rand(1,4));
-            $periodo = ucfirst($llegada->monthName);
+            // Kilometraje (ida y vuelta)
+            $kmdest = $des->km_destino ?? 0;
+            $km     = $kmdest * 2;
 
-            // estados
-            $estadoF = rand(0,1) ? 'Notificado' : 'Sin Notificar';
-            $cerrado = $pagado = false;
-            if ($llegada->month === 3 && rand(1,100) <= 30) {
-                $cerrado = $pagado = true;
-                $llegada->addDays(rand(10,20));
-            }
-            if ($llegada->gte(now()->setMonth(4)->setDay(30))) {
-                $cerrado = $pagado = false;
+            // Fechas: salida aleatoria entre inicio y fin
+            $salida  = (clone $inicioPeriodo)->addDays(rand(0, $diasPeriodo));
+            // Llegada a 0–5 días después de la salida
+            $llegada = (clone $salida)->addDays(rand(0, 5));
+            if ($llegada->gt($finPeriodo)) {
+                $llegada = $finPeriodo->copy();
             }
 
-            // crear flete
+            // Determinar pagado y cerrado
+            $pagado = $llegada->month <= 3;
+            $cerrado = $pagado
+                ? rand(1,100) <= 70
+                : rand(1,100) <= 20;
+
+            // Crear flete
             $flete = Flete::create([
                 'cliente_principal_id' => $cli->id,
                 'destino_id'           => $des->id,
                 'tarifa_id'            => $tarifa->id,
                 'tipo'                 => $tp,
-                'estado'               => $estadoF,
+                'estado'               => $faker->randomElement(['Sin Notificar','Notificado']),
                 'fecha_salida'         => $salida,
                 'fecha_llegada'        => $llegada,
-                'kilometraje'          => $faker->numberBetween(100,1000),
+                'kilometraje'          => $km,
                 'rendimiento'          => $faker->randomFloat(1,3.0,7.0),
                 'comision'             => $tarifa->valor_comision,
-                'retorno'              => rand(0,1) ? $faker->numberBetween(10_000,50_000) : 0,
+                'retorno'              => rand(0,1) ? $faker->numberBetween(10000,50000) : 0,
                 'pagado'               => $pagado,
-                'guiaruta'             => $faker->bothify('GR-#####'),
+                'guiaruta'             => $faker->bothify('GR-??-####'),
                 'tracto_id'            => $tra->id,
                 'rampla_id'            => $ram->id,
                 'conductor_id'         => $actorKey === 'conductor_id' ? $actor->id : null,
                 'colaborador_id'       => $actorKey === 'colaborador_id' ? $actor->id : null,
             ]);
 
-            // crear rendición
-            $rend = Rendicion::create([
-                'flete_id'        => $flete->id,
-                'user_id'         => $actor->id,
-                'estado'          => $cerrado ? 'Cerrado' : 'Activo',
-                'viatico_efectivo'=> 15_000 * max(1,$salida->diffInDays($llegada)),
-                'caja_flete'      => 0,
-                'comision'        => $tarifa->valor_comision,
-                'pagado'          => $pagado,
-                'periodo'         => $periodo,
+            // Sincronizar kms
+            $tra->increment('kilometraje', $km);
+            $ram->increment('kilometraje', $km);
+
+            // Crear rendición
+            Rendicion::create([
+                'flete_id'         => $flete->id,
+                'user_id'          => $actor->id,
+                'estado'           => $cerrado ? 'Cerrado' : 'Activo',
+                'caja_flete'       => 0,
+                'viatico_efectivo' => 15000 * max(1, $salida->diffInDays($llegada)),
+                'viatico_calculado'=> 0,
+                'saldo'            => 0,
+                'comision'         => $tarifa->valor_comision,
             ]);
 
-            // diesel
-            foreach (range(1,rand(1,2)) as $_) {
+            // Expendables: diesel, gastos y abonos
+            foreach (range(1, rand(1,2)) as $_) {
                 Diesel::create([
-                    'flete_id'    => $flete->id,
-                    'rendicion_id'=> $rend->id,
-                    'user_id'     => $actor->id,
-                    'litros'      => $faker->numberBetween(40,120),
-                    'monto'       => $faker->numberBetween(80_000,140_000),
-                    'metodo_pago' => $faker->randomElement(['Efectivo','Transferencia','Crédito']),
+                    'flete_id'     => $flete->id,
+                    'rendicion_id' => $flete->rendicion->id,
+                    'user_id'      => $actor->id,
+                    'litros'       => $faker->numberBetween(40,120),
+                    'monto'        => $faker->numberBetween(80000,140000),
+                    'metodo_pago'  => $faker->randomElement(['Efectivo','Transferencia','Crédito']),
                 ]);
             }
-
-            // gastos
-            foreach (range(1,rand(1,3)) as $_) {
+            foreach (range(1, rand(1,3)) as $_) {
                 Gasto::create([
-                    'flete_id'    => $flete->id,
-                    'rendicion_id'=> $rend->id,
-                    'user_id'     => $actor->id,
-                    'tipo'        => $faker->randomElement(['Peaje','Carga','Estacionamiento']),
-                    'descripcion' => $faker->words(3,true),
-                    'monto'       => $faker->numberBetween(10_000,40_000),
+                    'flete_id'     => $flete->id,
+                    'rendicion_id' => $flete->rendicion->id,
+                    'user_id'      => $actor->id,
+                    'tipo'         => $faker->randomElement(['Peaje','Carga','Estacionamiento']),
+                    'descripcion'  => $faker->words(3,true),
+                    'monto'        => $faker->numberBetween(10000,40000),
                 ]);
             }
-
-            // abonos de caja
-            foreach (range(1,rand(1,2)) as $_) {
+            foreach (range(1, rand(1,2)) as $_) {
                 AbonoCaja::create([
-                    'rendicion_id'=> $rend->id,
-                    'monto'       => $faker->numberBetween(30_000,70_000),
-                    'metodo'      => $faker->randomElement(['Efectivo','Transferencia']),
+                    'rendicion_id' => $flete->rendicion->id,
+                    'monto'        => $faker->numberBetween(30000,70000),
+                    'metodo'       => $faker->randomElement(['Efectivo','Transferencia']),
                 ]);
             }
-
-            if ($pagado) {
-                $rendPagadas->push($rend);
-            }
         }
 
-        // 6) Pagos mensuales
-        $porPeriodo = $rendPagadas->groupBy(fn($r) => $r->user_id.'-'.$r->periodo);
-        foreach ($porPeriodo as $key => $col) {
-            [$uid, $per] = explode('-', $key);
-            PagoMensualConductor::create([
-                'conductor_id'   => $uid,
-                'periodo'        => $per,
-                'total_comision' => $col->sum('comision'),
-                'total_saldo'    => $col->sum(fn($r) => $r->flete->saldo ?? 0),
-                'fecha_pago'     => Carbon::now()->setDay(rand(20,25)),
-            ]);
-        }
-
-        $this->command->info("✅ Seed completo con todo en FleteSeeder.");
+        $this->command->info("✅ Seed completo con 500 fletes (Ene–Jun 2025) y expendables.");
     }
 }

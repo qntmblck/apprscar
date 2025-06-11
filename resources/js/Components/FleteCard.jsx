@@ -68,19 +68,22 @@ function FleteCard({
   )
 
   // ─── Registros recientes ────────────────────────────────────────────────────
-  const ultimosRegistros = useMemo(() => {
-    const lista = [
-      ...(flete.rendicion?.abonos || []),
-      ...(flete.rendicion?.diesels || []),
-      ...(flete.rendicion?.gastos || []),
-    ]
-    lista.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-    return lista.slice(-2)
-  }, [
-    flete.rendicion?.abonos,
-    flete.rendicion?.diesels,
-    flete.rendicion?.gastos,
-  ])
+const ultimosRegistros = useMemo(() => {
+  const lista = [
+    ...(flete.rendicion?.abonos     || []),
+    ...(flete.rendicion?.diesels    || []),
+    ...(flete.rendicion?.gastos     || []),
+    ...(flete.rendicion?.adicionales|| []),
+  ]
+  lista.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  return lista.slice(-2)
+}, [
+  flete.rendicion?.abonos,
+  flete.rendicion?.diesels,
+  flete.rendicion?.gastos,
+  flete.rendicion?.adicionales,
+])
+
 
   const detallesBack = useMemo(() => {
     const lista = [
@@ -450,7 +453,7 @@ function FleteCard({
         0-.036-.748H2.99a.75.75 0 0
         1-.75-.75Z" clipRule="evenodd" />
     </svg>
-    <span className="truncate">{flete.guiaRuta || '—'}</span>
+    <span className="truncate">{flete.guiaruta || '—'}</span>
   </div>
   <div className="flex items-center gap-x-2 text-green-600 truncate">
     <CurrencyDollarIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
@@ -638,7 +641,7 @@ function FleteCard({
       onSubmit={async (payload) => {
         setIsSubmitting(true)
         try {
-          return await submitForm('/adicionales', payload, (f) => {
+          await submitForm('/adicionales', payload, (f) => {
             actualizarFleteEnLista(f)
             handleCloseForm(flete.id)
           })
@@ -647,11 +650,9 @@ function FleteCard({
         }
       }}
       onCancel={() => handleCloseForm(flete.id)}
-      onSuccess={(f) => actualizarFleteEnLista(f)} // 🔥 ESTA LÍNEA es clave
     />
   </div>
 )}
-
 
 
           </div>

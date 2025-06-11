@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Gasto;
 use App\Models\Flete;
-use App\Models\Rendicion;
 
 class ComisionController extends Controller
 {
     /**
-     * Store a newly created Comisión (guarda en columna comision_manual de rendición).
+     * Store a newly created Comisión:
+     * - crea un Gasto tipo “Comisión”
+     * - actualiza el campo comision en Flete
      */
     public function store(Request $request)
     {
@@ -17,84 +19,89 @@ class ComisionController extends Controller
             'flete_id'     => 'required|exists:fletes,id',
             'rendicion_id' => 'required|exists:rendiciones,id',
             'monto'        => 'required|numeric|min:0',
+            'descripcion'  => 'nullable|string|max:255',
         ]);
 
-        // Actualizar la comision en la rendición
-        $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
-        $rendicion->comision_manual = $validated['monto'];
-        $rendicion->save();
+        // 1) Registrar el gasto como tipo Comisión
+        Gasto::create([
+            'flete_id'      => $validated['flete_id'],
+            'rendicion_id'  => $validated['rendicion_id'],
+            'tipo'          => 'Comisión',
+            'descripcion'   => $validated['descripcion'] ?? 'Comisión manual',
+            'monto'         => $validated['monto'],
+        ]);
 
-        // Recargar flete con sus relaciones
-        $flete = Flete::with([
-            'cliente',
-            'conductor',
-            'tracto',
-            'rampla',
-            'destino',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-        ])->findOrFail($validated['flete_id']);
+        // 2) Actualizar el campo comision en el modelo Flete
+        $flete = Flete::findOrFail($validated['flete_id']);
+        $flete->comision = $validated['monto'];
+        $flete->save();
 
-        // Hacer visible el campo virtual en la rendición
+        // 3) Recargar relaciones necesarias
+        $flete->load([
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'rendicion.abonos',
+            'rendicion.diesels',
+            'rendicion.gastos',
+        ]);
+
+        // 4) Hacer visibles los atributos virtuales de la rendición
         if ($flete->rendicion) {
             $flete->rendicion->makeVisible([
                 'saldo_temporal',
-                'total_diesel',
                 'total_gastos',
-                'viatico_efectivo',
+                'total_diesel',
                 'viatico_calculado',
-                'caja_flete_acumulada',
-                'comision_manual',
             ]);
         }
 
         return response()->json([
-            'message' => '✅ Comisión registrada correctamente.',
+            'message' => '✅ Comisión registrada y flete actualizado.',
             'flete'   => $flete,
-        ]);
+        ], 201);
     }
 
     /**
-     * Remove the comisión (pone comision_manual a null).
+     * Remove the comisión:
+     * - elimina el Gasto de tipo “Comisión”
+     * - pone comision = 0 en Flete
      */
-    public function destroy($fleteId)
+    public function destroy($gastoId)
     {
-        // Obtener flete y sua rendicion
-        $flete    = Flete::with('rendicion')->findOrFail($fleteId);
-        $rendicion = $flete->rendicion;
-        if ($rendicion) {
-            $rendicion->comision_manual = null;
-            $rendicion->save();
-        }
+        $gasto = Gasto::findOrFail($gastoId);
+        $fleteId = $gasto->flete_id;
+        $gasto->delete();
 
-        // Recargar relaciones
-        $flete = Flete::with([
-            'cliente',
-            'conductor',
-            'tracto',
-            'rampla',
-            'destino',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-        ])->findOrFail($fleteId);
+        $flete = Flete::findOrFail($fleteId);
+        $flete->comision = 0;
+        $flete->save();
+
+        $flete->load([
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'rendicion.abonos',
+            'rendicion.diesels',
+            'rendicion.gastos',
+        ]);
 
         if ($flete->rendicion) {
             $flete->rendicion->makeVisible([
                 'saldo_temporal',
-                'total_diesel',
                 'total_gastos',
-                'viatico_efectivo',
+                'total_diesel',
                 'viatico_calculado',
-                'caja_flete_acumulada',
-                'comision_manual',
             ]);
         }
 
         return response()->json([
-            'message' => '✅ Comisión eliminada correctamente.',
+            'message' => '✅ Comisión eliminada y flete restaurado.',
             'flete'   => $flete,
-        ]);
+        ], 200);
     }
 }
