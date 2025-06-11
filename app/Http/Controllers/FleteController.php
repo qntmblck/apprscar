@@ -104,6 +104,17 @@ class FleteController extends Controller
             ])
         )
         ->when(
+    $request->filled('destino'),
+    function($q) use ($request) {
+        $term = strtoupper($request->input('destino'));
+        $q->whereHas('destino', function($q2) use ($term) {
+            // Para MySQL/Postgres: UPPER(nombre) LIKE '%TERM%'
+            $q2->whereRaw('UPPER(nombre) LIKE ?', ["%{$term}%"]);
+        });
+    }
+)
+
+        ->when(
             $request->filled('fecha_desde') && ! $request->filled('fecha_hasta'),
             fn($q) => $q->whereDate('fecha_salida', '>=', $request->fecha_desde)
         )
@@ -122,6 +133,7 @@ class FleteController extends Controller
         'conductores' => User::orderBy('name')->get(['id','name']),
         'clientes'    => Cliente::select('id','razon_social')->get(),
         'tractos'     => Tracto::select('id','patente')->get(),
+        'destinos'    => Destino::select('id','nombre')->get(),
         'auth'        => [
             'user'  => $user,
             'roles' => $user->getRoleNames()->toArray(),
