@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import FleteCard from '@/Components/FleteCard'
@@ -20,12 +26,43 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-// Render children in a fixed layer above everything
-function PortalDropdown({ isOpen, children }) {
+/**
+ * Renders `children` in a portal, posicionándolo justo debajo de `anchorRef`.
+ * Cierra al hacer click fuera (no necesita manejo extra).
+ */
+function PortalDropdown({
+  isOpen,
+  anchorRef,
+  dropdownRef,
+  children,
+  offsetY = 4,
+}) {
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  useEffect(() => {
+    if (isOpen && anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect()
+      setPos({
+        top: rect.bottom + offsetY + window.scrollY,
+        left: rect.left + window.scrollX,
+      })
+    }
+  }, [isOpen, anchorRef, offsetY])
+
   if (!isOpen) return null
+
   return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-start items-start p-4 pointer-events-none">
-      <div className="pointer-events-auto">{children}</div>
+    <div
+      ref={dropdownRef}
+      style={{
+        position: 'absolute',
+        top: pos.top,
+        left: pos.left,
+        zIndex: 9999,
+      }}
+      className="bg-white shadow-lg rounded divide-y divide-gray-100 max-h-[580px] overflow-auto pointer-events-auto"
+    >
+      {children}
     </div>,
     document.body
   )
@@ -36,30 +73,45 @@ export default function Index({
   fletes: paginatedFletes,
   filters,
   conductores,
+  colaboradores,
   clientes,
   tractos,
   destinos,
 }) {
+  // Refs para anclar dropdowns
+  const titularToggleRef    = useRef(null)
+  const titularDropdownRef  = useRef(null)
+  const clienteToggleRef    = useRef(null)
+  const clienteDropdownRef  = useRef(null)
+  const tractoToggleRef     = useRef(null)
+  const tractoDropdownRef   = useRef(null)
+  const destinoInputRef     = useRef(null)
+  const destinoDropdownRef  = useRef(null)
+  const fechaToggleRef      = useRef(null)
+  const fechaDropdownRef    = useRef(null)
+
   // CSRF token
   const { csrf_token } = usePage().props
   useEffect(() => {
-    if (csrf_token) axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
+    if (csrf_token)
+      axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
   }, [csrf_token])
 
-  // Inertia form
+  // Inertia form (incluye colaboradores)
   const { data, setData, get } = useForm({
-    conductor_ids: filters.conductor_ids || [],
-    cliente_ids:   filters.cliente_ids   || [],
-    tracto_ids:    filters.tracto_ids    || [],
-    destino:       filters.destino       || '',
-    fecha_desde:   filters.fecha_desde   || '',
-    fecha_hasta:   filters.fecha_hasta   || '',
+    conductor_ids:   filters.conductor_ids   || [],
+    colaborador_ids: filters.colaborador_ids || [],
+    cliente_ids:     filters.cliente_ids     || [],
+    tracto_ids:      filters.tracto_ids      || [],
+    destino:         filters.destino         || '',
+    fecha_desde:     filters.fecha_desde     || '',
+    fecha_hasta:     filters.fecha_hasta     || '',
   })
 
-  // Autocomplete suggestions for destinos
+  // Destinos autocomplete
   const [suggestions, setSuggestions] = useState([])
 
-  // Local date-range state
+  // Fecha range
   const [range, setRange] = useState({
     from: filters.fecha_desde ? new Date(filters.fecha_desde) : undefined,
     to:   filters.fecha_hasta ? new Date(filters.fecha_hasta) : undefined,
@@ -75,43 +127,59 @@ export default function Index({
   const [errorMensaje, setErrorMensaje] = useState(null)
   const [activeTab, setActiveTab]       = useState('')
   const [showAll, setShowAll]           = useState(false)
-  const calendarToggleRef = useRef(null)
-  const calendarRef       = useRef(null)
 
-  // Initialize sorted list
+  // Lista ordenada
   useEffect(() => {
     const lista = paginatedFletes.data || []
     lista.sort((a, b) => new Date(b.fecha_salida) - new Date(a.fecha_salida))
     setFletesState(lista)
   }, [paginatedFletes])
 
-  // Debounce filters (excluding text & date inputs)
+  // Debounce filtros
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const t = setTimeout(() => {
       get(route('fletes.index'), {
         preserveState: true,
         data: {
-          conductor_ids: data.conductor_ids,
-          cliente_ids:   data.cliente_ids,
-          tracto_ids:    data.tracto_ids,
-          destino:       data.destino,
-          fecha_desde:   data.fecha_desde,
-          fecha_hasta:   data.fecha_hasta,
+          conductor_ids:   data.conductor_ids,
+          colaborador_ids: data.colaborador_ids,
+          cliente_ids:     data.cliente_ids,
+          tracto_ids:      data.tracto_ids,
+          destino:         data.destino,
+          fecha_desde:     data.fecha_desde,
+          fecha_hasta:     data.fecha_hasta,
         },
       })
     }, 300)
-    return () => clearTimeout(timer)
-  }, [data.conductor_ids, data.cliente_ids, data.tracto_ids, data.destino, get])
+    return () => clearTimeout(t)
+  }, [
+    data.conductor_ids,
+    data.colaborador_ids,
+    data.cliente_ids,
+    data.tracto_ids,
+    data.destino,
+    data.fecha_desde,
+    data.fecha_hasta,
+    get,
+  ])
 
-  // Close calendar on outside click
+  // Cerrar dropdowns al click fuera
   useEffect(() => {
     function onClickOutside(e) {
+      if (!activeTab) return
+      const refsMap = {
+        Titular:    [titularToggleRef, titularDropdownRef],
+        Cliente:    [clienteToggleRef, clienteDropdownRef],
+        Tracto:     [tractoToggleRef, tractoDropdownRef],
+        Destino:    [destinoInputRef, destinoDropdownRef],
+        Fecha:      [fechaToggleRef, fechaDropdownRef],
+      }
+      const [toggleRef, dropRef] = refsMap[activeTab] || []
       if (
-        activeTab === 'Fecha' &&
-        calendarRef.current &&
-        !calendarRef.current.contains(e.target) &&
-        calendarToggleRef.current &&
-        !calendarToggleRef.current.contains(e.target)
+        toggleRef?.current &&
+        !toggleRef.current.contains(e.target) &&
+        dropRef?.current &&
+        !dropRef.current.contains(e.target)
       ) {
         setActiveTab('')
       }
@@ -120,13 +188,7 @@ export default function Index({
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [activeTab])
 
-  // Handlers
-  const handleToggleForm = useCallback((id, tipo) => {
-    setOpenForm(prev => ({ ...prev, [id]: prev[id] === tipo ? null : tipo }))
-  }, [])
-  const handleCloseForm = useCallback(id => {
-    setOpenForm(prev => ({ ...prev, [id]: null }))
-  }, [])
+  // Multi-select toggle
   const handleToggleMultiSelect = useCallback((name, id) => {
     const arr = Array.from(data[name] || [])
     const idx = arr.indexOf(String(id))
@@ -135,20 +197,21 @@ export default function Index({
     setData(name, arr)
   }, [data, setData])
 
-  // Update one flete
+  // Forms & CRUD handlers (igual que antes)...
+  const handleToggleForm = useCallback((id, tipo) => {
+    setOpenForm(prev => ({ ...prev, [id]: prev[id] === tipo ? null : tipo }))
+  }, [])
+  const handleCloseForm = useCallback(id => {
+    setOpenForm(prev => ({ ...prev, [id]: null }))
+  }, [])
   const actualizarFleteEnLista = useCallback(f => {
     setFletesState(prev => prev.map(x => (x.id === f.id ? f : x)))
   }, [])
-
-  // Submit forms
   const submitForm = useCallback(async (ruta, payload, onSuccess, onError) => {
     try {
-      let res
-      if (payload instanceof FormData) {
-        res = await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
-      } else {
-        res = await axios.post(ruta, payload)
-      }
+      const res = payload instanceof FormData
+        ? await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : await axios.post(ruta, payload)
       onSuccess?.(res.data.flete)
       return res
     } catch (err) {
@@ -161,8 +224,6 @@ export default function Index({
       throw err
     }
   }, [])
-
-  // Delete record
   const eliminarRegistro = useCallback(async id => {
     try {
       const res = await axios.delete(`/registro/${id}`)
@@ -172,7 +233,7 @@ export default function Index({
     }
   }, [actualizarFleteEnLista])
 
-  // Cards render
+  // Creación de tarjetas
   const allCards = useMemo(
     () =>
       fletesState.map(flete => (
@@ -188,38 +249,39 @@ export default function Index({
           />
         </div>
       )),
-    [fletesState, openForm, handleToggleForm, handleCloseForm, actualizarFleteEnLista, submitForm, eliminarRegistro]
+    [fletesState, openForm, handleToggleForm, handleCloseForm,
+     actualizarFleteEnLista, submitForm, eliminarRegistro]
   )
   const displayCards = showAll ? allCards : allCards.slice(0, 15)
 
-  // Pagination
+  // Paginación y clear (igual que antes)...
   const { current_page, last_page, prev_page_url, next_page_url } = paginatedFletes
   const pagesToShow = useMemo(() => {
     if (last_page <= 6) return Array.from({ length: last_page }, (_, i) => i + 1)
     return [1, 2, 3, 'ellipsis', last_page - 2, last_page - 1, last_page]
   }, [last_page])
-
-  // Clear filters
   const handleClear = useCallback(() => {
     setData({
-      conductor_ids: [],
-      cliente_ids:   [],
-      tracto_ids:    [],
-      destino:       '',
-      fecha_desde:   '',
-      fecha_hasta:   '',
+      conductor_ids:   [],
+      colaborador_ids: [],
+      cliente_ids:     [],
+      tracto_ids:      [],
+      destino:         '',
+      fecha_desde:     '',
+      fecha_hasta:     '',
     })
     setRange({ from: undefined, to: undefined })
     setShowAll(false)
     get(route('fletes.index'), {
       preserveState: true,
       data: {
-        conductor_ids: [],
-        cliente_ids:   [],
-        tracto_ids:    [],
-        destino:       '',
-        fecha_desde:   '',
-        fecha_hasta:   '',
+        conductor_ids:   [],
+        colaborador_ids: [],
+        cliente_ids:     [],
+        tracto_ids:      [],
+        destino:         '',
+        fecha_desde:     '',
+        fecha_hasta:     '',
       },
     })
   }, [setData, get])
@@ -232,7 +294,7 @@ export default function Index({
       <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-nowrap flex overflow-x-auto items-center gap-x-2">
 
-          {/* Limpiar filtros */}
+          {/* Limpiar */}
           <button
             onClick={handleClear}
             className="flex-shrink-0 inline-flex items-center bg-white px-2 py-1 border rounded text-xs text-gray-600 hover:text-gray-800"
@@ -241,10 +303,13 @@ export default function Index({
             <span className="hidden sm:inline">Limpiar filtros</span>
           </button>
 
-          {/* Titular */}
+          {/* Titular (usa PortalDropdown) */}
           <div className="relative flex-shrink-0">
             <button
-              onClick={() => setActiveTab(activeTab === 'Titular' ? '' : 'Titular')}
+              ref={titularToggleRef}
+              onClick={() =>
+                setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
+              }
               className={classNames(
                 activeTab === 'Titular'
                   ? 'border-indigo-500 text-indigo-600'
@@ -254,8 +319,44 @@ export default function Index({
             >
               Titular <ChevronDownIcon className="h-4 w-4 ml-1" />
             </button>
-            <PortalDropdown isOpen={activeTab === 'Titular'}>
-              <div className="w-48 max-h-80 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+            <PortalDropdown
+              isOpen={activeTab === 'Titular'}
+              anchorRef={titularToggleRef}
+              dropdownRef={titularDropdownRef}
+            >
+              {/* Colaboradores */}
+              <div>
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500">
+                  Colaboradores
+                </div>
+                {colaboradores.map(u => (
+                  <div
+                    key={u.id}
+                    onClick={() => {
+                      handleToggleMultiSelect('colaborador_ids', u.id)
+                      setActiveTab('')
+                    }}
+                    className={classNames(
+                      data.colaborador_ids.includes(String(u.id)) &&
+                        'bg-indigo-100',
+                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-indigo-200'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={data.colaborador_ids.includes(String(u.id))}
+                      readOnly
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 truncate">{u.name}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Conductores */}
+              <div>
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500">
+                  Conductores
+                </div>
                 {conductores.map(u => (
                   <div
                     key={u.id}
@@ -264,8 +365,9 @@ export default function Index({
                       setActiveTab('')
                     }}
                     className={classNames(
-                      data.conductor_ids.includes(String(u.id)) && 'bg-gray-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
+                      data.conductor_ids.includes(String(u.id)) &&
+                        'bg-gray-100',
+                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
                     )}
                   >
                     <input
@@ -284,7 +386,10 @@ export default function Index({
           {/* Cliente */}
           <div className="relative flex-shrink-0">
             <button
-              onClick={() => setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')}
+              ref={clienteToggleRef}
+              onClick={() =>
+                setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')
+              }
               className={classNames(
                 activeTab === 'Cliente'
                   ? 'border-indigo-500 text-indigo-600'
@@ -294,37 +399,44 @@ export default function Index({
             >
               Cliente <ChevronDownIcon className="h-4 w-4 ml-1" />
             </button>
-            <PortalDropdown isOpen={activeTab === 'Cliente'}>
-              <div className="w-44 max-h-80 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                {clientes.map(c => (
-                  <div
-                    key={c.id}
-                    onClick={() => {
-                      handleToggleMultiSelect('cliente_ids', c.id)
-                      setActiveTab('')
-                    }}
-                    className={classNames(
-                      data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={data.cliente_ids.includes(String(c.id))}
-                      readOnly
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 truncate">{c.razon_social}</span>
-                  </div>
-                ))}
-              </div>
+            <PortalDropdown
+              isOpen={activeTab === 'Cliente'}
+              anchorRef={clienteToggleRef}
+              dropdownRef={clienteDropdownRef}
+            >
+              {clientes.map(c => (
+                <div
+                  key={c.id}
+                  onClick={() => {
+                    handleToggleMultiSelect('cliente_ids', c.id)
+                    setActiveTab('')
+                  }}
+                  className={classNames(
+                    data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
+                    'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={data.cliente_ids.includes(String(c.id))}
+                    readOnly
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 truncate">
+                    {c.razon_social}
+                  </span>
+                </div>
+              ))}
             </PortalDropdown>
           </div>
 
           {/* Tracto */}
           <div className="relative flex-shrink-0">
             <button
-              onClick={() => setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')}
+              ref={tractoToggleRef}
+              onClick={() =>
+                setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
+              }
               className={classNames(
                 activeTab === 'Tracto'
                   ? 'border-indigo-500 text-indigo-600'
@@ -334,36 +446,39 @@ export default function Index({
             >
               Tracto <ChevronDownIcon className="h-4 w-4 ml-1" />
             </button>
-            <PortalDropdown isOpen={activeTab === 'Tracto'}>
-              <div className="w-44 max-h-80 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                {tractos.map(t => (
-                  <div
-                    key={t.id}
-                    onClick={() => {
-                      handleToggleMultiSelect('tracto_ids', t.id)
-                      setActiveTab('')
-                    }}
-                    className={classNames(
-                      data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={data.tracto_ids.includes(String(t.id))}
-                      readOnly
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 truncate">{t.patente}</span>
-                  </div>
-                ))}
-              </div>
+            <PortalDropdown
+              isOpen={activeTab === 'Tracto'}
+              anchorRef={tractoToggleRef}
+              dropdownRef={tractoDropdownRef}
+            >
+              {tractos.map(t => (
+                <div
+                  key={t.id}
+                  onClick={() => {
+                    handleToggleMultiSelect('tracto_ids', t.id)
+                    setActiveTab('')
+                  }}
+                  className={classNames(
+                    data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
+                    'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={data.tracto_ids.includes(String(t.id))}
+                    readOnly
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 truncate">{t.patente}</span>
+                </div>
+              ))}
             </PortalDropdown>
           </div>
 
           {/* Destino Autocomplete */}
           <div className="relative flex-shrink-0">
             <input
+              ref={destinoInputRef}
               type="text"
               placeholder="Destino..."
               value={data.destino}
@@ -372,36 +487,48 @@ export default function Index({
                 setSuggestions(
                   destinos
                     .filter(d =>
-                      d.nombre.toLowerCase().includes(e.target.value.toLowerCase())
+                      d.nombre
+                        .toLowerCase()
+                        .includes(e.target.value.toLowerCase())
                     )
                     .slice(0, 10)
                 )
+                setActiveTab('Destino')
               }}
               className="bg-white px-2 py-1 text-xs sm:text-sm border rounded focus:outline-none"
             />
-            <PortalDropdown isOpen={suggestions.length > 0}>
-              <div className="w-48 max-h-60 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                {suggestions.map(d => (
-                  <div
-                    key={d.id}
-                    onClick={() => {
-                      setData('destino', d.nombre)
-                      setSuggestions([])
-                      get(route('fletes.index'), { preserveState: true, data })
-                    }}
-                    className="px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-                  >
-                    {d.nombre}
-                  </div>
-                ))}
-              </div>
+            <PortalDropdown
+              isOpen={activeTab === 'Destino' && suggestions.length > 0}
+              anchorRef={destinoInputRef}
+              dropdownRef={destinoDropdownRef}
+            >
+              {suggestions.map(d => (
+                <div
+                  key={d.id}
+                  onClick={() => {
+                    setData('destino', d.nombre)
+                    setSuggestions([])
+                    setActiveTab('')
+                    get(route('fletes.index'), {
+                      preserveState: true,
+                      data,
+                    })
+                  }}
+                  className="px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
+                >
+                  {d.nombre}
+                </div>
+              ))}
             </PortalDropdown>
           </div>
 
           {/* Fecha */}
-          <div className="relative flex-shrink-0" ref={calendarToggleRef}>
+          <div className="relative flex-shrink-0">
             <button
-              onClick={() => setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')}
+              ref={fechaToggleRef}
+              onClick={() =>
+                setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')
+              }
               className={classNames(
                 activeTab === 'Fecha'
                   ? 'border-indigo-500 text-indigo-600'
@@ -409,10 +536,15 @@ export default function Index({
                 'inline-flex items-center bg-white px-2 py-1 text-xs sm:text-sm font-medium border-b-2 rounded'
               )}
             >
-              Fecha <ChevronDownIcon className="h-4 w-4 ml-1 text-gray-400" />
+              Fecha <CalendarDaysIcon className="h-4 w-4 ml-1 text-gray-400" />
             </button>
-            <PortalDropdown isOpen={activeTab === 'Fecha'}>
-              <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
+            <PortalDropdown
+              isOpen={activeTab === 'Fecha'}
+              anchorRef={fechaToggleRef}
+              dropdownRef={fechaDropdownRef}
+              offsetY={6}
+            >
+              <div className="p-2 text-xs sm:text-sm">
                 <DayPicker
                   mode="range"
                   selected={range}
@@ -421,15 +553,19 @@ export default function Index({
                 />
                 <div className="flex justify-between mt-2">
                   <button
-                    onClick={() => setRange({ from: undefined, to: undefined })}
+                    onClick={() =>
+                      setRange({ from: undefined, to: undefined })
+                    }
                     className="text-[10px] text-gray-600 hover:text-gray-800"
                   >
                     X
                   </button>
                   <button
                     onClick={() => {
-                      const desde = range.from?.toISOString().split('T')[0] || ''
-                      const hasta = range.to?.toISOString().split('T')[0] || ''
+                      const desde =
+                        range.from?.toISOString().split('T')[0] || ''
+                      const hasta =
+                        range.to?.toISOString().split('T')[0] || ''
                       setData('fecha_desde', desde)
                       setData('fecha_hasta', hasta)
                       setActiveTab('')
@@ -464,7 +600,9 @@ export default function Index({
               onClick={() => setShowAll(prev => !prev)}
               className="text-sm text-indigo-600 hover:underline"
             >
-              {showAll ? 'Mostrar menos' : `Mostrar más (${allCards.length - 15})`}
+              {showAll
+                ? 'Mostrar menos'
+                : `Mostrar más (${allCards.length - 15})`}
             </button>
           </div>
         )}
@@ -476,7 +614,10 @@ export default function Index({
           <button
             onClick={() =>
               prev_page_url &&
-              get(prev_page_url, { preserveState: true, data })
+              get(prev_page_url, {
+                preserveState: true,
+                data,
+              })
             }
             disabled={!prev_page_url}
             className={classNames(
@@ -523,7 +664,10 @@ export default function Index({
           <button
             onClick={() =>
               next_page_url &&
-              get(next_page_url, { preserveState: true, data })
+              get(next_page_url, {
+                preserveState: true,
+                data,
+              })
             }
             disabled={!next_page_url}
             className={classNames(

@@ -104,16 +104,14 @@ class FleteController extends Controller
             ])
         )
         ->when(
-    $request->filled('destino'),
-    function($q) use ($request) {
-        $term = strtoupper($request->input('destino'));
-        $q->whereHas('destino', function($q2) use ($term) {
-            // Para MySQL/Postgres: UPPER(nombre) LIKE '%TERM%'
-            $q2->whereRaw('UPPER(nombre) LIKE ?', ["%{$term}%"]);
-        });
-    }
-)
-
+            $request->filled('destino'),
+            function($q) use ($request) {
+                $term = strtoupper($request->input('destino'));
+                $q->whereHas('destino', function($q2) use ($term) {
+                    $q2->whereRaw('UPPER(nombre) LIKE ?', ["%{$term}%"]);
+                });
+            }
+        )
         ->when(
             $request->filled('fecha_desde') && ! $request->filled('fecha_hasta'),
             fn($q) => $q->whereDate('fecha_salida', '>=', $request->fecha_desde)
@@ -128,18 +126,20 @@ class FleteController extends Controller
     $fletes = $query->paginate(48)->withQueryString();
 
     return Inertia::render('Fletes/Index', [
-        'fletes'      => $fletes,
-        'filters'     => $filters,
-        'conductores' => User::orderBy('name')->get(['id','name']),
-        'clientes'    => Cliente::select('id','razon_social')->get(),
-        'tractos'     => Tracto::select('id','patente')->get(),
-        'destinos'    => Destino::select('id','nombre')->get(),
-        'auth'        => [
+        'fletes'       => $fletes,
+        'filters'      => $filters,
+        'conductores'  => User::role('conductor')->orderBy('name')->get(['id','name']),     // solo conductores
+        'colaboradores'=> User::role('colaborador')->orderBy('name')->get(['id','name']),  // solo colaboradores
+        'clientes'     => Cliente::select('id','razon_social')->get(),
+        'tractos'      => Tracto::select('id','patente')->get(),
+        'destinos'     => Destino::select('id','nombre')->get(),
+        'auth'         => [
             'user'  => $user,
             'roles' => $user->getRoleNames()->toArray(),
         ],
     ]);
 }
+
 
 
 
