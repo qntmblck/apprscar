@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import FleteCard from '@/Components/FleteCard'
@@ -26,43 +20,14 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-/**
- * Renders `children` in a portal, posicionándolo justo debajo de `anchorRef`.
- * Cierra al hacer click fuera (no necesita manejo extra).
- */
-function PortalDropdown({
-  isOpen,
-  anchorRef,
-  dropdownRef,
-  children,
-  offsetY = 4,
-}) {
-  const [pos, setPos] = useState({ top: 0, left: 0 })
-
-  useEffect(() => {
-    if (isOpen && anchorRef.current) {
-      const rect = anchorRef.current.getBoundingClientRect()
-      setPos({
-        top: rect.bottom + offsetY + window.scrollY,
-        left: rect.left + window.scrollX,
-      })
-    }
-  }, [isOpen, anchorRef, offsetY])
-
+// Render children en un portal, marcando el tipo para detección de clicks fuera
+function PortalDropdown({ isOpen, children, type }) {
   if (!isOpen) return null
-
   return createPortal(
-    <div
-      ref={dropdownRef}
-      style={{
-        position: 'absolute',
-        top: pos.top,
-        left: pos.left,
-        zIndex: 9999,
-      }}
-      className="bg-white shadow-lg rounded divide-y divide-gray-100 max-h-[580px] overflow-auto pointer-events-auto"
-    >
-      {children}
+    <div className="fixed inset-0 z-50 flex justify-start items-start p-4 pointer-events-none">
+      <div data-dropdown-type={type} className="pointer-events-auto">
+        {children}
+      </div>
     </div>,
     document.body
   )
@@ -78,26 +43,13 @@ export default function Index({
   tractos,
   destinos,
 }) {
-  // Refs para anclar dropdowns
-  const titularToggleRef    = useRef(null)
-  const titularDropdownRef  = useRef(null)
-  const clienteToggleRef    = useRef(null)
-  const clienteDropdownRef  = useRef(null)
-  const tractoToggleRef     = useRef(null)
-  const tractoDropdownRef   = useRef(null)
-  const destinoInputRef     = useRef(null)
-  const destinoDropdownRef  = useRef(null)
-  const fechaToggleRef      = useRef(null)
-  const fechaDropdownRef    = useRef(null)
-
   // CSRF token
   const { csrf_token } = usePage().props
   useEffect(() => {
-    if (csrf_token)
-      axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
+    if (csrf_token) axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
   }, [csrf_token])
 
-  // Inertia form (incluye colaboradores)
+  // Inertia form, ahora con colaborador_ids
   const { data, setData, get } = useForm({
     conductor_ids:   filters.conductor_ids   || [],
     colaborador_ids: filters.colaborador_ids || [],
@@ -108,20 +60,12 @@ export default function Index({
     fecha_hasta:     filters.fecha_hasta     || '',
   })
 
-  // Destinos autocomplete
+  // Estado UI
   const [suggestions, setSuggestions] = useState([])
-
-  // Fecha range
-  const [range, setRange] = useState({
+  const [range, setRange]           = useState({
     from: filters.fecha_desde ? new Date(filters.fecha_desde) : undefined,
     to:   filters.fecha_hasta ? new Date(filters.fecha_hasta) : undefined,
   })
-  const handleRangeSelect = useCallback(r => {
-    if (r?.from && !r.to) setRange({ from: r.from, to: r.from })
-    else setRange(r || { from: undefined, to: undefined })
-  }, [])
-
-  // UI state
   const [fletesState, setFletesState]   = useState([])
   const [openForm, setOpenForm]         = useState({})
   const [errorMensaje, setErrorMensaje] = useState(null)
@@ -135,9 +79,9 @@ export default function Index({
     setFletesState(lista)
   }, [paginatedFletes])
 
-  // Debounce filtros
+  // Debounce filtros (ahora incluyendo colaborador_ids)
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       get(route('fletes.index'), {
         preserveState: true,
         data: {
@@ -151,7 +95,7 @@ export default function Index({
         },
       })
     }, 300)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [
     data.conductor_ids,
     data.colaborador_ids,
@@ -165,30 +109,33 @@ export default function Index({
 
   // Cerrar dropdowns al click fuera
   useEffect(() => {
-    function onClickOutside(e) {
+    function handleClickOutside(e) {
       if (!activeTab) return
-      const refsMap = {
-        Titular:    [titularToggleRef, titularDropdownRef],
-        Cliente:    [clienteToggleRef, clienteDropdownRef],
-        Tracto:     [tractoToggleRef, tractoDropdownRef],
-        Destino:    [destinoInputRef, destinoDropdownRef],
-        Fecha:      [fechaToggleRef, fechaDropdownRef],
-      }
-      const [toggleRef, dropRef] = refsMap[activeTab] || []
+      // Comprueba si el click fue dentro del toggle o del dropdown abierto
       if (
-        toggleRef?.current &&
-        !toggleRef.current.contains(e.target) &&
-        dropRef?.current &&
-        !dropRef.current.contains(e.target)
+        e.target.closest(`[data-toggle-type="${activeTab}"]`) ||
+        e.target.closest(`[data-dropdown-type="${activeTab}"]`)
       ) {
-        setActiveTab('')
+        return
       }
+      setActiveTab('')
     }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [activeTab])
 
-  // Multi-select toggle
+  // Resto de handlers (sin cambios)
+  const handleRangeSelect = useCallback(r => {
+    if (r?.from && !r.to) setRange({ from: r.from, to: r.from })
+    else setRange(r || { from: undefined, to: undefined })
+  }, [])
+
+  const handleToggleForm = useCallback((id, tipo) => {
+    setOpenForm(prev => ({ ...prev, [id]: prev[id] === tipo ? null : tipo }))
+  }, [])
+  const handleCloseForm = useCallback(id => {
+    setOpenForm(prev => ({ ...prev, [id]: null }))
+  }, [])
   const handleToggleMultiSelect = useCallback((name, id) => {
     const arr = Array.from(data[name] || [])
     const idx = arr.indexOf(String(id))
@@ -196,22 +143,15 @@ export default function Index({
     else arr.splice(idx, 1)
     setData(name, arr)
   }, [data, setData])
-
-  // Forms & CRUD handlers (igual que antes)...
-  const handleToggleForm = useCallback((id, tipo) => {
-    setOpenForm(prev => ({ ...prev, [id]: prev[id] === tipo ? null : tipo }))
-  }, [])
-  const handleCloseForm = useCallback(id => {
-    setOpenForm(prev => ({ ...prev, [id]: null }))
-  }, [])
   const actualizarFleteEnLista = useCallback(f => {
     setFletesState(prev => prev.map(x => (x.id === f.id ? f : x)))
   }, [])
   const submitForm = useCallback(async (ruta, payload, onSuccess, onError) => {
     try {
-      const res = payload instanceof FormData
-        ? await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
-        : await axios.post(ruta, payload)
+      const res =
+        payload instanceof FormData
+          ? await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
+          : await axios.post(ruta, payload)
       onSuccess?.(res.data.flete)
       return res
     } catch (err) {
@@ -224,16 +164,19 @@ export default function Index({
       throw err
     }
   }, [])
-  const eliminarRegistro = useCallback(async id => {
-    try {
-      const res = await axios.delete(`/registro/${id}`)
-      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
-    } catch {
-      setErrorMensaje('No se pudo eliminar el registro.')
-    }
-  }, [actualizarFleteEnLista])
+  const eliminarRegistro = useCallback(
+    async id => {
+      try {
+        const res = await axios.delete(`/registro/${id}`)
+        if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+      } catch {
+        setErrorMensaje('No se pudo eliminar el registro.')
+      }
+    },
+    [actualizarFleteEnLista]
+  )
 
-  // Creación de tarjetas
+  // Render tarjetas
   const allCards = useMemo(
     () =>
       fletesState.map(flete => (
@@ -249,17 +192,18 @@ export default function Index({
           />
         </div>
       )),
-    [fletesState, openForm, handleToggleForm, handleCloseForm,
-     actualizarFleteEnLista, submitForm, eliminarRegistro]
+    [fletesState, openForm, handleToggleForm, handleCloseForm, actualizarFleteEnLista, submitForm, eliminarRegistro]
   )
   const displayCards = showAll ? allCards : allCards.slice(0, 15)
 
-  // Paginación y clear (igual que antes)...
+  // Paginación
   const { current_page, last_page, prev_page_url, next_page_url } = paginatedFletes
   const pagesToShow = useMemo(() => {
     if (last_page <= 6) return Array.from({ length: last_page }, (_, i) => i + 1)
     return [1, 2, 3, 'ellipsis', last_page - 2, last_page - 1, last_page]
   }, [last_page])
+
+  // Limpiar filtros (ahora con colaborador_ids)
   const handleClear = useCallback(() => {
     setData({
       conductor_ids:   [],
@@ -294,7 +238,7 @@ export default function Index({
       <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-nowrap flex overflow-x-auto items-center gap-x-2">
 
-          {/* Limpiar */}
+          {/* Limpiar filtros */}
           <button
             onClick={handleClear}
             className="flex-shrink-0 inline-flex items-center bg-white px-2 py-1 border rounded text-xs text-gray-600 hover:text-gray-800"
@@ -303,13 +247,11 @@ export default function Index({
             <span className="hidden sm:inline">Limpiar filtros</span>
           </button>
 
-          {/* Titular (usa PortalDropdown) */}
+          {/* Titular */}
           <div className="relative flex-shrink-0">
             <button
-              ref={titularToggleRef}
-              onClick={() =>
-                setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
-              }
+              data-toggle-type="Titular"
+              onClick={() => setActiveTab(activeTab === 'Titular' ? '' : 'Titular')}
               className={classNames(
                 activeTab === 'Titular'
                   ? 'border-indigo-500 text-indigo-600'
@@ -319,27 +261,19 @@ export default function Index({
             >
               Titular <ChevronDownIcon className="h-4 w-4 ml-1" />
             </button>
-            <PortalDropdown
-              isOpen={activeTab === 'Titular'}
-              anchorRef={titularToggleRef}
-              dropdownRef={titularDropdownRef}
-            >
-              {/* Colaboradores */}
-              <div>
-                <div className="px-3 py-2 text-xs font-semibold text-gray-500">
-                  Colaboradores
-                </div>
+            <PortalDropdown isOpen={activeTab === 'Titular'} type="Titular">
+              <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+                {/** primero colaboradores **/}
                 {colaboradores.map(u => (
                   <div
-                    key={u.id}
+                    key={`col-${u.id}`}
                     onClick={() => {
                       handleToggleMultiSelect('colaborador_ids', u.id)
                       setActiveTab('')
                     }}
                     className={classNames(
-                      data.colaborador_ids.includes(String(u.id)) &&
-                        'bg-indigo-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-indigo-200'
+                      data.colaborador_ids.includes(String(u.id)) && 'bg-indigo-200',
+                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer bg-indigo-50 hover:bg-indigo-100'
                     )}
                   >
                     <input
@@ -351,22 +285,16 @@ export default function Index({
                     <span className="ml-2 truncate">{u.name}</span>
                   </div>
                 ))}
-              </div>
-              {/* Conductores */}
-              <div>
-                <div className="px-3 py-2 text-xs font-semibold text-gray-500">
-                  Conductores
-                </div>
+                {/** luego conductores **/}
                 {conductores.map(u => (
                   <div
-                    key={u.id}
+                    key={`c-${u.id}`}
                     onClick={() => {
                       handleToggleMultiSelect('conductor_ids', u.id)
                       setActiveTab('')
                     }}
                     className={classNames(
-                      data.conductor_ids.includes(String(u.id)) &&
-                        'bg-gray-100',
+                      data.conductor_ids.includes(String(u.id)) && 'bg-gray-100',
                       'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
                     )}
                   >
@@ -386,10 +314,8 @@ export default function Index({
           {/* Cliente */}
           <div className="relative flex-shrink-0">
             <button
-              ref={clienteToggleRef}
-              onClick={() =>
-                setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')
-              }
+              data-toggle-type="Cliente"
+              onClick={() => setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')}
               className={classNames(
                 activeTab === 'Cliente'
                   ? 'border-indigo-500 text-indigo-600'
@@ -399,44 +325,38 @@ export default function Index({
             >
               Cliente <ChevronDownIcon className="h-4 w-4 ml-1" />
             </button>
-            <PortalDropdown
-              isOpen={activeTab === 'Cliente'}
-              anchorRef={clienteToggleRef}
-              dropdownRef={clienteDropdownRef}
-            >
-              {clientes.map(c => (
-                <div
-                  key={c.id}
-                  onClick={() => {
-                    handleToggleMultiSelect('cliente_ids', c.id)
-                    setActiveTab('')
-                  }}
-                  className={classNames(
-                    data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
-                    'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={data.cliente_ids.includes(String(c.id))}
-                    readOnly
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 truncate">
-                    {c.razon_social}
-                  </span>
-                </div>
-              ))}
+            <PortalDropdown isOpen={activeTab === 'Cliente'} type="Cliente">
+              <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+                {clientes.map(c => (
+                  <div
+                    key={c.id}
+                    onClick={() => {
+                      handleToggleMultiSelect('cliente_ids', c.id)
+                      setActiveTab('')
+                    }}
+                    className={classNames(
+                      data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
+                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={data.cliente_ids.includes(String(c.id))}
+                      readOnly
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 truncate">{c.razon_social}</span>
+                  </div>
+                ))}
+              </div>
             </PortalDropdown>
           </div>
 
           {/* Tracto */}
           <div className="relative flex-shrink-0">
             <button
-              ref={tractoToggleRef}
-              onClick={() =>
-                setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
-              }
+              data-toggle-type="Tracto"
+              onClick={() => setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')}
               className={classNames(
                 activeTab === 'Tracto'
                   ? 'border-indigo-500 text-indigo-600'
@@ -446,39 +366,36 @@ export default function Index({
             >
               Tracto <ChevronDownIcon className="h-4 w-4 ml-1" />
             </button>
-            <PortalDropdown
-              isOpen={activeTab === 'Tracto'}
-              anchorRef={tractoToggleRef}
-              dropdownRef={tractoDropdownRef}
-            >
-              {tractos.map(t => (
-                <div
-                  key={t.id}
-                  onClick={() => {
-                    handleToggleMultiSelect('tracto_ids', t.id)
-                    setActiveTab('')
-                  }}
-                  className={classNames(
-                    data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
-                    'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={data.tracto_ids.includes(String(t.id))}
-                    readOnly
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 truncate">{t.patente}</span>
-                </div>
-              ))}
+            <PortalDropdown isOpen={activeTab === 'Tracto'} type="Tracto">
+              <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+                {tractos.map(t => (
+                  <div
+                    key={t.id}
+                    onClick={() => {
+                      handleToggleMultiSelect('tracto_ids', t.id)
+                      setActiveTab('')
+                    }}
+                    className={classNames(
+                      data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
+                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={data.tracto_ids.includes(String(t.id))}
+                      readOnly
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 truncate">{t.patente}</span>
+                  </div>
+                ))}
+              </div>
             </PortalDropdown>
           </div>
 
           {/* Destino Autocomplete */}
           <div className="relative flex-shrink-0">
             <input
-              ref={destinoInputRef}
               type="text"
               placeholder="Destino..."
               value={data.destino}
@@ -487,48 +404,37 @@ export default function Index({
                 setSuggestions(
                   destinos
                     .filter(d =>
-                      d.nombre
-                        .toLowerCase()
-                        .includes(e.target.value.toLowerCase())
+                      d.nombre.toLowerCase().includes(e.target.value.toLowerCase())
                     )
                     .slice(0, 10)
                 )
-                setActiveTab('Destino')
               }}
               className="bg-white px-2 py-1 text-xs sm:text-sm border rounded focus:outline-none"
             />
-            <PortalDropdown
-              isOpen={activeTab === 'Destino' && suggestions.length > 0}
-              anchorRef={destinoInputRef}
-              dropdownRef={destinoDropdownRef}
-            >
-              {suggestions.map(d => (
-                <div
-                  key={d.id}
-                  onClick={() => {
-                    setData('destino', d.nombre)
-                    setSuggestions([])
-                    setActiveTab('')
-                    get(route('fletes.index'), {
-                      preserveState: true,
-                      data,
-                    })
-                  }}
-                  className="px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-                >
-                  {d.nombre}
-                </div>
-              ))}
+            <PortalDropdown isOpen={suggestions.length > 0} type="Destino">
+              <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+                {suggestions.map(d => (
+                  <div
+                    key={d.id}
+                    onClick={() => {
+                      setData('destino', d.nombre)
+                      setSuggestions([])
+                      get(route('fletes.index'), { preserveState: true, data })
+                    }}
+                    className="px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
+                  >
+                    {d.nombre}
+                  </div>
+                ))}
+              </div>
             </PortalDropdown>
           </div>
 
           {/* Fecha */}
           <div className="relative flex-shrink-0">
             <button
-              ref={fechaToggleRef}
-              onClick={() =>
-                setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')
-              }
+              data-toggle-type="Fecha"
+              onClick={() => setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')}
               className={classNames(
                 activeTab === 'Fecha'
                   ? 'border-indigo-500 text-indigo-600'
@@ -536,15 +442,10 @@ export default function Index({
                 'inline-flex items-center bg-white px-2 py-1 text-xs sm:text-sm font-medium border-b-2 rounded'
               )}
             >
-              Fecha <CalendarDaysIcon className="h-4 w-4 ml-1 text-gray-400" />
+              Fecha <ChevronDownIcon className="h-4 w-4 ml-1 text-gray-400" />
             </button>
-            <PortalDropdown
-              isOpen={activeTab === 'Fecha'}
-              anchorRef={fechaToggleRef}
-              dropdownRef={fechaDropdownRef}
-              offsetY={6}
-            >
-              <div className="p-2 text-xs sm:text-sm">
+            <PortalDropdown isOpen={activeTab === 'Fecha'} type="Fecha">
+              <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
                 <DayPicker
                   mode="range"
                   selected={range}
@@ -553,19 +454,15 @@ export default function Index({
                 />
                 <div className="flex justify-between mt-2">
                   <button
-                    onClick={() =>
-                      setRange({ from: undefined, to: undefined })
-                    }
+                    onClick={() => setRange({ from: undefined, to: undefined })}
                     className="text-[10px] text-gray-600 hover:text-gray-800"
                   >
                     X
                   </button>
                   <button
                     onClick={() => {
-                      const desde =
-                        range.from?.toISOString().split('T')[0] || ''
-                      const hasta =
-                        range.to?.toISOString().split('T')[0] || ''
+                      const desde = range.from?.toISOString().split('T')[0] || ''
+                      const hasta = range.to?.toISOString().split('T')[0] || ''
                       setData('fecha_desde', desde)
                       setData('fecha_hasta', hasta)
                       setActiveTab('')
@@ -600,9 +497,7 @@ export default function Index({
               onClick={() => setShowAll(prev => !prev)}
               className="text-sm text-indigo-600 hover:underline"
             >
-              {showAll
-                ? 'Mostrar menos'
-                : `Mostrar más (${allCards.length - 15})`}
+              {showAll ? 'Mostrar menos' : `Mostrar más (${allCards.length - 15})`}
             </button>
           </div>
         )}
@@ -613,11 +508,7 @@ export default function Index({
         <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
           <button
             onClick={() =>
-              prev_page_url &&
-              get(prev_page_url, {
-                preserveState: true,
-                data,
-              })
+              prev_page_url && get(prev_page_url, { preserveState: true, data })
             }
             disabled={!prev_page_url}
             className={classNames(
@@ -663,11 +554,7 @@ export default function Index({
           </div>
           <button
             onClick={() =>
-              next_page_url &&
-              get(next_page_url, {
-                preserveState: true,
-                data,
-              })
+              next_page_url && get(next_page_url, { preserveState: true, data })
             }
             disabled={!next_page_url}
             className={classNames(
