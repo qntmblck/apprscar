@@ -246,6 +246,8 @@ export default function Index({
     ? data.cliente_ids[0]
     : data.cliente_ids
 
+
+
   // 2) Obtener el destino por nombre y extraer su id
   const destinoObj = destinos.find(d => d.nombre === data.destino)
   if (!destinoObj) {
@@ -277,6 +279,14 @@ export default function Index({
     setErrorMensaje(detalle)
     setSuccessMensaje(null)
   }
+}
+const handleCreateClick = () => {
+  if (!(hasDest && hasClient) || tooManyMulti) {
+    setErrorMensaje('Seleccione cliente y destino.')
+    setSuccessMensaje(null)
+    return
+  }
+  quickCreate()
 }
 
   return (
@@ -415,77 +425,87 @@ export default function Index({
           </div>
 
           {/* Crear Flete */}
-  <div className="relative flex-shrink-0">
-    <button
-      onClick={quickCreate}
-      disabled={!(hasDest && hasClient) || tooManyMulti}
-      className={classNames(
-        hasDest && hasClient && !tooManyMulti
-          ? 'bg-green-700 hover:bg-green-800 text-white'
-          : 'bg-gray-300 text-gray-500 cursor-not-allowed',
-        'inline-flex items-center p-1 rounded'
-      )}
-    >
-      <FolderPlusIcon className="h-5 w-5" />
-    </button>
-  </div>
+<div className="relative flex-shrink-0">
+  <button
+    onClick={handleCreateClick}
+    className={classNames(
+      hasDest && hasClient && !tooManyMulti
+        ? 'bg-green-700 hover:bg-green-800 text-white'
+        : 'bg-gray-300 text-gray-500 cursor-not-allowed',
+      'inline-flex items-center p-1 rounded'
+    )}
+  >
+    <FolderPlusIcon className="h-5 w-5" />
+  </button>
+</div>
+
 
           {/* Fecha */}
-          <div className="relative flex-shrink-0">
-            <button
-              data-toggle-type="Fecha"
-              onClick={() => setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')}
-              className={classNames(
-                activeTab === 'Fecha' ? 'border-indigo-500' : 'border-transparent hover:border-gray-300',
-                'inline-flex items-center bg-white p-1 border-b-2 rounded'
-              )}
-            >
-              <CalendarDaysIcon
-                className={classNames(
-                  activeTab === 'Fecha' ? 'text-indigo-600' : 'text-gray-500',
-                  'h-5 w-5'
-                )}
-              />
-            </button>
-            <PortalDropdown isOpen={activeTab === 'Fecha'} type="Fecha">
-              <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
-                <DayPicker
-                  mode="range"
-                  selected={range}
-                  onSelect={handleRangeSelect}
-                  numberOfMonths={1}
-                />
-                <div className="flex justify-between mt-2">
-                  <button
-                    onClick={() => setRange({ from: undefined, to: undefined })}
-                    className="text-[10px] text-gray-600 hover:text-gray-800"
-                  >
-                    X
-                  </button>
-                  <button
-                    onClick={() => {
-                      const desde = range.from?.toISOString().split('T')[0] || ''
-                      const hasta = range.to?.toISOString().split('T')[0] || ''
-                      setData('fecha_desde', desde)
-                      setData('fecha_hasta', hasta)
-                      setActiveTab('')
-                      get(route('fletes.index'), {
-                        preserveState: true,
-                        data: {
-                          ...data,
-                          fecha_desde: desde,
-                          fecha_hasta: hasta,
-                        },
-                      })
-                    }}
-                    className="text-[10px] text-blue-600 hover:underline"
-                  >
-                    OK
-                  </button>
-                </div>
-              </div>
-            </PortalDropdown>
-          </div>
+<div className="relative flex-shrink-0">
+  <button
+    data-toggle-type="Fecha"
+    onClick={() => setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')}
+    className={classNames(
+      activeTab === 'Fecha' ? 'border-indigo-500' : 'border-transparent hover:border-gray-300',
+      'inline-flex items-center bg-white p-1 border-b-2 rounded'
+    )}
+  >
+    <CalendarDaysIcon
+      className={classNames(
+        activeTab === 'Fecha' ? 'text-indigo-600' : 'text-gray-500',
+        'h-5 w-5'
+      )}
+    />
+  </button>
+  <PortalDropdown isOpen={activeTab === 'Fecha'} type="Fecha">
+    <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
+      <DayPicker
+        mode="range"
+        selected={range}
+        onSelect={handleRangeSelect}
+        numberOfMonths={1}
+      />
+      <div className="flex justify-between mt-2">
+        <button
+          onClick={() => setRange({ from: undefined, to: undefined })}
+          className="text-[10px] text-gray-600 hover:text-gray-800"
+        >
+          X
+        </button>
+        <button
+          onClick={() => {
+            // Ajustamos +1 día a cada fecha
+            const addOneDay = date => {
+              const d = new Date(date)
+              d.setDate(d.getDate() + 1)
+              return d.toISOString().split('T')[0]
+            }
+
+            const desde = range.from ? addOneDay(range.from) : ''
+            const hasta = range.to   ? addOneDay(range.to)   : ''
+
+            setData('fecha_desde', desde)
+            setData('fecha_hasta', hasta)
+            setActiveTab('')
+
+            get(route('fletes.index'), {
+              preserveState: true,
+              data: {
+                ...data,
+                fecha_desde: desde,
+                fecha_hasta: hasta,
+              },
+            })
+          }}
+          className="text-[10px] text-blue-600 hover:underline"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </PortalDropdown>
+</div>
+
 
           {/* Titular */}
           <div className="relative flex-shrink-0">
