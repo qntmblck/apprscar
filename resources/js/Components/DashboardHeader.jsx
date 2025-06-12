@@ -166,7 +166,7 @@ function getNavigation(roles) {
       { name: 'Fletes', href: '/fletes' }
     )
   } else if (roles.includes('admin')) {
-    navigation.push({ name: 'Fletes', href: '/fletes' })
+    navigation.push({ name: 'Servicios', href: '/fletes' })
   }
   return navigation
 }
