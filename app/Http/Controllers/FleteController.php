@@ -139,67 +139,58 @@ class FleteController extends Controller
         ],
     ]);
 }
-
-
-
-
-
-    public function store(Request $request)
+    /**
+ * Valida y guarda un flete “borrador” con sólo Titular, Destino y Fecha de inicio,
+ * y crea su rendición inicial para que aparezca en el índice.
+ */
+public function store(Request $request)
     {
-        $request->validate([
-            'conductor_id'          => 'required|exists:users,id',
-            'cliente_principal_id'  => 'required|exists:clientes,id',
-            'destino_id'            => 'required|exists:destinos,id',
-            'tipo'                  => 'required|in:Directo,Reparto',
-            'fecha_salida'          => 'required|date',
-            'kilometraje'           => 'required|numeric|min:1',
-            'fecha_desde' => 'nullable|date',
-  'fecha_hasta' => 'nullable|date|after_or_equal:fecha_desde',
+        // 1) Validamos únicamente destino y cliente principal
+        $validated = $request->validate([
+            'destino_id'           => 'required|exists:destinos,id',
+            'cliente_principal_id' => 'required|exists:clientes,id',
         ]);
 
-        $conductor = User::findOrFail($request->conductor_id);
-        $cliente   = Cliente::findOrFail($request->cliente_principal_id);
-        $destino   = Destino::findOrFail($request->destino_id);
-        $tarifa    = Tarifa::where([
-                        ['cliente_principal_id', $cliente->id],
-                        ['destino_id',            $destino->id],
-                        ['tipo',                  $request->tipo],
-                     ])->first();
+        // 2) Determinar tracto_id: último usado por este usuario o uno aleatorio
+        $userId = $request->user()->id;
 
-        $tracto = Tracto::inRandomOrder()->first();
-        $rampla = Rampla::inRandomOrder()->first();
+        $lastFlete = Flete::where(function($q) use ($userId) {
+                $q->where('conductor_id', $userId)
+                  ->orWhere('colaborador_id', $userId);
+            })
+            ->whereNotNull('tracto_id')
+            ->orderByDesc('created_at')
+            ->first();
 
+        $tractoId = $lastFlete
+            ? $lastFlete->tracto_id
+            : Tracto::inRandomOrder()->value('id');
+
+        // 3) Creamos el flete con lo mínimo necesario
+        //    El modelo boot() se encargará de setear los snapshot-names,
+        //    y la BD provee defaults para tipo, estado, comision, etc.
         $flete = Flete::create([
-            'conductor_id'           => $conductor->id,
-            'cliente_principal_id'   => $cliente->id,
-            'tracto_id'              => $tracto->id,
-            'rampla_id'              => $rampla->id,
-            'destino_id'             => $destino->id,
-            'tarifa_id'              => $tarifa?->id,
-            'tipo'                   => $request->tipo,
-            'kilometraje'            => $request->kilometraje,
-            'rendimiento'            => round(mt_rand(30,65)/10,1),
-            'estado'                 => 'Sin Notificar',
-            'fecha_salida'           => $request->fecha_salida,
-            'pagado'                 => false,
-            'retorno'                => 0,
+            'destino_id'           => $validated['destino_id'],
+            'cliente_principal_id' => $validated['cliente_principal_id'],
+            'tracto_id'            => $tractoId,
+            'fecha_salida'         => now()->toDateString(),
         ]);
 
-        Rendicion::create([
-            'flete_id'         => $flete->id,
-            'user_id'          => $conductor->id,
-            'estado'           => 'Activo',
-            'caja_flete'       => 0,
-            'viatico_efectivo' => 0,
-            'viatico_calculado'=> 0,
-            'saldo'            => 0,
-            'comision'         => 0,
-        ]);
+        // 4) Devolvemos la respuesta adecuada
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Flete “borrador” creado correctamente.',
+                'flete'   => $flete,
+            ], 201);
+        }
 
         return redirect()
             ->route('fletes.index')
-            ->with('success', 'Flete creado correctamente.');
+            ->with('success', 'Flete “borrador” creado correctamente.');
     }
+
+
+
 
     public function finalizar(Request $request)
     {

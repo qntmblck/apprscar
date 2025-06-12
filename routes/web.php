@@ -35,7 +35,7 @@ use App\Http\Controllers\ComisionController;
 Route::get('/login-success', function () {
     $user = auth()->user();
 
-    if (!$user) {
+    if (! $user) {
         return redirect()->route('login');
     }
 
@@ -52,7 +52,7 @@ Route::get('/login-success', function () {
     }
 
     return redirect()->route('dashboard');
-})->middleware(['auth']); // Protección agregada aquí
+})->middleware(['auth']);
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -63,7 +63,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', fn () => Inertia::render('Dashboard'))
+Route::get('/dashboard', fn() => Inertia::render('Dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile',[ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/contacto', fn () => Inertia::render('Contact'))->name('contact');
+Route::get('/contacto', fn() => Inertia::render('Contact'))->name('contact');
 Route::post('/contacto/cliente',       [ContactoController::class, 'cliente'])->name('contacto.cliente');
 Route::post('/contacto/transportista', [ContactoController::class, 'transportista'])->name('contacto.transportista');
 
@@ -86,18 +86,34 @@ Route::get('/redirect-by-role', RoleRedirectController::class)->middleware('auth
 // DASHBOARDS por rol
 // ——————————————
 Route::middleware(['auth'])->group(function () {
-    Route::get('/super/dashboard',       [SuperDashboardController::class, 'index'])->middleware('role:superadmin')->name('super.dashboard');
-    Route::get('/admin/dashboard',       [AdminDashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
-    Route::get('/cliente/dashboard',     [ClienteDashboardController::class, 'index'])->middleware('role:cliente')->name('cliente.dashboard');
-    Route::get('/conductor/dashboard',   [ConductorDashboardController::class, 'index'])->middleware('role:conductor')->name('conductor.dashboard');
-    Route::get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index'])->middleware('role:colaborador')->name('colaborador.dashboard');
+    Route::get('/super/dashboard',       [SuperDashboardController::class, 'index'])
+        ->middleware('role:superadmin')
+        ->name('super.dashboard');
+
+    Route::get('/admin/dashboard',       [AdminDashboardController::class, 'index'])
+        ->middleware('role:admin')
+        ->name('admin.dashboard');
+
+    Route::get('/cliente/dashboard',     [ClienteDashboardController::class, 'index'])
+        ->middleware('role:cliente')
+        ->name('cliente.dashboard');
+
+    Route::get('/conductor/dashboard',   [ConductorDashboardController::class, 'index'])
+        ->middleware('role:conductor')
+        ->name('conductor.dashboard');
+
+    Route::get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index'])
+        ->middleware('role:colaborador')
+        ->name('colaborador.dashboard');
 });
 
 // ——————————————
 // Gestión de usuarios (solo superadmin)
 // ——————————————
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
-    Route::post('/fletes/batch/asignar-periodo', [FleteBatchController::class, 'asignarPeriodo'])->name('fletes.batch.asignar-periodo');
+    Route::post('/fletes/batch/asignar-periodo', [FleteBatchController::class, 'asignarPeriodo'])
+        ->name('fletes.batch.asignar-periodo');
+
     Route::get('/usuarios',                [UserController::class, 'index'])->name('usuarios.index');
     Route::post('/usuarios/{user}/role',   [UserController::class, 'updateRole'])->name('usuarios.updateRole');
     Route::delete('/usuarios/{user}/role', [UserController::class, 'removeRole'])->name('usuarios.removeRole');
@@ -106,36 +122,46 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 // ——————————————
 // RUTAS PROTEGIDAS (requieren “auth”)
 // ——————————————
-Route::middleware(['auth'])->group(function () {
+Route::middleware('auth')->group(function () {
+    // Listar y ver fletes (todos los roles permitidos)
+    Route::middleware('role:superadmin|admin|colaborador|cliente')
+        ->get('/fletes', [FleteController::class, 'index'])
+        ->name('fletes.index');
 
-    Route::middleware(['role:superadmin|admin|colaborador|cliente'])->get('/fletes', [FleteController::class, 'index'])->name('fletes.index');
-    Route::middleware(['role:superadmin|admin|colaborador|cliente'])->get('/fletes/{flete}', [FleteController::class, 'show'])->name('fletes.show');
+    Route::middleware('role:superadmin|admin|colaborador|cliente')
+        ->get('/fletes/{flete}', [FleteController::class, 'show'])
+        ->name('fletes.show');
 
-    Route::middleware(['role:superadmin|admin'])->post('/fletes', [FleteController::class, 'store'])->name('fletes.store');
-    Route::middleware(['role:superadmin|admin'])->post('/fletes/{flete}/cerrar', [FleteController::class, 'cerrarRendicion'])->name('fletes.cerrarRendicion');
+    // Guardado y cierre (solo superadmin y admin)
+    Route::middleware('role:superadmin|admin')->group(function () {
+        Route::post('/fletes',        [FleteController::class, 'store'])->name('fletes.store');
+        Route::post('/fletes/{flete}/cerrar', [FleteController::class, 'cerrarRendicion'])
+            ->name('fletes.cerrarRendicion');
+    });
 
-    Route::post('/fletes/{flete}/finalizar', [FleteController::class, 'finalizar'])
-     ->name('fletes.finalizar');
-    Route::post('/rendicion/{id}/viatico', [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
-    Route::post('/fletes/asignar-periodo', [FleteBatchController::class,'asignarPeriodo'])->name('fletes.asignarPeriodo');
+    // Otras acciones
+    Route::post('/fletes/{flete}/finalizar',      [FleteController::class, 'finalizar'])->name('fletes.finalizar');
+    Route::post('/rendicion/{id}/viatico',        [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
+    Route::post('/fletes/asignar-periodo',        [FleteBatchController::class,'asignarPeriodo'])->name('fletes.asignarPeriodo');
 
-    Route::middleware(['role:conductor'])->prefix('conductor')->group(function () {
+    // Rutas para conductores
+    Route::middleware('role:conductor')->prefix('conductor')->group(function () {
         Route::get('/fletes', [FleteConductorController::class, 'index'])->name('conductor.fletes.index');
     });
 
     // Formularios “frontal”
     Route::post('/adicionales', [\App\Http\Controllers\AdicionalController::class, 'store'])->name('adicionales.store');
-    Route::post('/diesel', [DieselController::class, 'store'])->name('diesel.store');
+    Route::post('/diesel',      [DieselController::class, 'store'])->name('diesel.store');
     Route::delete('/diesels/{id}', [DieselController::class, 'destroy'])->name('diesel.destroy');
-    Route::post('/gasto', [GastoController::class, 'store'])->name('gasto.store');
+    Route::post('/gasto',       [GastoController::class, 'store'])->name('gasto.store');
     Route::delete('/gastos/{id}', [GastoController::class, 'destroy'])->name('gasto.destroy');
 
     // Formularios “trasera”
-    Route::post('/abonos', [AbonoController::class, 'store'])->name('abonos.store');
+    Route::post('/abonos',      [AbonoController::class, 'store'])->name('abonos.store');
     Route::delete('/abonos/{id}', [AbonoController::class, 'destroy'])->name('abonos.destroy');
-    Route::post('/retornos', [RetornoController::class, 'store'])->name('retornos.store');
+    Route::post('/retornos',    [RetornoController::class, 'store'])->name('retornos.store');
     Route::delete('/retornos/{id}', [RetornoController::class, 'destroy'])->name('retornos.destroy');
-    Route::post('/comisiones', [ComisionController::class,'store'])->name('comisiones.store');
+    Route::post('/comisiones',  [ComisionController::class,'store'])->name('comisiones.store');
     Route::delete('/comisiones/{id}', [ComisionController::class,'destroy'])->name('comisiones.destroy');
 });
 
