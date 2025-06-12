@@ -29,7 +29,7 @@ class FleteSeeder extends Seeder
         $faker = Faker::create('es_CL');
 
         // 1) Roles + superadmin
-        foreach (['superadmin','conductor','colaborador','cliente'] as $r) {
+        foreach (['superadmin','conductor','colaborador','cliente','admin'] as $r) {
             Role::firstOrCreate(['name' => $r, 'guard_name' => 'web']);
         }
         User::firstOrCreate(
