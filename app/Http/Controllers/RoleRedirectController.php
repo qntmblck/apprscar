@@ -11,12 +11,16 @@ class RoleRedirectController extends Controller
         $user = auth()->user();
 
         return match (true) {
-            $user->hasRole('superadmin') => redirect('/super/dashboard'),
-            $user->hasRole('admin') => redirect('/admin/dashboard'),
-            $user->hasRole('cliente') => redirect('/cliente/dashboard'),
-            $user->hasRole('conductor') => redirect('/conductor/dashboard'),
-            $user->hasRole('colaborador') => redirect('/colaborador/dashboard'),
-            default => redirect('/dashboard'), //
+            // superadmin y admin van al index de fletes
+            $user->hasRole('superadmin'),
+            $user->hasRole('admin')   => redirect('/fletes'),
+
+
+            $user->hasRole('cliente')  => redirect('/cliente/dashboard'),
+            $user->hasRole('conductor')=> redirect('/conductor/dashboard'),
+            $user->hasRole('colaborador')=> redirect('/colaborador/dashboard'),
+
+            default                    => redirect('/dashboard'),
         };
     }
 }
