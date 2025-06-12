@@ -159,15 +159,21 @@ export default function DashboardHeader() {
 }
 
 function getNavigation(roles) {
-  const navigation = [{ name: 'Panel', href: getDashboardUrl(roles) }]
-  if (roles.includes('superadmin')) {
-    navigation.push(
-      { name: 'Usuarios', href: '/usuarios' },
-      { name: 'Servicios', href: '/fletes' }
-    )
-  } else if (roles.includes('admin')) {
+  const navigation = []
+
+  // 1. Servicios (superadmin o admin)
+  if (roles.includes('superadmin') || roles.includes('admin')) {
     navigation.push({ name: 'Servicios', href: '/fletes' })
   }
+
+  // 2. Panel
+  navigation.push({ name: 'Panel', href: getDashboardUrl(roles) })
+
+  // 3. Usuarios (solo superadmin)
+  if (roles.includes('superadmin')) {
+    navigation.push({ name: 'Usuarios', href: '/usuarios' })
+  }
+
   return navigation
 }
 
