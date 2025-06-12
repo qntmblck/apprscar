@@ -405,13 +405,6 @@ const ultimosRegistros = useMemo(() => {
 </div>
 
 
-
-
-
-
-
-
-
           {/* Error de cierre */}
           {errorCierre && (
             <div className="text-red-600 text-[11px] bg-red-100 p-2 rounded mb-4">
