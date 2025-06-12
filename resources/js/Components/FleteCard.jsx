@@ -346,15 +346,16 @@ const ultimosRegistros = useMemo(() => {
   {/* Fila 1: Titular, Salida, Comisión */}
   <div className="flex items-center gap-x-2 truncate">
     <UserIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
-    <span className="truncate">{flete.conductor?.name || flete.colaborador?.name || '—'}</span>
+    <span className="truncate">
+      {flete.conductor?.name || flete.colaborador?.name || '—'}
+    </span>
   </div>
   <div className="flex items-center gap-x-2 truncate">
-    {/* SVG Salida */}
-    …
+    <CalendarDaysIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
     <span className="truncate">{fechaSalidaFormatted}</span>
   </div>
   <div className="flex items-center gap-x-2 text-green-600 justify-end truncate">
-    <CurrencyDollarIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+    <CurrencyDollarIcon className="h-5 w-5 flex-shrink-0" />
     <span className="truncate">
       ${flete.rendicion?.comision?.toLocaleString('es-CL') || '—'}
     </span>
@@ -366,24 +367,35 @@ const ultimosRegistros = useMemo(() => {
     <span className="truncate">{flete.tracto?.patente || '—'}</span>
   </div>
   <div className="flex items-center gap-x-2 truncate">
-    {/* SVG Llegada */}
-    …
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      {/* tu SVG de “Llegada” */}
+      <path fillRule="evenodd" d="M16.5 3.75a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.5-1.5V15a.75.75 0 0 0-1.5 0v3.75a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5.25a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3V9A.75.75 0 1 0 9 9V5.25a1.5 1.5 0 0 1 1.5-1.5h6Zm-5.03 4.72a.75.75 0 0 0 0 1.06l1.72 1.72H2.25a.75.75 0 0 0 0 1.5h10.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 0 0-1.06 0Z" clipRule="evenodd" />
+    </svg>
     <span className="truncate">{fechaLlegadaFormatted}</span>
   </div>
   <div className="flex items-center gap-x-2 text-green-600 justify-end truncate">
     <CalendarDaysIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
-    <span className="truncate">${viaticoEfec.toLocaleString('es-CL')}</span>
+    <span className="truncate">
+      ${viaticoEfec.toLocaleString('es-CL')}
+    </span>
   </div>
 
   {/* Fila 3: Rampla, Guía/Ruta, Saldo */}
   <div className="flex items-center gap-x-2 truncate">
-    {/* SVG Rampla */}
-    …
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      {/* tu SVG de “Rampla” */}
+      <path d="M2.25 2.25a.75.75 0 0 0 0 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 0 0-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 0 0 0-1.5H5.378A2.25 2.25 0 0 1 7.5 15h11.218a.75.75 0 0 0 .674-.421 60.358 60.358 0 0 0 2.96-7.228.75.75 0 0 0-.525-.965A60.864 60.864 0 0 0 5.68 4.509l-.232-.867A1.875 1.875 0 0 0 3.636 2.25H2.25ZM3.75 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM16.5 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" />
+    </svg>
     <span className="truncate">{flete.rampla?.patente || '—'}</span>
   </div>
   <div className="flex items-center gap-x-2 truncate">
-    {/* SVG Guía/Ruta */}
-    …
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+         className="h-6 w-6 text-gray-400 flex-shrink-0">
+      {/* tu SVG de “Guía/Ruta” */}
+      <path fillRule="evenodd" d="M7.491 5.992a.75.75 0 0 1 .75-.75h12a.75.75 0 1 1 0 1.5h-12a.75.75 0 0 1-.75-.75ZM7.49 11.995a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75ZM7.491 17.994a.75.75 0 0 1 .75-.75h12a.75.75 0 1 1 0 1.5h-12a.75.75 0 0 1-.75-.75ZM2.24 3.745a.75.75 0 0 1 .75-.75h1.125a.75.75 0 0 1 .75.75v3h.375a.75.75 0 0 1 0 1.5H2.99a.75.75 0 0 1 0-1.5h.375v-2.25H2.99a.75.75 0 0 1-.75-.75ZM2.79 10.602a.75.75 0 0 1 0-1.06 1.875 1.875 0 1 1 2.652 2.651l-.55.55h.35a.75.75 0 0 1 0 1.5h-2.16a.75.75 0 0 1-.53-1.281l1.83-1.83a.375.375 0 0 0-.53-.53.75.75 0 0 1-1.062 0ZM2.24 15.745a.75.75 0 0 1 .75-.75h1.125a1.875 1.875 0 0 1 1.501 2.999 1.875 1.875 0 0 1-1.501 3H2.99a.75.75 0 0 1 0-1.501h1.125a.375.375 0 0 0 .036-.748H3.74a.75.75 0 0 1-.75-.75v-.002a.75.75 0 0 1 .75-.75h.411a.375.375 0 0 0-.036-.748H2.99a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
+    </svg>
     <span className="truncate">{flete.guiaruta || '—'}</span>
   </div>
   <div className={`flex items-center gap-x-2 justify-end truncate ${saldoTemporal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -391,6 +403,7 @@ const ultimosRegistros = useMemo(() => {
     <span className="truncate">${saldoTemporal.toLocaleString('es-CL')}</span>
   </div>
 </div>
+
 
 
 
