@@ -163,7 +163,7 @@ function getNavigation(roles) {
   if (roles.includes('superadmin')) {
     navigation.push(
       { name: 'Usuarios', href: '/usuarios' },
-      { name: 'Fletes', href: '/fletes' }
+      { name: 'Servicios', href: '/fletes' }
     )
   } else if (roles.includes('admin')) {
     navigation.push({ name: 'Servicios', href: '/fletes' })
