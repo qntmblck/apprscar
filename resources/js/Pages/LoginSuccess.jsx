@@ -6,8 +6,7 @@ import { usePage } from '@inertiajs/react'
 export default function LoginSuccess() {
   // Obtengo usuario y roles de las props de Inertia
   const {
-    auth: { user },
-    roles,
+    auth: { user, roles },
   } = usePage().props
 
   useEffect(() => {

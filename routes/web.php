@@ -39,11 +39,13 @@ Route::get('/login-success', function () {
         return redirect()->route('login');
     }
 
-    if ($user->hasRole('superadmin')) {
-        return redirect()->route('super.dashboard');
-    } elseif ($user->hasRole('admin')) {
-        return redirect()->route('admin.dashboard');
-    } elseif ($user->hasRole('cliente')) {
+    // Superadmin y admin van al índice de servicios (fletes)
+    if ($user->hasRole('superadmin') || $user->hasRole('admin')) {
+        return redirect()->route('fletes.index');
+    }
+
+    // Resto de roles
+    if ($user->hasRole('cliente')) {
         return redirect()->route('cliente.dashboard');
     } elseif ($user->hasRole('conductor')) {
         return redirect()->route('conductor.dashboard');
@@ -51,6 +53,7 @@ Route::get('/login-success', function () {
         return redirect()->route('colaborador.dashboard');
     }
 
+    // Fallback genérico
     return redirect()->route('dashboard');
 })->middleware(['auth']);
 
