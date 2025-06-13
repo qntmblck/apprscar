@@ -1,4 +1,5 @@
 // resources/js/Components/FleteCard/DetailsGrid.jsx
+import './Header.css'
 import React from 'react'
 import classNames from 'classnames'
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
