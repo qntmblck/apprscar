@@ -13,11 +13,11 @@ export default function FleteList({
   submitForm,
   onEliminarRegistro,
 }) {
-  // Memoizamos las tarjetas para evitar recrearlas en cada render
   const allCards = useMemo(
     () =>
       fletesState.map(flete => (
-        <div key={flete.id} className="relative">
+        // Reducimos el padding a p-1 para espacios más ajustados
+        <div key={flete.id} className="relative p-1 h-full">
           <FleteCard
             flete={flete}
             openForm={openForm}
@@ -40,12 +40,12 @@ export default function FleteList({
     ]
   )
 
-  // Control de cuántas mostrar
   const displayCards = showAll ? allCards : allCards.slice(0, 15)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {/* Grid: 1 columna en XS, 2 en SM/MD, 3 en LG+, gap reducido a 0.25rem */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1">
         {displayCards}
       </div>
 

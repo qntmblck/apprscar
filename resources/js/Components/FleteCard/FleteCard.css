@@ -1,35 +1,22 @@
-/* resources/js/Components/FleteCard/FleteCard.css */
-
-/* Contenedor de la tarjeta: perspectiva y flex para altura completa */
 .flete-card {
   perspective: 1000px;
   width: 100%;
   transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-
-  /* grid-row por defecto */
-  grid-row: span 1;
 }
 
-/* Inner que rota en 3D, ocupa todo el espacio y oculta overflow */
 .flete-card-inner {
   width: 100%;
   transform-style: preserve-3d;
   transition: transform 0.6s;
   position: relative;
-  flex: 1;
-  overflow: hidden;
 }
 
-/* Clase que aplica el giro */
+/* Giro */
 .flete-card-inner.rotate-y-180 {
   transform: rotateY(180deg);
 }
 
-/* Caras frontal y trasera: ocultas por defecto, con scroll interno */
+/* Caras */
 .flete-card-front,
 .flete-card-back {
   backface-visibility: hidden;
@@ -38,30 +25,33 @@
   width: 100%;
   position: relative;
   display: none;
-  height: 100%;
-  overflow-y: auto;
 }
 
-/* Mostrar la cara activa */
+/* Mostrar cara activa */
 .flete-card-front.active,
 .flete-card-back.active {
   display: block;
 }
 
-/* Rotación de la cara trasera */
+/* Trasera */
 .flete-card-back {
   transform: rotateY(180deg);
 }
 
-/* Al expandirse, ocupa dos filas de la grilla */
-.flete-card.expanded {
-  grid-row: span 2;
+/* Por defecto: NO ocupa espacio extra */
+.flete-card {
+  grid-row: span 1;
 }
 
-/* Opcional: configuración del grid que contiene las tarjetas */
+/* Cuando está expandida, ocupa más alto */
+.flete-card.expanded {
+  grid-row: span 2; /* o más si necesitas más espacio */
+}
+
+/* Ajustes de contenedor global (en Index.jsx) */
 .flete-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  row-gap: 0;
+  gap: 1rem; /* horizontal solamente */
+  row-gap: 0; /* evita espacio entre filas por defecto */
 }

@@ -1,23 +1,19 @@
 // resources/js/Components/FleteCard/BackDetails.jsx
 import React from 'react'
-
-// Helper para concatenar clases
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+import classNames from 'classnames'
 
 export default function BackDetails({
-  detallesBack,
-  viaticoEfec,
-  saldoTemporal,
-  onDelete,
-  isSubmitting,
+  registros = [],
+  viaticoEfec = 0,
+  saldoTemporal = 0,
+  onEliminarRegistro = () => {},
+  isSubmitting = false,
 }) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-800 mb-2">Detalle completo</h3>
       <div className="space-y-1 text-xs">
-        {detallesBack.map((r, i) => {
+        {registros.map((r, i) => {
           const esDiesel = 'metodo_pago' in r && 'litros' in r
           const esGasto  = 'tipo' in r && !('litros' in r)
           const esAbono  = !esDiesel && !esGasto && 'metodo' in r
@@ -30,7 +26,7 @@ export default function BackDetails({
             : esAbono
             ? 'Abono'
             : 'Comisión'
-          let detalle = esDiesel
+          const detalle = esDiesel
             ? r.metodo_pago
             : esGasto
             ? r.tipo === 'Otro'
@@ -61,15 +57,13 @@ export default function BackDetails({
               <div className="font-medium">{tipo}</div>
               <div className="break-words">{detalle}</div>
               <div className="flex items-center space-x-2">
-                <span>${(r.monto ?? r.total).toLocaleString('es-CL')}</span>
+                <span>${(r.monto ?? r.total ?? 0).toLocaleString('es-CL')}</span>
                 <button
-                  onClick={() => onDelete(r)}
+                  onClick={() => onEliminarRegistro(r)}
                   disabled={isSubmitting}
                   className={classNames(
                     'ml-2',
-                    isSubmitting
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-red-500 hover:text-red-700'
+                    isSubmitting ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'
                   )}
                 >
                   ✕

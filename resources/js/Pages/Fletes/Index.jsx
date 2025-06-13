@@ -22,7 +22,9 @@ export default function Index({
 }) {
   const { csrf_token } = usePage().props
   useEffect(() => {
-    if (csrf_token) axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
+    if (csrf_token) {
+      axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
+    }
   }, [csrf_token])
 
   // Form de filtros
@@ -123,36 +125,47 @@ export default function Index({
   }, [])
 
   // Envío de formularios (diesel, gastos, etc.)
-  const submitForm = useCallback(async (ruta, payload, onSuccess, onError) => {
-    try {
-      const res = payload instanceof FormData
-        ? await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
-        : await axios.post(ruta, payload)
-      onSuccess?.(res.data.flete)
-      return res
-    } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Error procesando formulario'
-      setErrorMensaje(msg)
-      onError?.()
-      throw err
-    }
-  }, [])
+  const submitForm = useCallback(
+    async (ruta, payload, onSuccess, onError) => {
+      try {
+        const res = payload instanceof FormData
+          ? await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
+          : await axios.post(ruta, payload)
+        onSuccess?.(res.data.flete)
+        return res
+      } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data?.error || 'Error procesando formulario'
+        setErrorMensaje(msg)
+        onError?.()
+        throw err
+      }
+    },
+    []
+  )
 
   // Eliminar registro (abono/gasto/etc.)
-  const eliminarRegistro = useCallback(async id => {
-    try {
-      const res = await axios.delete(`/registro/${id}`)
-      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
-    } catch {
-      setErrorMensaje('No se pudo eliminar el registro.')
-    }
-  }, [actualizarFleteEnLista])
+  const eliminarRegistro = useCallback(
+    async id => {
+      try {
+        const res = await axios.delete(`/registro/${id}`)
+        if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+      } catch {
+        setErrorMensaje('No se pudo eliminar el registro.')
+      }
+    },
+    [actualizarFleteEnLista]
+  )
 
   // Limpiar filtros
   const handleClear = useCallback(() => {
     setData({
-      conductor_ids: [], colaborador_ids: [], cliente_ids: [],
-      tracto_ids: [], destino: '', fecha_desde: '', fecha_hasta: ''
+      conductor_ids: [],
+      colaborador_ids: [],
+      cliente_ids: [],
+      tracto_ids: [],
+      destino: '',
+      fecha_desde: '',
+      fecha_hasta: '',
     })
     setRange({ from: undefined, to: undefined })
     setShowAll(false)

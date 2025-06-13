@@ -1,56 +1,47 @@
 // resources/js/Components/FleteCard/BackTabs.jsx
 import React from 'react'
+import classNames from 'classnames'
 import AbonoForm from './Forms/AbonoForm'
 import RetornoForm from './Forms/RetornoForm'
 import ComisionForm from './Forms/ComisionForm'
 
-// Helper para concatenar clases
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
 export default function BackTabs({
-  tabs,
-  currentTab,
-  onToggle,
-  onSubmit,
-  isSubmitting,
-  setIsSubmitting,
   flete,
-  handleCloseForm,
-  actualizarFleteEnLista,
-  onFlip,
+  formAbierto,
+  handleToggleForm = () => {},
+  handleCloseForm = () => {},
+  submitForm = () => Promise.resolve(),
+  actualizarFleteEnLista = () => {},
+  toggleFlip = () => {},
+  setIsSubmitting = () => {},
 }) {
+  const backTabs = [
+    { name: 'Abono',    key: 'abono',    count: flete.rendicion?.abonos?.length ?? 0 },
+    { name: 'Retorno',  key: 'retorno',  count: flete.rendicion?.retorno ? 1 : 0 },
+    { name: 'Comisión', key: 'comision', count: flete.rendicion?.comision != null ? 1 : 0 },
+  ]
+
   return (
     <div className="mt-4">
-      {/* Navegación de pestañas back */}
-      <div className="overflow-x-auto border-b border-gray-200 mb-2 px-4">
-        <nav className="flex items-center space-x-1">
-          {tabs.map(tab => (
+      <div className="overflow-x-auto border-b border-gray-200 mb-2">
+        <nav className="flex items-center space-x-1 px-4">
+          {backTabs.map(tab => (
             <button
               key={tab.key}
-              onClick={() => onToggle(flete.id, tab.key)}
+              onClick={() => handleToggleForm(flete.id, tab.key)}
               className={classNames(
-                tab.current
+                formAbierto === tab.key
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700',
-                'group inline-flex items-center border-b-2 px-2 py-2 text-sm font-medium transition'
+                'group inline-flex items-center border-b-2 px-2 py-2 text-sm font-medium transition',
+                'min-w-[80px]'
               )}
-              style={{ minWidth: 80 }}
             >
-              <tab.icon
-                className={classNames(
-                  tab.current
-                    ? 'text-indigo-500'
-                    : 'text-gray-400 group-hover:text-gray-500',
-                  'mr-1 h-5 w-5'
-                )}
-              />
               {tab.name}
               {tab.count > 0 && (
                 <span
                   className={classNames(
-                    tab.current
+                    formAbierto === tab.key
                       ? 'bg-indigo-100 text-indigo-600'
                       : 'bg-gray-100 text-gray-900',
                     'ml-1 rounded-full px-1 py-0.5 text-[10px] font-medium'
@@ -65,7 +56,7 @@ export default function BackTabs({
       </div>
 
       {/* Formularios back */}
-      {currentTab === 'abono' && (
+      {formAbierto === 'abono' && (
         <div className="px-4">
           <AbonoForm
             fleteId={flete.id}
@@ -73,13 +64,13 @@ export default function BackTabs({
             onSubmit={async payload => {
               setIsSubmitting(true)
               try {
-                await onSubmit(
+                await submitForm(
                   '/abonos',
                   { ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id },
                   f => {
                     actualizarFleteEnLista(f)
                     handleCloseForm(flete.id)
-                    onFlip()
+                    toggleFlip()
                   }
                 )
               } finally {
@@ -91,20 +82,20 @@ export default function BackTabs({
         </div>
       )}
 
-      {currentTab === 'retorno' && (
+      {formAbierto === 'retorno' && (
         <div className="px-4">
           <RetornoForm
             fleteId={flete.id}
             onSubmit={async payload => {
               setIsSubmitting(true)
               try {
-                await onSubmit(
+                await submitForm(
                   '/retornos',
                   { ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id, tipo: 'Retorno' },
                   f => {
                     actualizarFleteEnLista(f)
                     handleCloseForm(flete.id)
-                    onFlip()
+                    toggleFlip()
                   }
                 )
               } finally {
@@ -116,20 +107,20 @@ export default function BackTabs({
         </div>
       )}
 
-      {currentTab === 'comision' && (
+      {formAbierto === 'comision' && (
         <div className="px-4">
           <ComisionForm
             rendicionId={flete.rendicion?.id}
             onSubmit={async payload => {
               setIsSubmitting(true)
               try {
-                await onSubmit(
+                await submitForm(
                   '/comisiones',
                   { tipo: 'Comisión', ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id },
                   f => {
                     actualizarFleteEnLista(f)
                     handleCloseForm(flete.id)
-                    onFlip()
+                    toggleFlip()
                   }
                 )
               } finally {
