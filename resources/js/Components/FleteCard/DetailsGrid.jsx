@@ -1,4 +1,3 @@
-// resources/js/Components/FleteCard/DetailsGrid.jsx
 import './Header.css'
 import React from 'react'
 import classNames from 'classnames'
@@ -47,14 +46,14 @@ export default function DetailsGrid({
             onClick={() => setActiveMenu(activeMenu === 'Titular' ? null : 'Titular')}
             className="flex items-center gap-x-2 w-full"
           >
-            <IdentificationIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+            <IdentificationIcon className="h-5 w-5 text-sky-800 flex-shrink-0" />
             <span className="inline-block px-1">
               {flete.conductor?.name || flete.colaborador?.name || '—'}
             </span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500" />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Titular'} type="Titular">
-            <div className="absolute top-0 left-0 mt-2 ml-2 w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 p-2">
+            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 p-2">
               {(conductores.length > 0 ? conductores : colaboradores).map(opt => (
                 <button
                   key={opt.id}
@@ -68,26 +67,28 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Salida */}
+        {/* Guía/Ruta editable */}
         <div className="relative min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin">
           <button
-            data-toggle-type="Salida"
-            onClick={() => setActiveMenu(activeMenu === 'Salida' ? null : 'Salida')}
+            data-toggle-type="GuiaRuta"
+            onClick={() => setActiveMenu(activeMenu === 'GuiaRuta' ? null : 'GuiaRuta')}
             className="flex items-center gap-x-2 w-full"
           >
-            <CalendarDaysIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
-            <span className="inline-block px-1">{fechaSalidaFormatted}</span>
+            <DocumentDuplicateIcon className="h-6 w-6 text-sky-800 flex-shrink-0" />
+            <span className="inline-block px-1">{flete.guiaruta || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500" />
           </button>
-          <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
-            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border border-gray-200 shadow-lg p-2 rounded">
-              <DayPicker
-                mode="single"
-                selected={flete.fecha_salida ? new Date(flete.fecha_salida) : undefined}
-                onSelect={date => {
-                  onSelectFechaSalida(date)
-                  setActiveMenu(null)
-                }}
+          <PortalDropdown isOpen={activeMenu === 'GuiaRuta'} type="GuiaRuta">
+            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 bg-white border border-gray-200 shadow-lg p-2 rounded">
+              <input
+                autoFocus
+                type="text"
+                value={flete.guiaruta || ''}
+                onChange={e => onSelectGuiaRuta(e.target.value)}
+                onBlur={() => setActiveMenu(null)}
+                onKeyDown={e => e.key === 'Enter' && setActiveMenu(null)}
+                placeholder="Escribe guía/ruta..."
+                className="w-full px-2 py-1 text-base border border-gray-300 rounded focus:outline-none"
               />
             </div>
           </PortalDropdown>
@@ -108,7 +109,7 @@ export default function DetailsGrid({
             onClick={() => setActiveMenu(activeMenu === 'Tracto' ? null : 'Tracto')}
             className="flex items-center gap-x-2 w-full"
           >
-            <TruckIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+            <TruckIcon className="h-5 w-5 text-sky-800 flex-shrink-0" />
             <span className="inline-block px-1">{flete.tracto?.patente || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500" />
           </button>
@@ -127,10 +128,29 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Llegada estática */}
-        <div className="flex items-center gap-x-2 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin">
-          <ArrowRightOnRectangleIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
-          <span className="inline-block px-1">{fechaLlegadaFormatted}</span>
+        {/* Salida */}
+        <div className="relative min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin">
+          <button
+            data-toggle-type="Salida"
+            onClick={() => setActiveMenu(activeMenu === 'Salida' ? null : 'Salida')}
+            className="flex items-center gap-x-2 w-full"
+          >
+            <CalendarDaysIcon className="h-5 w-5 text-sky-800 flex-shrink-0" />
+            <span className="inline-block px-1">{fechaSalidaFormatted}</span>
+            <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+          </button>
+          <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
+            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border border-gray-200 shadow-lg p-2 rounded">
+              <DayPicker
+                mode="single"
+                selected={flete.fecha_salida ? new Date(flete.fecha_salida) : undefined}
+                onSelect={date => {
+                  onSelectFechaSalida(date)
+                  setActiveMenu(null)
+                }}
+              />
+            </div>
+          </PortalDropdown>
         </div>
 
         {/* Viático */}
@@ -146,7 +166,7 @@ export default function DetailsGrid({
             onClick={() => setActiveMenu(activeMenu === 'Rampla' ? null : 'Rampla')}
             className="flex items-center gap-x-2 w-full"
           >
-            <ShoppingCartIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+            <ShoppingCartIcon className="h-6 w-6 text-sky-800 flex-shrink-0" />
             <span className="inline-block px-1">{flete.rampla?.patente || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500" />
           </button>
@@ -165,31 +185,10 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Guía/Ruta editable */}
-        <div className="relative min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin">
-          <button
-            data-toggle-type="GuiaRuta"
-            onClick={() => setActiveMenu(activeMenu === 'GuiaRuta' ? null : 'GuiaRuta')}
-            className="flex items-center gap-x-2 w-full"
-          >
-            <DocumentDuplicateIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
-            <span className="inline-block px-1">{flete.guiaruta || '—'}</span>
-            <ChevronDownIcon className="h-4 w-4 text-gray-500" />
-          </button>
-          <PortalDropdown isOpen={activeMenu === 'GuiaRuta'} type="GuiaRuta">
-            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 bg-white border border-gray-200 shadow-lg p-2 rounded">
-              <input
-                autoFocus
-                type="text"
-                value={flete.guiaruta || ''}
-                onChange={e => onSelectGuiaRuta(e.target.value)}
-                onBlur={() => setActiveMenu(null)}
-                onKeyDown={e => e.key === 'Enter' && setActiveMenu(null)}
-                placeholder="Escribe guía/ruta..."
-                className="w-full px-2 py-1 text-base border border-gray-300 rounded focus:outline-none"
-              />
-            </div>
-          </PortalDropdown>
+        {/* Llegada estática */}
+        <div className="flex items-center gap-x-2 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin">
+          <ArrowRightOnRectangleIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+          <span className="inline-block px-1">{fechaLlegadaFormatted}</span>
         </div>
 
         {/* Saldo */}
