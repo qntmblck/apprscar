@@ -1,42 +1,12 @@
 // resources/js/Pages/Fletes/Index.jsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, useForm, usePage, router } from '@inertiajs/react'
-import FleteCard from '@/Components/FleteCard'
+import { Head, useForm, usePage } from '@inertiajs/react'
 import axios from 'axios'
-import {
-  UserIcon,
-  UserGroupIcon,
-  TruckIcon,
-  ChevronDownIcon,
-  CalendarDaysIcon,
-  ArrowLongLeftIcon,
-  ArrowLongRightIcon,
-  ArrowPathIcon,
-  MapPinIcon,
-  IdentificationIcon,
-  BuildingStorefrontIcon,
-  FolderPlusIcon,
-} from '@heroicons/react/20/solid'
-import { DayPicker } from 'react-day-picker'
-import 'react-day-picker/dist/style.css'
-import { createPortal } from 'react-dom'
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
-function PortalDropdown({ isOpen, children, type }) {
-  if (!isOpen) return null
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-start items-start p-4 pointer-events-none">
-      <div data-dropdown-type={type} className="pointer-events-auto">
-        {children}
-      </div>
-    </div>,
-    document.body
-  )
-}
+import FiltrosBar from './FiltrosBar'
+import FleteList from './FleteList'
+import Pagination from './Pagination'
+import { quickCreateFlete } from './QuickCreate'
 
 export default function Index({
   auth,
@@ -47,12 +17,17 @@ export default function Index({
   clientes,
   tractos,
   destinos,
+  ramplas = [],
+  guias = [],
 }) {
   const { csrf_token } = usePage().props
   useEffect(() => {
-    if (csrf_token) axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
+    if (csrf_token) {
+      axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
+    }
   }, [csrf_token])
 
+  // Form de filtros
   const { data, setData, get } = useForm({
     conductor_ids:   filters.conductor_ids   || [],
     colaborador_ids: filters.colaborador_ids || [],
@@ -63,68 +38,51 @@ export default function Index({
     fecha_hasta:     filters.fecha_hasta     || '',
   })
 
-  const [suggestions, setSuggestions] = useState([])
-  const [range, setRange] = useState({
+  // Estado local
+  const [suggestions, setSuggestions]       = useState([])
+  const [range, setRange]                   = useState({
     from: filters.fecha_desde ? new Date(filters.fecha_desde) : undefined,
     to:   filters.fecha_hasta ? new Date(filters.fecha_hasta) : undefined,
   })
-  const [fletesState, setFletesState] = useState([])
-  const [openForm, setOpenForm] = useState({})
-  const [errorMensaje, setErrorMensaje] = useState(null)
+  const [fletesState, setFletesState]       = useState([])
+  const [openForm, setOpenForm]             = useState({})
+  const [errorMensaje, setErrorMensaje]     = useState(null)
   const [successMensaje, setSuccessMensaje] = useState(null)
-  const [activeTab, setActiveTab] = useState('')
-  const [showAll, setShowAll] = useState(false)
+  const [activeTab, setActiveTab]           = useState('')
+  const [showAll, setShowAll]               = useState(false)
 
-  // sólo un cliente y un destino habilitan el botón
-  const hasDest   = data.destino.trim() !== ''
-  const hasClient = data.cliente_ids.length === 1
-  const hasDate   = data.fecha_desde !== ''
+  // Flags para UI
+  const hasDest    = data.destino.trim() !== ''
+  const hasClient  = data.cliente_ids.length === 1
   const tooManyMulti =
     data.cliente_ids.length > 1 ||
     data.tracto_ids.length > 1 ||
     data.conductor_ids.length > 1 ||
     data.colaborador_ids.length > 1
   const hasFilters =
-    data.destino.trim() !== '' ||
+    hasDest ||
     data.cliente_ids.length > 0 ||
     data.tracto_ids.length > 0 ||
     data.conductor_ids.length > 0 ||
     data.colaborador_ids.length > 0 ||
     data.fecha_desde !== ''
 
+  // Sincronizar lista de fletes al cargar datos
   useEffect(() => {
     const lista = paginatedFletes.data || []
     lista.sort((a, b) => new Date(b.fecha_salida) - new Date(a.fecha_salida))
     setFletesState(lista)
   }, [paginatedFletes])
 
+  // Refetch al cambiar filtros
   useEffect(() => {
     const timer = setTimeout(() => {
-      get(route('fletes.index'), {
-        preserveState: true,
-        data: {
-          conductor_ids:   data.conductor_ids,
-          colaborador_ids: data.colaborador_ids,
-          cliente_ids:     data.cliente_ids,
-          tracto_ids:      data.tracto_ids,
-          destino:         data.destino,
-          fecha_desde:     data.fecha_desde,
-          fecha_hasta:     data.fecha_hasta,
-        },
-      })
+      get(route('fletes.index'), { preserveState: true, data })
     }, 300)
     return () => clearTimeout(timer)
-  }, [
-    data.conductor_ids,
-    data.colaborador_ids,
-    data.cliente_ids,
-    data.tracto_ids,
-    data.destino,
-    data.fecha_desde,
-    data.fecha_hasta,
-    get,
-  ])
+  }, [data, get])
 
+  // Para cerrar dropdowns de filtro al click fuera
   useEffect(() => {
     function handleClickOutside(e) {
       if (!activeTab) return
@@ -138,16 +96,21 @@ export default function Index({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [activeTab])
 
+  // Handler rango fechas
   const handleRangeSelect = useCallback(r => {
     if (r?.from && !r.to) setRange({ from: r.from, to: r.from })
     else setRange(r || { from: undefined, to: undefined })
   }, [])
+
+  // Abrir/cerrar formularios en cada tarjeta
   const handleToggleForm = useCallback((id, tipo) => {
     setOpenForm(prev => ({ ...prev, [id]: prev[id] === tipo ? null : tipo }))
   }, [])
   const handleCloseForm = useCallback(id => {
     setOpenForm(prev => ({ ...prev, [id]: null }))
   }, [])
+
+  // Multi-select en filtros
   const handleToggleMultiSelect = useCallback((name, id) => {
     const arr = Array.from(data[name] || [])
     const idx = arr.indexOf(String(id))
@@ -155,27 +118,32 @@ export default function Index({
     else arr.splice(idx, 1)
     setData(name, arr)
   }, [data, setData])
+
+  // Actualizar un flete en la lista tras cambios
   const actualizarFleteEnLista = useCallback(f => {
     setFletesState(prev => prev.map(x => (x.id === f.id ? f : x)))
   }, [])
-  const submitForm = useCallback(async (ruta, payload, onSuccess, onError) => {
-    try {
-      const res =
-        payload instanceof FormData
+
+  // Envío de formularios (diesel, gastos, etc.)
+  const submitForm = useCallback(
+    async (ruta, payload, onSuccess, onError) => {
+      try {
+        const res = payload instanceof FormData
           ? await axios.post(ruta, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
           : await axios.post(ruta, payload)
-      onSuccess?.(res.data.flete)
-      return res
-    } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Error al procesar el formulario'
-      setErrorMensaje(msg)
-      onError?.()
-      throw err
-    }
-  }, [])
+        onSuccess?.(res.data.flete)
+        return res
+      } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data?.error || 'Error procesando formulario'
+        setErrorMensaje(msg)
+        onError?.()
+        throw err
+      }
+    },
+    []
+  )
+
+  // Eliminar registro (abono/gasto/etc.)
   const eliminarRegistro = useCallback(
     async id => {
       try {
@@ -188,112 +156,58 @@ export default function Index({
     [actualizarFleteEnLista]
   )
 
-  const allCards = useMemo(
-    () =>
-      fletesState.map(flete => (
-        <div key={flete.id} className="relative">
-          <FleteCard
-            flete={flete}
-            openForm={openForm}
-            handleToggleForm={handleToggleForm}
-            handleCloseForm={handleCloseForm}
-            actualizarFleteEnLista={actualizarFleteEnLista}
-            submitForm={submitForm}
-            onEliminarRegistro={eliminarRegistro}
-          />
-        </div>
-      )),
-    [fletesState, openForm, handleToggleForm, handleCloseForm, actualizarFleteEnLista, submitForm, eliminarRegistro]
-  )
-  const displayCards = showAll ? allCards : allCards.slice(0, 15)
-
-  const { current_page, last_page, prev_page_url, next_page_url } = paginatedFletes
-  const pagesToShow = useMemo(() => {
-    if (last_page <= 6) return Array.from({ length: last_page }, (_, i) => i + 1)
-    return [1, 2, 3, 'ellipsis', last_page - 2, last_page - 1, last_page]
-  }, [last_page])
-
+  // Limpiar filtros
   const handleClear = useCallback(() => {
     setData({
-      conductor_ids:   [],
+      conductor_ids: [],
       colaborador_ids: [],
-      cliente_ids:     [],
-      tracto_ids:      [],
-      destino:         '',
-      fecha_desde:     '',
-      fecha_hasta:     '',
+      cliente_ids: [],
+      tracto_ids: [],
+      destino: '',
+      fecha_desde: '',
+      fecha_hasta: '',
     })
     setRange({ from: undefined, to: undefined })
     setShowAll(false)
-    get(route('fletes.index'), {
-      preserveState: true,
-      data: {
-        conductor_ids:   [],
-        colaborador_ids: [],
-        cliente_ids:     [],
-        tracto_ids:      [],
-        destino:         '',
-        fecha_desde:     '',
-        fecha_hasta:     '',
-      },
-    })
+    get(route('fletes.index'), { preserveState: true, data: {} })
   }, [setData, get])
 
-  // ——— Quick Create: día actual como fecha_salida ———
-  const quickCreate = async () => {
-  // 1) Obtener el cliente
-  const clienteId = Array.isArray(data.cliente_ids)
-    ? data.cliente_ids[0]
-    : data.cliente_ids
-
-
-
-  // 2) Obtener el destino por nombre y extraer su id
-  const destinoObj = destinos.find(d => d.nombre === data.destino)
-  if (!destinoObj) {
-    setErrorMensaje('Destino no válido. Selecciona uno de la lista.')
-    setSuccessMensaje(null)
-    return
+  // Crear flete rápido
+  const handleCreateClick = async () => {
+    if (!(hasDest && hasClient) || tooManyMulti) {
+      setErrorMensaje('Seleccione cliente y destino.')
+      setSuccessMensaje(null)
+      return
+    }
+    try {
+      await quickCreateFlete(data, destinos, tractos, setSuccessMensaje, setErrorMensaje)
+      get(route('fletes.index'), { preserveState: true, data })
+    } catch {
+      // errorMensaje ya viene seteado
+    }
   }
-  const destinoId = destinoObj.id
 
-  // 3) Fecha de hoy en YYYY-MM-DD
-  const today = new Date().toISOString().split('T')[0]
+  // Toggle mostrar todos
+  useEffect(() => {
+    const toggle = () => setShowAll(prev => !prev)
+    window.addEventListener('toggleShowAll', toggle)
+    return () => window.removeEventListener('toggleShowAll', toggle)
+  }, [])
 
-  try {
-    await axios.post(route('fletes.store'), {
-      destino_id:           destinoId,
-      cliente_principal_id: clienteId,
-      fecha_salida:         today,
-    })
-    setSuccessMensaje('Flete creado correctamente.')
-    setErrorMensaje(null)
-    router.reload({ only: ['fletes'] })
-  } catch (err) {
-    const detalle =
-      err.response?.data?.errors
-        ? Object.values(err.response.data.errors).flat().join(' ')
-        : err.response?.data?.message ||
-          err.response?.data?.error ||
-          'Error al crear el flete.'
-    setErrorMensaje(detalle)
-    setSuccessMensaje(null)
-  }
-}
-const handleCreateClick = () => {
-  if (!(hasDest && hasClient) || tooManyMulti) {
-    setErrorMensaje('Seleccione cliente y destino.')
-    setSuccessMensaje(null)
-    return
-  }
-  quickCreate()
-}
+  // Handlers para dropdowns internos de FleteCard
+  const onSelectTitular     = useCallback(opt => console.log('Titular:', opt), [])
+  const onSelectFechaSalida = useCallback(date => console.log('Fecha salida:', date), [])
+  const onSelectTracto      = useCallback(opt => console.log('Tracto:', opt), [])
+  const onSelectRampla      = useCallback(opt => console.log('Rampla:', opt), [])
+  const onSelectGuiaRuta    = useCallback(text => console.log('Guía/Ruta:', text), [])
+
+  // Paginación
+  const { current_page, last_page, prev_page_url, next_page_url, per_page } = paginatedFletes
 
   return (
     <AuthenticatedLayout user={auth.user}>
       <Head title="Fletes" />
 
-      {/* Mensajes de éxito / error */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-2">
         {successMensaje && (
           <div className="text-green-700 bg-green-100 border border-green-200 rounded p-2 text-sm">
@@ -307,396 +221,53 @@ const handleCreateClick = () => {
         )}
       </div>
 
-      {/* FILTROS */}
-      <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-nowrap flex overflow-x-auto items-center gap-x-2">
-          {/* Limpiar filtros */}
-          <div className="relative flex-shrink-0">
-            <button
-              onClick={handleClear}
-              className="inline-flex items-center bg-white p-1 border-b-2 border-transparent rounded hover:border-gray-300"
-            >
-              <ArrowPathIcon
-                className={classNames(
-                  hasFilters ? 'text-red-600' : 'text-gray-300',
-                  'h-5 w-5 hover:text-gray-600'
-                )}
-              />
-            </button>
-          </div>
-
-          {/* Cliente */}
-          <div className="relative flex-shrink-0">
-            <button
-              data-toggle-type="Cliente"
-              onClick={() => setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')}
-              className={classNames(
-                activeTab === 'Cliente' ? 'border-indigo-500' : 'border-transparent hover:border-gray-300',
-                'inline-flex items-center bg-white p-1 border-b-2 rounded'
-              )}
-            >
-              <BuildingStorefrontIcon
-                className={classNames(
-                  activeTab === 'Cliente' ? 'text-indigo-600' : 'text-gray-500',
-                  'h-5 w-5'
-                )}
-              />
-            </button>
-            <PortalDropdown isOpen={activeTab === 'Cliente'} type="Cliente">
-              <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                {clientes.map(c => (
-                  <div
-                    key={c.id}
-                    onClick={() => {
-                      handleToggleMultiSelect('cliente_ids', c.id)
-                      setActiveTab('')
-                    }}
-                    className={classNames(
-                      data.cliente_ids.includes(String(c.id)) && 'bg-gray-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={data.cliente_ids.includes(String(c.id))}
-                      readOnly
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 truncate">{c.razon_social}</span>
-                  </div>
-                ))}
-              </div>
-            </PortalDropdown>
-          </div>
-
-          {/* Destino */}
-          <div className="relative flex-shrink-0">
-            <button
-              data-toggle-type="Destino"
-              onClick={() => setActiveTab(activeTab === 'Destino' ? '' : 'Destino')}
-              className={classNames(
-                activeTab === 'Destino' ? 'border-indigo-500' : 'border-transparent hover:border-indigo-300',
-                'inline-flex items-center bg-white p-1 border-b-2 rounded'
-              )}
-            >
-              <MapPinIcon
-                className={classNames(
-                  activeTab === 'Destino' ? 'text-indigo-600' : 'text-gray-500',
-                  'h-5 w-5'
-                )}
-              />
-            </button>
-            <PortalDropdown isOpen={activeTab === 'Destino'} type="Destino">
-              <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                <div className="p-2">
-                  <input
-                    type="text"
-                    placeholder="Destino..."
-                    value={data.destino}
-                    onChange={e => {
-                      setData('destino', e.target.value)
-                      setSuggestions(
-                        destinos
-                          .filter(d =>
-                            d.nombre.toLowerCase().includes(e.target.value.toLowerCase())
-                          )
-                          .slice(0, 10)
-                      )
-                    }}
-                    className="w-full px-2 py-1 text-base border rounded focus:outline-none"
-                  />
-                </div>
-                {suggestions.map(d => (
-                  <div
-                    key={d.id}
-                    onClick={() => {
-                      setData('destino', d.nombre)
-                      setSuggestions([])
-                      get(route('fletes.index'), { preserveState: true, data })
-                      setActiveTab('')
-                    }}
-                    className="px-3 py-2 text-base text-gray-700 cursor-pointer hover:bg-gray-100"
-                  >
-                    {d.nombre}
-                  </div>
-                ))}
-              </div>
-            </PortalDropdown>
-          </div>
-
-          {/* Crear Flete */}
-<div className="relative flex-shrink-0">
-  <button
-    onClick={handleCreateClick}
-    className={classNames(
-      hasDest && hasClient && !tooManyMulti
-        ? 'bg-green-700 hover:bg-green-800 text-white'
-        : 'bg-gray-300 text-gray-500 cursor-not-allowed',
-      'inline-flex items-center p-1 rounded'
-    )}
-  >
-    <FolderPlusIcon className="h-5 w-5" />
-  </button>
-</div>
-
-
-          {/* Fecha */}
-<div className="relative flex-shrink-0">
-  <button
-    data-toggle-type="Fecha"
-    onClick={() => setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')}
-    className={classNames(
-      activeTab === 'Fecha' ? 'border-indigo-500' : 'border-transparent hover:border-gray-300',
-      'inline-flex items-center bg-white p-1 border-b-2 rounded'
-    )}
-  >
-    <CalendarDaysIcon
-      className={classNames(
-        activeTab === 'Fecha' ? 'text-indigo-600' : 'text-gray-500',
-        'h-5 w-5'
-      )}
-    />
-  </button>
-  <PortalDropdown isOpen={activeTab === 'Fecha'} type="Fecha">
-    <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
-      <DayPicker
-        mode="range"
-        selected={range}
-        onSelect={handleRangeSelect}
-        numberOfMonths={1}
+      <FiltrosBar
+        data={data}
+        setData={setData}
+        range={range}
+        setRange={setRange}
+        get={get}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        suggestions={suggestions}
+        setSuggestions={setSuggestions}
+        clientes={clientes}
+        conductores={conductores}
+        colaboradores={colaboradores}
+        tractos={tractos}
+        destinos={destinos}
+        handleToggleMultiSelect={handleToggleMultiSelect}
+        handleCreateClick={handleCreateClick}
+        handleClear={handleClear}
+        errorMensaje={errorMensaje}
+        hasDest={hasDest}
+        hasClient={hasClient}
+        tooManyMulti={tooManyMulti}
+        hasFilters={hasFilters}
+        handleRangeSelect={handleRangeSelect}
       />
-      <div className="flex justify-between mt-2">
-        <button
-          onClick={() => setRange({ from: undefined, to: undefined })}
-          className="text-[10px] text-gray-600 hover:text-gray-800"
-        >
-          X
-        </button>
-        <button
-          onClick={() => {
-            // Ajustamos +1 día a cada fecha
-            const addOneDay = date => {
-              const d = new Date(date)
-              d.setDate(d.getDate() + 1)
-              return d.toISOString().split('T')[0]
-            }
 
-            const desde = range.from ? addOneDay(range.from) : ''
-            const hasta = range.to   ? addOneDay(range.to)   : ''
+      {/* LISTA DE TARJETAS */}
+      <FleteList
+        fletesState={fletesState}
+        openForm={openForm}
+        showAll={showAll}
+        onToggleShowAll={() => window.dispatchEvent(new CustomEvent('toggleShowAll'))}
+        handleToggleForm={handleToggleForm}
+        handleCloseForm={handleCloseForm}
+        actualizarFleteEnLista={actualizarFleteEnLista}
+        submitForm={submitForm}
+        onEliminarRegistro={eliminarRegistro}
+      />
 
-            setData('fecha_desde', desde)
-            setData('fecha_hasta', hasta)
-            setActiveTab('')
-
-            get(route('fletes.index'), {
-              preserveState: true,
-              data: {
-                ...data,
-                fecha_desde: desde,
-                fecha_hasta: hasta,
-              },
-            })
-          }}
-          className="text-[10px] text-blue-600 hover:underline"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </PortalDropdown>
-</div>
-
-
-          {/* Titular */}
-          <div className="relative flex-shrink-0">
-            <button
-              data-toggle-type="Titular"
-              onClick={() => setActiveTab(activeTab === 'Titular' ? '' : 'Titular')}
-              className={classNames(
-                activeTab === 'Titular' ? 'border-indigo-500' : 'border-transparent hover:border-indigo-300',
-                'inline-flex items-center bg-white p-1 border-b-2 rounded'
-              )}
-            >
-              <IdentificationIcon
-                className={classNames(
-                  activeTab === 'Titular' ? 'text-indigo-600' : 'text-gray-500',
-                  'h-5 w-5'
-                )}
-              />
-            </button>
-            <PortalDropdown isOpen={activeTab === 'Titular'} type="Titular">
-              <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                {colaboradores.map(u => (
-                  <div
-                    key={`col-${u.id}`}
-                    onClick={() => {
-                      handleToggleMultiSelect('colaborador_ids', u.id)
-                      setActiveTab('')
-                    }}
-                    className={classNames(
-                      data.colaborador_ids.includes(String(u.id)) && 'bg-indigo-200',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer bg-indigo-50 hover:bg-indigo-100'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={data.colaborador_ids.includes(String(u.id))}
-                      readOnly
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 truncate">{u.name}</span>
-                  </div>
-                ))}
-                {conductores.map(u => (
-                  <div
-                    key={`c-${u.id}`}
-                    onClick={() => {
-                      handleToggleMultiSelect('conductor_ids', u.id)
-                      setActiveTab('')
-                    }}
-                    className={classNames(
-                      data.conductor_ids.includes(String(u.id)) && 'bg-gray-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={data.conductor_ids.includes(String(u.id))}
-                      readOnly
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 truncate">{u.name}</span>
-                  </div>
-                ))}
-              </div>
-            </PortalDropdown>
-          </div>
-
-          {/* Tracto */}
-          <div className="relative flex-shrink-0">
-            <button
-              data-toggle-type="Tracto"
-              onClick={() => setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')}
-              className={classNames(
-                activeTab === 'Tracto' ? 'border-indigo-500' : 'border-transparent hover:border-gray-300',
-                'inline-flex items-center bg-white p-1 border-b-2 rounded'
-              )}
-            >
-              <TruckIcon
-                className={classNames(
-                  activeTab === 'Tracto' ? 'text-indigo-600' : 'text-gray-500',
-                  'h-5 w-5'
-                )}
-              />
-            </button>
-            <PortalDropdown isOpen={activeTab === 'Tracto'} type="Tracto">
-              <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-                {tractos.map(t => (
-                  <div
-                    key={t.id}
-                    onClick={() => {
-                      handleToggleMultiSelect('tracto_ids', t.id)
-                      setActiveTab('')
-                    }}
-                    className={classNames(
-                      data.tracto_ids.includes(String(t.id)) && 'bg-gray-100',
-                      'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={data.tracto_ids.includes(String(t.id))}
-                      readOnly
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 truncate">{t.patente}</span>
-                  </div>
-                ))}
-              </div>
-            </PortalDropdown>
-          </div>
-        </div>
-      </div>
-
-      {/* GRID DE TARJETAS */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {displayCards}
-        </div>
-        {allCards.length > 15 && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setShowAll(prev => !prev)}
-              className="text-sm text-indigo-600 hover:underline"
-            >
-              {showAll ? 'Mostrar menos' : `Mostrar más (${allCards.length - 15})`}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* PAGINACIÓN */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-          <button
-            onClick={() => prev_page_url && get(prev_page_url, { preserveState: true, data })}
-            disabled={!prev_page_url}
-            className={classNames(
-              'inline-flex items-center border-t-2 border-transparent pr-2 pt-1 text-sm font-medium',
-              prev_page_url
-                ? 'text-gray-600 hover:text-gray-800 hover:border-gray-300'
-                : 'text-gray-300 cursor-not-allowed'
-            )}
-          >
-            <ArrowLongLeftIcon className="mr-2 h-5 w-5 text-gray-400" />
-            Anterior
-          </button>
-          <div className="hidden md:flex space-x-1">
-            {pagesToShow.map((p, idx) =>
-              p === 'ellipsis' ? (
-                <span
-                  key={`e${idx}`}
-                  className="inline-flex items-center border-t-2 border-transparent px-3 pt-1 text-sm font-medium text-gray-500"
-                >
-                  …
-                </span>
-              ) : (
-                <button
-                  key={p}
-                  onClick={() =>
-                    get(route('fletes.index', { page: p }), {
-                      preserveState: true,
-                      data,
-                    })
-                  }
-                  aria-current={p === current_page ? 'page' : undefined}
-                  className={classNames(
-                    'inline-flex items-center border-t-2 px-3 pt-1 text-sm font-medium',
-                    p === current_page
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  )}
-                >
-                  {p}
-                </button>
-              )
-            )}
-          </div>
-          <button
-            onClick={() => next_page_url && get(next_page_url, { preserveState: true, data })}
-            disabled={!next_page_url}
-            className={classNames(
-              'inline-flex items-center border-t-2 border-transparent pl-2 pt-1 text-sm font-medium',
-              next_page_url
-                ? 'text-gray-600 hover:text-gray-800 hover:border-gray-300'
-                : 'text-gray-300 cursor-not-allowed'
-            )}
-          >
-            Siguiente
-            <ArrowLongRightIcon className="ml-2 h-5 w-5 text-gray-400" />
-          </button>
-        </nav>
-      </div>
+      <Pagination
+        current_page={current_page}
+        last_page={last_page}
+        prev_page_url={prev_page_url}
+        next_page_url={next_page_url}
+        get={get}
+        data={data}
+      />
     </AuthenticatedLayout>
   )
 }

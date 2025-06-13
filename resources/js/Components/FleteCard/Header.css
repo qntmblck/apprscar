@@ -1,0 +1,16 @@
+/* Scrollbar súper delgada para ejes horizontales y verticales */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 1px;   /* grosor horizontal */
+  width: 0;      /* oculta la barra vertical */
+}
+
+/* Thumb (la parte que arrastras) */
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 1); /* gray-400 */
+  border-radius: 9999px;
+}
+
+/* Track transparente */
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
