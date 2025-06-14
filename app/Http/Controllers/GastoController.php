@@ -15,8 +15,8 @@ class GastoController extends Controller
             'flete_id'     => 'required|exists:fletes,id',
             'rendicion_id' => 'required|exists:rendiciones,id',
             'monto'        => 'required|numeric|min:0',
-            'tipo'         => 'required|string',
-            'descripcion'  => 'nullable|string',
+            'tipo'         => 'required|string|max:50',
+            'descripcion'  => 'nullable|string|max:255',
             'foto'         => 'nullable|image|max:2048',
         ]);
 
@@ -29,10 +29,11 @@ class GastoController extends Controller
                 ], 422);
             }
 
+            // 1) Crear el gasto
             Gasto::create([
                 'flete_id'     => $validated['flete_id'],
                 'rendicion_id' => $rendicion->id,
-                'user_id'      => $rendicion->user_id, // ← Cambié aquí
+                'user_id'      => $rendicion->user_id,
                 'monto'        => $validated['monto'],
                 'tipo'         => $validated['tipo'],
                 'descripcion'  => $validated['descripcion'] ?? null,
@@ -41,76 +42,86 @@ class GastoController extends Controller
                                     : null,
             ]);
 
+            // 2) Recalcular totales (incluye comisión)
             $rendicion->recalcularTotales();
+            $rendicion->save();
 
+            // 3) Recargar flete con todas las relaciones
             $flete = Flete::with([
-                'cliente',
-                'destino',
-                'conductor',
-                'tracto',
-                'rampla',
-                'rendicion.abonos',
-                'rendicion.gastos',
-                'rendicion.diesels',
+                'clientePrincipal:id,razon_social',
+                'conductor:id,name',
+                'colaborador:id,name',
+                'tracto:id,patente',
+                'rampla:id,patente',
+                'destino:id,nombre',
+                'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
             ])->findOrFail($validated['flete_id']);
 
-            if ($flete->rendicion) {
-                $flete->rendicion->makeVisible([
-                    'saldo_temporal',
-                    'total_gastos',
-                    'total_diesel',
-                    'viatico_calculado',
-                ]);
-            }
+            // 4) Exponer campos calculados para la tarjeta
+            $flete->makeVisible(['retorno']);
+            $flete->rendicion->makeVisible([
+                'saldo',
+                'total_gastos',
+                'total_diesel',
+                'viatico_calculado',
+                'comision',
+            ]);
 
             return response()->json([
-                'message' => 'Gasto registrado correctamente.',
+                'message' => '✅ Gasto registrado correctamente.',
                 'flete'   => $flete,
-            ]);
+            ], 201);
+
         } catch (\Throwable $e) {
             return response()->json([
-                'error' => 'Error al registrar gasto: ' . $e->getMessage(),
+                'error'   => 'Error al registrar gasto',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function destroy($id)
-{
-    $registro = \App\Models\Gasto::find($id);
-    if (! $registro) {
-        return response()->json(['message' => 'Gasto no encontrado'], 404);
-    }
+    {
+        $registro = Gasto::find($id);
+        if (! $registro) {
+            return response()->json(['message' => 'Gasto no encontrado'], 404);
+        }
 
-    $rendicion = $registro->rendicion;
-    $flete_id  = $rendicion->flete_id;
-    $registro->delete();
+        $fleteId = $registro->flete_id;
+        $registro->delete();
 
-    $flete = \App\Models\Flete::with([
-        'cliente',
-        'conductor',
-        'tracto',
-        'rampla',
-        'destino',
-        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-    ])->find($flete_id);
+        // 1) Recargar flete con todas las relaciones
+        $flete = Flete::with([
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+        ])->findOrFail($fleteId);
 
-    if ($flete->rendicion) {
+        // 2) Recalcular totales luego de eliminar
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+
+        // 3) Exponer campos calculados para la tarjeta
+        $flete->makeVisible(['retorno']);
         $flete->rendicion->makeVisible([
-            'saldo_temporal',
-            'total_diesel',
+            'saldo',
             'total_gastos',
-            'viatico_efectivo',
+            'total_diesel',
             'viatico_calculado',
-            'caja_flete_acumulada',
+            'comision',
         ]);
+
+        return response()->json([
+            'message' => '✅ Gasto eliminado correctamente.',
+            'flete'   => $flete,
+        ], 200);
     }
-
-    return response()->json([
-        'message' => '✅ Gasto eliminado correctamente.',
-        'flete'   => $flete,
-    ]);
-}
-
 }

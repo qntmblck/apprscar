@@ -207,16 +207,16 @@ function FleteCard({
             <div className="error-cierre">{errorCierre}</div>
           )}
 
-          <div className="ultimos-registros space-y-1 text-xs">
-            {ultimosRegistros.map((r, i) => (
-              <RecordRow
-                key={i}
-                registro={r}
-                onEliminar={() => handleEliminarRegistro(r)}
-                isSubmitting={isSubmitting}
-              />
-            ))}
-          </div>
+          <div className="ultimos-registros text-xs">
+  <RecordRow
+    ultimosRegistros={ultimosRegistros}
+    viatico={viaticoEfec}
+    saldo={saldoTemporal}
+    onEliminar={handleEliminarRegistro}
+    isSubmitting={isSubmitting}
+  />
+</div>
+
 
           <FrontTabs
             flete={flete}

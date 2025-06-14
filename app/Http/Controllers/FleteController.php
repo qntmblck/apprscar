@@ -153,11 +153,6 @@ class FleteController extends Controller
     ]);
 }
 
-
-
-    /**
-     * Valida y guarda un flete “borrador” con sólo Titular, Destino y Fecha de inicio.
-     */
     public function store(Request $request)
 {
     // 1) Validar destino y cliente principal
@@ -167,7 +162,7 @@ class FleteController extends Controller
     ]);
 
     // 2) Determinar tracto_id: último usado o aleatorio
-    $userId = $request->user()->id;
+    $userId    = $request->user()->id;
     $lastFlete = Flete::where(function($q) use ($userId) {
             $q->where('conductor_id', $userId)
               ->orWhere('colaborador_id', $userId);
@@ -179,18 +174,51 @@ class FleteController extends Controller
         ? $lastFlete->tracto_id
         : Tracto::inRandomOrder()->value('id');
 
-    // 3) Crear flete con valores por defecto para estado y notificar
+    // 3) Crear flete con valores por defecto para estado, notificar y tipo
     $flete = Flete::create([
         'destino_id'           => $validated['destino_id'],
         'cliente_principal_id' => $validated['cliente_principal_id'],
         'tracto_id'            => $tractoId,
         'fecha_salida'         => now()->toDateString(),
-        // valores iniciales fijos:
         'estado'               => 'Activo',
         'notificar'            => false,
+        'tipo'                 => 'Directo',
     ]);
 
-    // 4) Responder JSON o redirect
+    // 3bis) Asociar tarifa por defecto antes de crear rendición
+    $tarifa = Tarifa::where('destino_id', $flete->destino_id)
+                    ->where('tipo', $flete->tipo)
+                    ->first();
+
+    if ($tarifa) {
+        $flete->tarifa_id = $tarifa->id;
+        $flete->save();
+    }
+
+    // 4) Crear rendición asociada para permitir gastos, diesel, comisiones, etc.
+    $rendicion = $flete->rendicion()->create([
+        'user_id'           => $userId,
+        'estado'            => 'Activo',
+        'viatico_efectivo'  => 0,
+        'viatico_calculado' => 0,
+    ]);
+
+    // ← Aquí nos aseguramos de recalcular los totales (incluida la comisión)
+    $rendicion->recalcularTotales();
+    $rendicion->save();
+
+    // 5) Recargar el flete con su rendición y relaciones necesarias
+    $flete->load([
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'colaborador:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
+    ]);
+
+    // 6) Responder igual que antes (JSON o redirect)
     if ($request->expectsJson()) {
         return response()->json([
             'message' => 'Flete “borrador” creado correctamente.',
@@ -202,6 +230,7 @@ class FleteController extends Controller
         ->route('fletes.index')
         ->with('success', 'Flete “borrador” creado correctamente.');
 }
+
 
 
     public function finalizar(Request $request)
@@ -286,158 +315,225 @@ class FleteController extends Controller
     }
 
     public function show(Flete $flete): JsonResponse
-    {
-        $flete = Flete::with([
-            'clientePrincipal:id,razon_social',
-            'conductor:id,name',
-            'tracto:id,patente',
-            'rampla:id,patente',
-            'destino:id,nombre',
-            'rendicion.abonos',
-            'rendicion.gastos',
-            'rendicion.diesels',
-        ])->findOrFail($flete->id);
+{
+    $flete = Flete::with([
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'rendicion.abonos',
+        'rendicion.gastos',
+        'rendicion.diesels',
+    ])->findOrFail($flete->id);
 
-        if ($flete->rendicion) {
-            $flete->makeVisible(['retorno']);
-            $flete->rendicion->makeVisible([
-                'saldo',
-                'total_gastos',
-                'total_diesel',
-                'viatico_calculado',
-                'comision',
-            ]);
-        }
+    if ($flete->rendicion) {
+        // Recalcular totales para asegurar que la comisión esté actualizada
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
 
-        return response()->json([
-            'flete' => $flete,
-        ], 200);
-    }
-
-    public function updateTitular(Request $request, Flete $flete)
-    {
-        $request->validate([
-            'conductor_id'   => 'required_without:colaborador_id|nullable|exists:users,id',
-            'colaborador_id' => 'required_without:conductor_id|nullable|exists:users,id',
-        ]);
-
-        $conductor   = $request->input('conductor_id');
-        $colaborador = $request->input('colaborador_id');
-
-        if ($conductor !== null) {
-            $flete->update([
-                'conductor_id'   => $conductor,
-                'colaborador_id' => null,
-            ]);
-        } else {
-            $flete->update([
-                'conductor_id'   => null,
-                'colaborador_id' => $colaborador,
-            ]);
-        }
-
-        $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
-
-        return response()->json([
-            'flete' => $flete,
+        $flete->makeVisible(['retorno']);
+        $flete->rendicion->makeVisible([
+            'saldo',
+            'total_gastos',
+            'total_diesel',
+            'viatico_calculado',
+            'comision',
         ]);
     }
 
-    public function updateTracto(Request $request, Flete $flete)
-    {
-        $request->validate([
-            'tracto_id' => 'nullable|exists:tractos,id',
-        ]);
+    return response()->json([
+        'flete' => $flete,
+    ], 200);
+}
 
+public function updateTitular(Request $request, Flete $flete)
+{
+    $request->validate([
+        'conductor_id'   => 'required_without:colaborador_id|nullable|exists:users,id',
+        'colaborador_id' => 'required_without:conductor_id|nullable|exists:users,id',
+    ]);
+
+    $conductor   = $request->input('conductor_id');
+    $colaborador = $request->input('colaborador_id');
+
+    if ($conductor !== null) {
         $flete->update([
-            'tracto_id' => $request->input('tracto_id'),
+            'conductor_id'   => $conductor,
+            'colaborador_id' => null,
         ]);
-
-        $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
-
-        return response()->json([
-            'flete' => $flete,
-        ]);
-    }
-
-    public function updateRampla(Request $request, Flete $flete)
-    {
-        $request->validate([
-            'rampla_id' => 'nullable|exists:ramplas,id',
-        ]);
-
+    } else {
         $flete->update([
-            'rampla_id' => $request->input('rampla_id'),
-        ]);
-
-        $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
-
-        return response()->json([
-            'flete' => $flete,
+            'conductor_id'   => null,
+            'colaborador_id' => $colaborador,
         ]);
     }
 
-    public function updateGuiaRuta(Request $request, Flete $flete)
-    {
-        $request->validate([
-            'guiaruta' => 'nullable|string|max:100',
-        ]);
-
-        $flete->update([
-            'guiaruta' => $request->input('guiaruta'),
-        ]);
-
-        $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
-
-        return response()->json([
-            'flete' => $flete,
-        ]);
+    // Recalcular comisión tras cambiar titular
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
     }
 
-    public function updateFechaSalida(Request $request, Flete $flete)
-    {
-        $request->validate([
-            'fecha_salida' => 'required|date',
-        ]);
+    $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
 
-        $flete->update([
-            'fecha_salida' => $request->input('fecha_salida'),
-        ]);
+    return response()->json([
+        'flete' => $flete,
+    ]);
+}
 
-        $fresh = $flete->fresh()->load([
-            'conductor',
-            'clientePrincipal',
-            'destino',
-            'colaborador',
-            'tracto',
-            'rampla',
-            'rendicion',
-            'cliente',
-            'destino',
-        ]);
+public function updateTracto(Request $request, Flete $flete)
+{
+    $request->validate([
+        'tracto_id' => 'nullable|exists:tractos,id',
+    ]);
 
-        return response()->json(['flete' => $fresh]);
+    $flete->update([
+        'tracto_id' => $request->input('tracto_id'),
+    ]);
+
+    // Recalcular comisión tras cambiar tracto
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
     }
 
-    // (Opcional) Método genérico de actualización
-    public function update(Request $request, Flete $flete)
-    {
-        $data = $request->validate([
-            'conductor_id'   => 'nullable|exists:users,id',
-            'colaborador_id' => 'nullable|exists:users,id',
-            'tracto_id'      => 'nullable|exists:tractos,id',
-            'rampla_id'      => 'nullable|exists:ramplas,id',
-            'guiaruta'       => 'nullable|string|max:50',
-            'fecha_salida'   => 'nullable|date',
-        ]);
+    $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
 
-        $flete->fill($data)->save();
-        $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
+    return response()->json([
+        'flete' => $flete,
+    ]);
+}
 
-        return response()->json([
-            'flete' => $flete,
-        ]);
+public function updateRampla(Request $request, Flete $flete)
+{
+    $request->validate([
+        'rampla_id' => 'nullable|exists:ramplas,id',
+    ]);
+
+    $flete->update([
+        'rampla_id' => $request->input('rampla_id'),
+    ]);
+
+    // Recalcular comisión tras cambiar rampla
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
     }
+
+    $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
+
+    return response()->json([
+        'flete' => $flete,
+    ]);
+}
+
+public function updateGuiaRuta(Request $request, Flete $flete)
+{
+    $request->validate([
+        'guiaruta' => 'nullable|string|max:100',
+    ]);
+
+    $flete->update([
+        'guiaruta' => $request->input('guiaruta'),
+    ]);
+
+    // Recalcular comisión tras cambiar guía/ruta
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+    }
+
+    $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
+
+    return response()->json([
+        'flete' => $flete,
+    ]);
+}
+
+public function updateFechaSalida(Request $request, Flete $flete)
+{
+    $request->validate([
+        'fecha_salida' => 'required|date',
+    ]);
+
+    $flete->update([
+        'fecha_salida' => $request->input('fecha_salida'),
+    ]);
+
+    // Recalcular comisión tras cambiar fecha de salida
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+    }
+
+    $fresh = $flete->fresh()->load([
+        'conductor',
+        'clientePrincipal',
+        'destino',
+        'colaborador',
+        'tracto',
+        'rampla',
+        'rendicion',
+        'cliente',
+        'destino',
+    ]);
+
+    return response()->json(['flete' => $fresh]);
+}
+
+public function update(Request $request, Flete $flete)
+{
+    $data = $request->validate([
+        'conductor_id'    => 'nullable|exists:users,id',
+        'colaborador_id'  => 'nullable|exists:users,id',
+        'tracto_id'       => 'nullable|exists:tractos,id',
+        'rampla_id'       => 'nullable|exists:ramplas,id',
+        'guiaruta'        => 'nullable|string|max:50',
+        'fecha_salida'    => 'nullable|date',
+        'fecha_llegada'   => 'nullable|date',
+        'tipo'            => 'nullable|in:Reparto,Directo',
+    ]);
+
+    // 1) Guardar cambios en el flete
+    $flete->fill($data)->save();
+
+    // 2) Recalcular y guardar la rendición si existe
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+    }
+
+    // 3) Recargar el flete con todas las relaciones necesarias
+    $flete = Flete::with([
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'colaborador:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+    ])->findOrFail($flete->id);
+
+    // 4) Exponer campos calculados para la tarjeta
+    $flete->makeVisible(['retorno']);
+    $flete->rendicion->makeVisible([
+        'saldo',
+        'total_gastos',
+        'total_diesel',
+        'viatico_calculado',
+        'comision',
+    ]);
+
+    // 5) Devolver el flete completo
+    return response()->json([
+        'flete' => $flete,
+    ], 200);
+}
+
+
 
     public function suggestTitulares()
     {

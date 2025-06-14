@@ -10,8 +10,6 @@ import {
   ArrowRightOnRectangleIcon,
   ShoppingCartIcon,
   DocumentDuplicateIcon,
-  CurrencyDollarIcon,
-  BanknotesIcon,
   CheckIcon
 } from '@heroicons/react/20/solid'
 import { DayPicker } from 'react-day-picker'
@@ -25,8 +23,6 @@ export default function DetailsGrid({
   setActiveMenu,
   fechaSalidaFormatted,
   fechaLlegadaFormatted,
-  viaticoEfec,
-  saldoTemporal,
   conductores = [],
   colaboradores = [],
   tractos = [],
@@ -47,7 +43,7 @@ export default function DetailsGrid({
   // Error
   const [errorMsg, setErrorMsg] = useState('')
 
-  // On flete change reset texts
+  // Reset texts on flete change
   useEffect(() => {
     setTitularText(flete.conductor?.name || flete.colaborador?.name || '')
     setTractoText(flete.tracto?.patente || '')
@@ -55,7 +51,6 @@ export default function DetailsGrid({
     setGuiaRutaText(flete.guiaruta || '')
   }, [flete])
 
-  // Helpers
   const filterOpts = (list, text) =>
     list.filter(x => (x.name || x.patente).toLowerCase().includes(text.toLowerCase())).slice(0, 10)
 
@@ -74,10 +69,9 @@ export default function DetailsGrid({
     }
   }
 
-  // Fetch top 10 titulares when opening
   const openTitular = async () => {
     setActiveMenu('Titular')
-    setTitularSug([]) // clear while loading
+    setTitularSug([])
     try {
       const { data } = await axios.get(window.route('fletes.suggestTitulares'))
       setTitularSug(data.suggestions)
@@ -86,22 +80,20 @@ export default function DetailsGrid({
     }
   }
 
-  // Prepare static top 10 for tracto/rampla
-  const topTractos  = tractos.slice(0,10)
-  const topRamplas  = ramplas.slice(0,10)
+  const topTractos = tractos.slice(0,10)
   const openRampla = () => {
-  const opening = activeMenu !== 'Rampla'
-  setActiveMenu(opening ? 'Rampla' : null)
-  if (opening) {
-    setRamplaSug(topRamplas)
+    const opening = activeMenu !== 'Rampla'
+    setActiveMenu(opening ? 'Rampla' : null)
+    if (opening) setRamplaSug(topRamplas)
   }
-}
-
+  const topRamplas = ramplas.slice(0,10)
 
   return (
     <div className="overflow-x-auto scrollbar-thin mb-4">
       {errorMsg && <div className="mb-2 text-sm text-red-600 px-2">{errorMsg}</div>}
-      <div className="grid min-w-0 grid-cols-[1fr_1fr_auto] gap-x-4 gap-y-2 text-sm text-gray-700">
+
+      {/* Dos columnas: izquierda y derecha */}
+      <div className="grid min-w-0 grid-cols-[1fr_1fr] gap-x-4 gap-y-2 text-sm text-gray-700">
 
         {/* Titular */}
         <div className="relative whitespace-nowrap">
@@ -151,11 +143,11 @@ export default function DetailsGrid({
         <div className="relative whitespace-nowrap">
           <button
             data-toggle-type="GuiaRuta"
-            onClick={()=>setActiveMenu(activeMenu==='GuiaRuta'?null:'GuiaRuta')}
+            onClick={() => setActiveMenu(activeMenu==='GuiaRuta'?null:'GuiaRuta')}
             className="flex items-center gap-x-2 w-full"
           >
             <DocumentDuplicateIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
-            <span className="truncate px-1">{guiaRutaText||'—'}</span>
+            <span className="truncate px-1">{guiaRutaText || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='GuiaRuta'} type="GuiaRuta">
@@ -186,24 +178,15 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Comisión */}
-        <div className="flex items-center justify-end gap-x-2 text-green-600">
-          <CurrencyDollarIcon className="h-5 w-5 flex-shrink-0"/>
-          <span className="px-1">${flete.rendicion?.comision?.toLocaleString('es-CL')||'—'}</span>
-        </div>
-
         {/* Tracto */}
         <div className="relative whitespace-nowrap">
           <button
             data-toggle-type="Tracto"
-            onClick={() => {
-              setActiveMenu('Tracto')
-              setTractoSug(topTractos)
-            }}
+            onClick={() => { setActiveMenu('Tracto'); setTractoSug(topTractos) }}
             className="flex items-center gap-x-2 w-full"
           >
             <TruckIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
-            <span className="truncate px-1">{tractoText||'—'}</span>
+            <span className="truncate px-1">{tractoText || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='Tracto'} type="Tracto">
@@ -243,7 +226,7 @@ export default function DetailsGrid({
         <div className="relative whitespace-nowrap">
           <button
             data-toggle-type="Salida"
-            onClick={()=>setActiveMenu(activeMenu==='Salida'?null:'Salida')}
+            onClick={() => setActiveMenu(activeMenu==='Salida'?null:'Salida')}
             className="flex items-center gap-x-2 w-full"
           >
             <CalendarDaysIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
@@ -267,24 +250,15 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Viático */}
-        <div className="flex items-center justify-end gap-x-2 text-green-600">
-          <CalendarDaysIcon className="h-5 w-5 text-green-600 flex-shrink-0"/>
-          <span className="px-1">${viaticoEfec.toLocaleString('es-CL')}</span>
-        </div>
-
         {/* Rampla */}
         <div className="relative whitespace-nowrap">
           <button
             data-toggle-type="Rampla"
-            onClick={() => {
-              setActiveMenu('Rampla')
-              setRamplaSug(topRamplas)
-            }}
+            onClick={() => { setActiveMenu('Rampla'); setRamplaSug(topRamplas) }}
             className="flex items-center gap-x-2 w-full"
           >
             <ShoppingCartIcon className="h-6 w-6 text-sky-800 flex-shrink-0"/>
-            <span className="truncate px-1">{ramplaText||'—'}</span>
+            <span className="truncate px-1">{ramplaText || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='Rampla'} type="Rampla">
@@ -326,14 +300,6 @@ export default function DetailsGrid({
           <span className="px-1">{fechaLlegadaFormatted}</span>
         </div>
 
-        {/* Saldo */}
-        <div className={classNames(
-          'flex items-center gap-x-2 justify-end',
-          saldoTemporal >= 0 ? 'text-green-600' : 'text-red-600'
-        )}>
-          <BanknotesIcon className="h-5 w-5 flex-shrink-0"/>
-          <span className="px-1">${saldoTemporal.toLocaleString('es-CL')}</span>
-        </div>
       </div>
     </div>
   )

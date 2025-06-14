@@ -150,19 +150,42 @@ class Rendicion extends Model
      *  saldo = abonos - total_gastos - total_diesel - viatico
      */
     public function recalcularTotales(): void
-    {
-        try {
-            $abonos = $this->abonos()->sum('monto');
-            $gastos = $this->gastos()->sum('monto');
-            $diesel = $this->diesels()->where('metodo_pago', '!=', 'Crédito')->sum('monto');
-            $viatico = $this->viatico ?? $this->viatico_calculado ?? 0;
+{
+    try {
+        // 1) Sumar abonos, gastos y diesel
+        $abonos  = $this->abonos()->sum('monto');
+        $gastos  = $this->gastos()->sum('monto');
+        $diesel  = $this->diesels()
+                        ->where('metodo_pago', '!=', 'Crédito')
+                        ->sum('monto');
 
-            $this->saldo = $abonos - $gastos - $diesel - $viatico;
-            $this->save();
-        } catch (\Throwable $e) {
-            \Log::error('Error al recalcular totales: ' . $e->getMessage());
-        }
+        // 2) Viático: si no hay efec ni calculado, cero
+        $viatico = $this->viatico_efectivo
+                   ?? $this->viatico_calculado
+                   ?? 0;
+
+        // 3) Saldo
+        $this->saldo = $abonos - $gastos - $diesel - $viatico;
+
+        // 4) Comisión fija de la tarifa (o cero si no existe)
+        $fija = optional($this->flete->tarifa)->comision ?? 0;
+
+        // 5) Comisión manual (gastos de tipo 'Comisión') o atributo existente
+        //    Si $this->comision ya tuviera un valor manual, lo sumamos.
+        $manual = $this->comisiones()->sum('monto')
+                ?? $this->comision
+                ?? 0;
+
+        // 6) Total de comisión = fija + manual
+        $this->comision = $fija + $manual;
+
+        // 7) Guardar todos los cambios
+        $this->save();
+    } catch (\Throwable $e) {
+        \Log::error('Error al recalcular totales: ' . $e->getMessage());
     }
+}
+
 
     /**
      * Scope para filtrar por flete.
