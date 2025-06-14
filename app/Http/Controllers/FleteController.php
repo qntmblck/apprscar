@@ -189,7 +189,6 @@ class FleteController extends Controller
     $tarifa = Tarifa::where('destino_id', $flete->destino_id)
                     ->where('tipo', $flete->tipo)
                     ->first();
-
     if ($tarifa) {
         $flete->tarifa_id = $tarifa->id;
         $flete->save();
@@ -203,11 +202,19 @@ class FleteController extends Controller
         'viatico_calculado' => 0,
     ]);
 
-    // ← Aquí nos aseguramos de recalcular los totales (incluida la comisión)
-    $rendicion->recalcularTotales();
+    // 5) Recalcular totales (incluye viáticos, saldo y comisiones)
+    //    y capturar mensaje de descuento si aplica
+    $mensajeDescuento = $rendicion->recalcularTotales();
+
+    // 6) Flash message si hubo descuento de viático
+    if ($mensajeDescuento) {
+        session()->flash('info', $mensajeDescuento);
+    }
+
+    // 7) Forzar guardado tras recálculo
     $rendicion->save();
 
-    // 5) Recargar el flete con su rendición y relaciones necesarias
+    // 8) Recargar el flete con sus relaciones necesarias
     $flete->load([
         'clientePrincipal:id,razon_social',
         'conductor:id,name',
@@ -215,10 +222,11 @@ class FleteController extends Controller
         'tracto:id,patente',
         'rampla:id,patente',
         'destino:id,nombre',
+        'tarifa:id,valor_comision',             // para exponer tarifa al front
         'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
     ]);
 
-    // 6) Responder igual que antes (JSON o redirect)
+    // 9) Responder igual que antes (JSON o redirect)
     if ($request->expectsJson()) {
         return response()->json([
             'message' => 'Flete “borrador” creado correctamente.',
@@ -230,6 +238,7 @@ class FleteController extends Controller
         ->route('fletes.index')
         ->with('success', 'Flete “borrador” creado correctamente.');
 }
+
 
 
 

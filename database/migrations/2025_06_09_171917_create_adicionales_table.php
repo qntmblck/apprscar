@@ -10,9 +10,17 @@ class CreateAdicionalesTable extends Migration
     {
         Schema::create('adicionales', function (Blueprint $table) {
             $table->id();
+
+            // Relación con fletes
             $table->foreignId('flete_id')
                   ->constrained('fletes')
                   ->onDelete('cascade');
+
+            // Relación con rendiciones
+            $table->foreignId('rendicion_id')
+                  ->constrained('rendicions')
+                  ->onDelete('cascade');
+
             $table->string('tipo');
             $table->decimal('monto', 12, 2);
             $table->text('descripcion')->nullable();

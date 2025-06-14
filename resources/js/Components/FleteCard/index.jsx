@@ -245,12 +245,19 @@ function FleteCard({
           </div>
 
           <BackDetails
-            registros={detallesBack}
-            viaticoEfec={viaticoEfec}
-            saldoTemporal={saldoTemporal}
-            onEliminarRegistro={handleEliminarRegistro}
-            isSubmitting={isSubmitting}
-          />
+  registros={flete.rendicion.gastos.concat(
+    flete.rendicion.diesels,
+    flete.rendicion.abonos
+  )}
+  adicionales={flete.rendicion.gastos.filter(g => g.tipo === 'Adicional')}
+  comision={flete.comision}
+  viaticoEfec={flete.rendicion.viatico_calculado}
+  saldoTemporal={flete.rendicion.saldo}
+  onEliminarRegistro={handleEliminarRegistro}
+  isSubmitting={isSubmitting}
+/>
+
+
 
           <BackTabs
             flete={flete}

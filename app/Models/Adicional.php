@@ -13,6 +13,7 @@ class Adicional extends Model
 
     protected $fillable = [
         'flete_id',
+        'rendicion_id',
         'tipo',        // p.ej. 'demora', 'peaje', …
         'monto',       // valor en pesos
         'descripcion', // opcional
@@ -24,5 +25,13 @@ class Adicional extends Model
     public function flete()
     {
         return $this->belongsTo(Flete::class, 'flete_id');
+    }
+
+    /**
+     * Un adicional pertenece a una rendición.
+     */
+    public function rendicion()
+    {
+        return $this->belongsTo(Rendicion::class, 'rendicion_id');
     }
 }

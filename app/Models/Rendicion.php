@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
+use App\Models\Flete;
+
 
 class Rendicion extends Model
 {
@@ -149,7 +151,8 @@ class Rendicion extends Model
      * Método que recalcula y persiste el saldo definitivo:
      *  saldo = abonos - total_gastos - total_diesel - viatico
      */
-    public function recalcularTotales(): void
+    // en app/Models/Rendicion.php
+public function recalcularTotales(): void
 {
     try {
         // 1) Sumar abonos, gastos y diesel
@@ -159,32 +162,31 @@ class Rendicion extends Model
                         ->where('metodo_pago', '!=', 'Crédito')
                         ->sum('monto');
 
-        // 2) Viático: si no hay efec ni calculado, cero
+        // 2) Viático: si no hay viático efectivo ni calculado, cero
         $viatico = $this->viatico_efectivo
                    ?? $this->viatico_calculado
                    ?? 0;
 
-        // 3) Saldo
+        // 3) Calcular saldo
         $this->saldo = $abonos - $gastos - $diesel - $viatico;
 
         // 4) Comisión fija de la tarifa (o cero si no existe)
-        $fija = optional($this->flete->tarifa)->comision ?? 0;
+        $fija = optional($this->flete->tarifa)->valor_comision ?? 0;
 
-        // 5) Comisión manual (gastos de tipo 'Comisión') o atributo existente
-        //    Si $this->comision ya tuviera un valor manual, lo sumamos.
-        $manual = $this->comisiones()->sum('monto')
-                ?? $this->comision
-                ?? 0;
+        // 5) Comisión manual: suma de registros de tipo 'Comisión' (o cero si no hay)
+        $manual = $this->comisiones()->sum('monto') ?? 0;
 
         // 6) Total de comisión = fija + manual
         $this->comision = $fija + $manual;
 
-        // 7) Guardar todos los cambios
+        // 7) Guardar todos los cambios juntos
         $this->save();
     } catch (\Throwable $e) {
         \Log::error('Error al recalcular totales: ' . $e->getMessage());
     }
 }
+
+
 
 
     /**
