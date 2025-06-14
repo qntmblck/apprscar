@@ -1,4 +1,3 @@
-// resources/js/Pages/Fletes/Index.jsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm, usePage } from '@inertiajs/react'
@@ -194,15 +193,59 @@ export default function Index({
     return () => window.removeEventListener('toggleShowAll', toggle)
   }, [])
 
-  // Handlers para dropdowns internos de FleteCard
-  const onSelectTitular     = useCallback(opt => console.log('Titular:', opt), [])
-  const onSelectFechaSalida = useCallback(date => console.log('Fecha salida:', date), [])
-  const onSelectTracto      = useCallback(opt => console.log('Tracto:', opt), [])
-  const onSelectRampla      = useCallback(opt => console.log('Rampla:', opt), [])
-  const onSelectGuiaRuta    = useCallback(text => console.log('Guía/Ruta:', text), [])
+  // **Handlers de edición de DetailsGrid:**
+  const onSelectTitular     = useCallback(async (id, opt) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/titular`, {
+        conductor_id: opt.id,
+        colaborador_id: null,
+      })
+      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+    } catch {
+      alert('Error guardando titular')
+    }
+  }, [actualizarFleteEnLista])
+
+  const onSelectTracto      = useCallback(async (id, opt) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/tracto`, { tracto_id: opt.id })
+      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+    } catch {
+      alert('Error guardando tracto')
+    }
+  }, [actualizarFleteEnLista])
+
+  const onSelectRampla      = useCallback(async (id, opt) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/rampla`, { rampla_id: opt.id })
+      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+    } catch {
+      alert('Error guardando rampla')
+    }
+  }, [actualizarFleteEnLista])
+
+  const onSelectGuiaRuta    = useCallback(async (id, text) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/guiaruta`, { guiaruta: text })
+      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+    } catch {
+      alert('Error guardando guía/ruta')
+    }
+  }, [actualizarFleteEnLista])
+
+  const onSelectFechaSalida = useCallback(async (id, date) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/fecha-salida`, {
+        fecha_salida: date.toISOString(),
+      })
+      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+    } catch {
+      alert('Error guardando fecha de salida')
+    }
+  }, [actualizarFleteEnLista])
 
   // Paginación
-  const { current_page, last_page, prev_page_url, next_page_url, per_page } = paginatedFletes
+  const { current_page, last_page, prev_page_url, next_page_url } = paginatedFletes
 
   return (
     <AuthenticatedLayout user={auth.user}>
@@ -247,7 +290,6 @@ export default function Index({
         handleRangeSelect={handleRangeSelect}
       />
 
-      {/* LISTA DE TARJETAS */}
       <FleteList
         fletesState={fletesState}
         openForm={openForm}
@@ -258,6 +300,21 @@ export default function Index({
         actualizarFleteEnLista={actualizarFleteEnLista}
         submitForm={submitForm}
         onEliminarRegistro={eliminarRegistro}
+
+        /** Listas necesarias para DetailsGrid **/
+        conductores={conductores}
+        colaboradores={colaboradores}
+        clientes={clientes}
+        tractos={tractos}
+        destinos={destinos}
+        ramplas={ramplas}
+        guias={guias}
+
+        onSelectTitular={onSelectTitular}
+        onSelectTracto={onSelectTracto}
+        onSelectRampla={onSelectRampla}
+        onSelectGuiaRuta={onSelectGuiaRuta}
+        onSelectFechaSalida={onSelectFechaSalida}
       />
 
       <Pagination

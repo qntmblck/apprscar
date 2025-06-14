@@ -12,11 +12,23 @@ export default function FleteList({
   actualizarFleteEnLista,
   submitForm,
   onEliminarRegistro,
+  // añadidos:
+  conductores,
+  colaboradores,
+  clientes,
+  tractos,
+  destinos,
+  ramplas,
+  guias,
+  onSelectTitular,
+  onSelectTracto,
+  onSelectRampla,
+  onSelectGuiaRuta,
+  onSelectFechaSalida,
 }) {
   const allCards = useMemo(
     () =>
       fletesState.map(flete => (
-        // Reducimos el padding a p-1 para espacios más ajustados
         <div key={flete.id} className="relative p-1 h-full">
           <FleteCard
             flete={flete}
@@ -26,6 +38,22 @@ export default function FleteList({
             actualizarFleteEnLista={actualizarFleteEnLista}
             submitForm={submitForm}
             onEliminarRegistro={onEliminarRegistro}
+
+            /** listas para DetailsGrid **/
+            conductores={conductores}
+            colaboradores={colaboradores}
+            clientes={clientes}
+            tractos={tractos}
+            destinos={destinos}
+            ramplas={ramplas}
+            guias={guias}
+
+            // forwardamos los handlers de DetailsGrid
+            onSelectTitular={onSelectTitular}
+            onSelectTracto={onSelectTracto}
+            onSelectRampla={onSelectRampla}
+            onSelectGuiaRuta={onSelectGuiaRuta}
+            onSelectFechaSalida={onSelectFechaSalida}
           />
         </div>
       )),
@@ -37,6 +65,18 @@ export default function FleteList({
       actualizarFleteEnLista,
       submitForm,
       onEliminarRegistro,
+      conductores,
+      colaboradores,
+      clientes,
+      tractos,
+      destinos,
+      ramplas,
+      guias,
+      onSelectTitular,
+      onSelectTracto,
+      onSelectRampla,
+      onSelectGuiaRuta,
+      onSelectFechaSalida,
     ]
   )
 
@@ -44,7 +84,6 @@ export default function FleteList({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Grid: 1 columna en XS, 2 en SM/MD, 3 en LG+, gap reducido a 0.25rem */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1">
         {displayCards}
       </div>

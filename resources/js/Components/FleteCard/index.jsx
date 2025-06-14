@@ -30,6 +30,8 @@ function FleteCard({
   tractos = [],
   ramplas = [],
   guias = [],
+
+  // handlers de edición
   onSelectTitular,
   onSelectFechaSalida,
   onSelectTracto,
@@ -45,7 +47,9 @@ function FleteCard({
   // temp guía/ruta
   const [tempGuia, setTempGuia] = useState(flete.guiaruta || '')
   useEffect(() => {
-    if (activeMenu === 'GuiaRuta') setTempGuia(flete.guiaruta || '')
+    if (activeMenu === 'GuiaRuta') {
+      setTempGuia(flete.guiaruta || '')
+    }
   }, [activeMenu, flete.guiaruta])
 
   // cerrar dropdown si clic fuera
@@ -83,26 +87,29 @@ function FleteCard({
     }
   }, [flete.id, actualizarFleteEnLista])
 
-  const handleEliminarRegistro = useCallback(async registro => {
-    if (!confirm('¿Eliminar este registro?')) return
-    setIsSubmitting(true)
-    try {
-      let url
-      if ('litros' in registro) url = `/diesels/${registro.id}`
-      else if (registro.tipo === 'Comisión') url = `/comisiones/${registro.id}`
-      else if (registro.tipo) url = `/gastos/${registro.id}`
-      else if (registro.metodo === 'Retorno') url = `/retornos/${registro.id}`
-      else url = `/abonos/${registro.id}`
+  const handleEliminarRegistro = useCallback(
+    async registro => {
+      if (!confirm('¿Eliminar este registro?')) return
+      setIsSubmitting(true)
+      try {
+        let url
+        if ('litros' in registro) url = `/diesels/${registro.id}`
+        else if (registro.tipo === 'Comisión') url = `/comisiones/${registro.id}`
+        else if (registro.tipo) url = `/gastos/${registro.id}`
+        else if (registro.metodo === 'Retorno') url = `/retornos/${registro.id}`
+        else url = `/abonos/${registro.id}`
 
-      await axios.delete(url)
-      const res = await axios.get(`/fletes/${flete.id}`)
-      if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
-    } catch (e) {
-      alert('Error eliminando: ' + (e.response?.data?.message || e.message))
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [flete.id, actualizarFleteEnLista])
+        await axios.delete(url)
+        const res = await axios.get(`/fletes/${flete.id}`)
+        if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+      } catch (e) {
+        alert('Error eliminando: ' + (e.response?.data?.message || e.message))
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+    [flete.id, actualizarFleteEnLista]
+  )
 
   // Memoizados: fechas y montos
   const fechaSalidaFormatted = useMemo(
@@ -110,7 +117,10 @@ function FleteCard({
     [flete.fecha_salida]
   )
   const fechaLlegadaFormatted = useMemo(
-    () => (flete.fecha_llegada ? formatDateSimple(flete.fecha_llegada) : 'No registrada'),
+    () =>
+      flete.fecha_llegada
+        ? formatDateSimple(flete.fecha_llegada)
+        : 'No registrada',
     [flete.fecha_llegada]
   )
   const viaticoEfec = useMemo(
@@ -125,9 +135,9 @@ function FleteCard({
   // Registros recientes y completos
   const ultimosRegistros = useMemo(() => {
     const lista = [
-      ...(flete.rendicion?.abonos      || []),
-      ...(flete.rendicion?.diesels     || []),
-      ...(flete.rendicion?.gastos      || []),
+      ...(flete.rendicion?.abonos || []),
+      ...(flete.rendicion?.diesels || []),
+      ...(flete.rendicion?.gastos || []),
       ...(flete.rendicion?.adicionales || []),
     ]
     lista.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
@@ -136,22 +146,33 @@ function FleteCard({
 
   const detallesBack = useMemo(() => {
     const lista = [
-      ...(flete.rendicion?.abonos      || []),
-      ...(flete.rendicion?.diesels     || []),
-      ...(flete.rendicion?.gastos      || []),
+      ...(flete.rendicion?.abonos || []),
+      ...(flete.rendicion?.diesels || []),
+      ...(flete.rendicion?.gastos || []),
       ...(flete.rendicion?.adicionales || []),
-      ...(flete.rendicion?.retornos    || []),
-      ...(flete.rendicion?.comisiones  || []),
+      ...(flete.rendicion?.retornos || []),
+      ...(flete.rendicion?.comisiones || []),
     ]
     return lista.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   }, [flete.rendicion])
 
   return (
-    <div className={`flete-card w-full h-full ${formAbierto ? 'expanded' : ''}`}>
-      <div className={`flete-card-inner h-full ${flipped ? 'rotate-y-180' : ''}`}>
-
+    <div
+      className={`flete-card w-full h-full ${
+        formAbierto ? 'expanded' : ''
+      }`}
+    >
+      <div
+        className={`flete-card-inner h-full ${
+          flipped ? 'rotate-y-180' : ''
+        }`}
+      >
         {/* Cara Frontal */}
-        <div className={`flete-card-front bg-white border border-gray-200 shadow rounded-lg p-4 ${!flipped ? 'active' : ''}`}>
+        <div
+          className={`flete-card-front bg-white border border-gray-200 shadow rounded-lg p-4 ${
+            !flipped ? 'active' : ''
+          }`}
+        >
           <Header
             flete={flete}
             flipped={flipped}
@@ -182,7 +203,9 @@ function FleteCard({
             onSelectGuiaRuta={onSelectGuiaRuta}
           />
 
-          {errorCierre && <div className="error-cierre">{errorCierre}</div>}
+          {errorCierre && (
+            <div className="error-cierre">{errorCierre}</div>
+          )}
 
           <div className="ultimos-registros space-y-1 text-xs">
             {ultimosRegistros.map((r, i) => (
@@ -207,9 +230,16 @@ function FleteCard({
         </div>
 
         {/* Cara Trasera */}
-        <div className={`flete-card-back bg-white border border-gray-200 shadow rounded-lg p-4 ${flipped ? 'active' : ''}`}>
+        <div
+          className={`flete-card-back bg-white border border-gray-200 shadow rounded-lg p-4 ${
+            flipped ? 'active' : ''
+          }`}
+        >
           <div className="flex justify-end">
-            <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
+            <button
+              onClick={handleFlip}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <XMarkIcon className="w-5 h-5" />
             </button>
           </div>

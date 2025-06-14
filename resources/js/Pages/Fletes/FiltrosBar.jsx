@@ -18,7 +18,7 @@ export default function FiltrosBar({
   clientes, conductores, colaboradores, tractos, destinos,
   handleToggleMultiSelect, handleCreateClick, handleClear,
   hasDest, hasClient, tooManyMulti, hasFilters, handleRangeSelect,
-  // errorMensaje is now displayed only once (in Index), so we omit it here
+  topDestinos = destinos.slice(0, 10), // ← fallback a primeros 10
 }) {
   return (
     <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
@@ -64,7 +64,13 @@ export default function FiltrosBar({
           icon={MapPinIcon}
           label="Destino"
           isActive={activeTab === 'Destino'}
-          onClick={() => setActiveTab(activeTab === 'Destino' ? '' : 'Destino')}
+          onClick={() => {
+            const opening = activeTab !== 'Destino'
+            setActiveTab(opening ? 'Destino' : '')
+            if (opening) {
+              setSuggestions(topDestinos)
+            }
+          }}
         >
           <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
             <div className="p-2">
@@ -72,13 +78,20 @@ export default function FiltrosBar({
                 type="text"
                 placeholder="Destino..."
                 value={data.destino}
+                onFocus={() => {
+                  // al enfocar, mostrar sugerencias iniciales
+                  setSuggestions(topDestinos)
+                }}
                 onChange={e => {
-                  setData('destino', e.target.value)
+                  const v = e.target.value
+                  setData('destino', v)
                   setData('destino_id', '')
                   setSuggestions(
-                    destinos
-                      .filter(d => d.nombre.toLowerCase().includes(e.target.value.toLowerCase()))
-                      .slice(0, 10)
+                    v.trim() === ''
+                      ? topDestinos
+                      : destinos
+                          .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
+                          .slice(0, 10)
                   )
                 }}
                 className="w-full px-2 py-1 text-base border rounded focus:outline-none"
