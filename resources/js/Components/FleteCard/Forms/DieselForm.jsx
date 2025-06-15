@@ -1,7 +1,6 @@
 // resources/js/Components/Forms/DieselForm.jsx
-
 import { useState } from 'react'
-import { CameraIcon } from '@heroicons/react/20/solid'
+import { CameraIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid'
 
 export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, onSuccess }) {
   const [form, setForm] = useState({
@@ -24,13 +23,11 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
   const handleSend = async () => {
     setError(null)
 
-    // Validaciones simples
     if (!form.monto || !form.litros || !form.metodo_pago) {
       setError('Completa todos los campos obligatorios.')
       return
     }
 
-    // Armar FormData (porque puede venir una foto)
     const payload = new FormData()
     payload.append('flete_id', fleteId)
     payload.append('rendicion_id', rendicionId)
@@ -42,19 +39,11 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
     }
 
     try {
-      // onSubmit(payload) internamente hace axios.post('/diesel', payload)
       const res = await onSubmit(payload)
-
-      // Si recibimos el flete actualizado, disparar onSuccess y mostrar mensaje
       if (res?.data?.flete) {
         onSuccess(res.data.flete)
-
-        // Limpiar campos del formulario
         setForm({ monto: '', litros: '', metodo_pago: '', foto: null })
-
-        // Mostrar mensaje de éxito
         setExito(true)
-        // Ocultar mensaje tras 2 segundos
         setTimeout(() => setExito(false), 2000)
       } else {
         throw new Error('No se devolvió el flete actualizado.')
@@ -72,14 +61,16 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner text-xs w-full">
+      {/* Error */}
       {error && (
         <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded mb-2">
           ❌ {error}
         </div>
       )}
 
-      {/* Formulario principal */}
+      {/* Formulario */}
       <div className="grid grid-cols-2 gap-2">
+        {/* Monto */}
         <input
           type="text"
           inputMode="numeric"
@@ -90,6 +81,8 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
           onChange={handleChange}
           className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
         />
+
+        {/* Litros */}
         <input
           type="text"
           inputMode="numeric"
@@ -101,6 +94,7 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
           className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
         />
 
+        {/* Método de pago */}
         <select
           name="metodo_pago"
           value={form.metodo_pago}
@@ -113,38 +107,39 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
           <option value="Crédito">Crédito</option>
         </select>
 
-        <label
-          htmlFor={`foto-${fleteId}`}
-          className="flex items-center justify-center gap-1 bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px] transition-colors"
-        >
-          <CameraIcon className="w-4 h-4" />
-          Foto
-          <input
-            id={`foto-${fleteId}`}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            name="foto"
-            onChange={handleChange}
-            className="hidden"
-          />
-        </label>
-
-        <button
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSend}
-          className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
-        >
-          Enviar
-        </button>
+        {/* Cámara + Enviar en misma celda */}
+        <div className="flex h-full overflow-hidden rounded-lg shadow-md">
+          <label
+            htmlFor={`foto-${fleteId}`}
+            className="group relative flex-shrink-0 w-1/2 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 ease-out cursor-pointer"
+          >
+            <CameraIcon className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
+            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
+              Tomar foto
+            </span>
+            <input
+              id={`foto-${fleteId}`}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              name="foto"
+              onChange={handleChange}
+              className="hidden"
+            />
+          </label>
+          <button
+            onClick={handleSend}
+            className="group relative flex-grow flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 ease-out"
+          >
+            <PaperAirplaneIcon className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200" />
+            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
+              Enviar
+            </span>
+          </button>
+        </div>
       </div>
 
-      {/* Mensaje de éxito */}
+      {/* Éxito */}
       {exito && (
         <div className="text-green-600 text-[10px] bg-green-100 p-2 rounded mt-2">
           ✔️ Registrado correctamente

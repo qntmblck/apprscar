@@ -263,22 +263,22 @@ function FleteCard({
 
           <BackDetails
   registros={[
-    ...(flete.rendicion?.gastos     || []),
-    ...(flete.rendicion?.diesels    || []),
-    ...(flete.rendicion?.abonos     || []),
+    ...(flete.rendicion?.gastos      || []),
+    ...(flete.rendicion?.diesels     || []),
+    ...(flete.rendicion?.abonos      || []),
     // force these to be recognized as "Adicional"
     ...(flete.rendicion?.adicionales || []).map(a => ({
       ...a,
       tipo: 'Adicional',
     })),
-    // only include Comision when it's > 0
+    // only include Comisión when it's > 0
     ...(flete.rendicion?.comision > 0
       ? [{
-          id:         flete.rendicion.id,
-          tipo:       'Comisión',
-          descripcion:'',
-          monto:      flete.rendicion.comision,
-          created_at: flete.rendicion.updated_at,
+          id:          `com-${flete.rendicion.id}`,
+          tipo:        'Comisión',
+          descripcion: '',
+          monto:       flete.rendicion.comision,
+          created_at:  flete.rendicion.updated_at,
         }]
       : []),
   ]}
