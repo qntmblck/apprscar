@@ -71,11 +71,19 @@ class FleteController extends Controller
             'destino:id,nombre',
             // rendición y colecciones
             'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
-            'rendicion.gastos'      => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderBy('id','desc'),
-            'rendicion.diesels'     => fn($q) => $q->select(['id','rendicion_id','litros','metodo_pago','monto','created_at'])->orderBy('id','desc'),
-            'rendicion.abonos'      => fn($q) => $q->select(['id','rendicion_id','metodo','monto','created_at'])->orderBy('id','desc'),
-            'rendicion.adicionales' => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderBy('id','desc'),
-            'rendicion.comisiones'  => fn($q) => $q->select(['id','rendicion_id','monto','created_at'])->orderBy('id','desc'),
+            'rendicion.gastos'      => fn($q) => $q
+                                            ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
+                                            ->orderBy('id','desc'),
+            'rendicion.diesels'     => fn($q) => $q
+                                            ->select(['id','rendicion_id','litros','metodo_pago','monto','created_at'])
+                                            ->orderBy('id','desc'),
+            'rendicion.abonos'      => fn($q) => $q
+                                            ->select(['id','rendicion_id','metodo','monto','created_at'])
+                                            ->orderBy('id','desc'),
+            'rendicion.adicionales' => fn($q) => $q
+                                            ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
+                                            ->orderBy('id','desc'),
+            // ← eliminada 'rendicion.comisiones'
         ])
         // Filtro “Titular”: conductor OR colaborador
         ->when(
@@ -132,7 +140,9 @@ class FleteController extends Controller
             $request->filled('destino'),
             function($q) use ($request) {
                 $term = strtoupper($request->input('destino'));
-                $q->whereHas('destino', fn($q2) => $q2->whereRaw('UPPER(nombre) LIKE ?', ["%{$term}%"]));
+                $q->whereHas('destino', fn($q2) =>
+                    $q2->whereRaw('UPPER(nombre) LIKE ?', ["%{$term}%"])
+                );
             }
         )
         // Orden descendente por fecha_salida
@@ -155,6 +165,7 @@ class FleteController extends Controller
         ],
     ]);
 }
+
 
 
     public function store(Request $request)

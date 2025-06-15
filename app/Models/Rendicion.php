@@ -61,28 +61,28 @@ class Rendicion extends Model
     public function gastos()
     {
         return $this->hasMany(Gasto::class)
-                    ->select(['id','rendicion_id','tipo','descripcion','monto','created_at']);
+                    ->select(['id', 'rendicion_id', 'tipo', 'descripcion', 'monto', 'created_at']);
     }
 
     /** Relación con Diesel */
     public function diesels()
     {
         return $this->hasMany(Diesel::class)
-                    ->select(['id','rendicion_id','litros','metodo_pago','monto','foto','created_at']);
+                    ->select(['id', 'rendicion_id', 'litros', 'metodo_pago', 'monto', 'foto', 'created_at']);
     }
 
     /** Relación con AbonoCaja */
     public function abonos()
     {
         return $this->hasMany(AbonoCaja::class)
-                    ->select(['id','rendicion_id','metodo','monto','created_at']);
+                    ->select(['id', 'rendicion_id', 'metodo', 'monto', 'created_at']);
     }
 
     /** Relación con Adicional */
     public function adicionales()
     {
         return $this->hasMany(Adicional::class)
-                    ->select(['id','rendicion_id','tipo','descripcion','monto','created_at']);
+                    ->select(['id', 'rendicion_id', 'tipo', 'descripcion', 'monto', 'created_at']);
     }
 
     /** Relación polimórfica con Documento */
@@ -101,7 +101,7 @@ class Rendicion extends Model
     public function getTotalDieselAttribute(): int
     {
         return $this->diesels()
-                    ->where('metodo_pago','!=','Crédito')
+                    ->where('metodo_pago', '!=', 'Crédito')
                     ->sum('monto');
     }
 
@@ -130,36 +130,29 @@ class Rendicion extends Model
      */
     public function recalcularTotales(): ?string
     {
-        $mensajeDescuento = null;
-
         try {
-            // 1) Abonos, gastos y diesel
             $abonos = $this->abonos()->sum('monto');
             $gastos = $this->gastos()->sum('monto');
             $diesel = $this->diesels()
-                          ->where('metodo_pago','!=','Crédito')
+                          ->where('metodo_pago', '!=', 'Crédito')
                           ->sum('monto');
 
-            // 2) Viático
             $viatico = $this->attributes['viatico_efectivo']
                        ?? $this->attributes['viatico_calculado']
                        ?? 0;
 
-            // 3) Saldo
             $this->saldo = $abonos - $gastos - $diesel - $viatico;
 
-            // 4) Comisión fija + manual
             $fija   = optional($this->flete->tarifa)->valor_comision ?? 0;
             $manual = $this->attributes['comision'] ?? 0;
             $this->comision = $fija + $manual;
 
-            // 5) Guardar
             $this->save();
         } catch (\Throwable $e) {
             \Log::error('Error al recalcular totales: ' . $e->getMessage());
         }
 
-        return $mensajeDescuento;
+        return null;
     }
 
     // Scopes
