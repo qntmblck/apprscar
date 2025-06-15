@@ -69,10 +69,13 @@ class FleteController extends Controller
             'tracto:id,patente',
             'rampla:id,patente',
             'destino:id,nombre',
+            // rendición y colecciones
             'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
-            'rendicion.gastos'  => fn($q) => $q->select(['id','rendicion_id','monto','descripcion','tipo','created_at'])->orderBy('id','desc'),
-            'rendicion.diesels' => fn($q) => $q->select(['id','rendicion_id','monto','litros','metodo_pago','created_at'])->orderBy('id','desc'),
-            'rendicion.abonos'  => fn($q) => $q->select(['id','rendicion_id','monto','metodo','created_at'])->orderBy('id','desc'),
+            'rendicion.gastos'      => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderBy('id','desc'),
+            'rendicion.diesels'     => fn($q) => $q->select(['id','rendicion_id','litros','metodo_pago','monto','created_at'])->orderBy('id','desc'),
+            'rendicion.abonos'      => fn($q) => $q->select(['id','rendicion_id','metodo','monto','created_at'])->orderBy('id','desc'),
+            'rendicion.adicionales' => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderBy('id','desc'),
+            'rendicion.comisiones'  => fn($q) => $q->select(['id','rendicion_id','monto','created_at'])->orderBy('id','desc'),
         ])
         // Filtro “Titular”: conductor OR colaborador
         ->when(
@@ -152,6 +155,7 @@ class FleteController extends Controller
         ],
     ]);
 }
+
 
     public function store(Request $request)
 {

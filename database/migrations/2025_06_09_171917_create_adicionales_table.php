@@ -18,7 +18,7 @@ class CreateAdicionalesTable extends Migration
 
             // Relación con rendiciones
             $table->foreignId('rendicion_id')
-                  ->constrained('rendicions')
+                  ->constrained('rendiciones')
                   ->onDelete('cascade');
 
             $table->string('tipo');

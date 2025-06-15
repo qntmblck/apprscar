@@ -17,6 +17,7 @@ use App\Models\Rendicion;
 use App\Models\Diesel;
 use App\Models\Gasto;
 use App\Models\AbonoCaja;
+use App\Models\Adicional;
 use Database\Factories\ClienteFactory;
 use Database\Factories\DestinoFactory;
 use Database\Factories\TractoFactory;
@@ -81,12 +82,12 @@ class FleteSeeder extends Seeder
             }
         }
 
-        // 5) Generar 500 fletes + expendables (Ene–Jun 2025, llegada a 0–5 días)
-        $inicioPeriodo = Carbon::create(2025, 7, 30);   // 1 Ene 2025
-$finPeriodo    = Carbon::create(2025, 12, 30);  // 30 Jun 2025
-$diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
+        // 5) Generar 1000 fletes + expendables + adicionales (Ene–Jun 2025)
+        $inicioPeriodo = Carbon::create(2025, 7, 1);
+        $finPeriodo    = Carbon::create(2025, 12, 30);
+        $diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
 
-        for ($i = 0; $i < 500; $i++) {
+        for ($i = 0; $i < 1000; $i++) {
             // Actor: 20% colaboradores, 80% conductores
             if (rand(1, 100) <= 20) {
                 $actor    = $colaboradores->random();
@@ -149,12 +150,12 @@ $diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
                 'colaborador_id'       => $actorKey === 'colaborador_id' ? $actor->id : null,
             ]);
 
-            // Sincronizar kms
+            // Actualizar kms
             $tra->increment('kilometraje', $km);
             $ram->increment('kilometraje', $km);
 
             // Crear rendición
-            Rendicion::create([
+            $rend = Rendicion::create([
                 'flete_id'         => $flete->id,
                 'user_id'          => $actor->id,
                 'estado'           => $cerrado ? 'Cerrado' : 'Activo',
@@ -169,7 +170,7 @@ $diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
             foreach (range(1, rand(1,2)) as $_) {
                 Diesel::create([
                     'flete_id'     => $flete->id,
-                    'rendicion_id' => $flete->rendicion->id,
+                    'rendicion_id' => $rend->id,
                     'user_id'      => $actor->id,
                     'litros'       => $faker->numberBetween(40,120),
                     'monto'        => $faker->numberBetween(80000,140000),
@@ -179,7 +180,7 @@ $diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
             foreach (range(1, rand(1,3)) as $_) {
                 Gasto::create([
                     'flete_id'     => $flete->id,
-                    'rendicion_id' => $flete->rendicion->id,
+                    'rendicion_id' => $rend->id,
                     'user_id'      => $actor->id,
                     'tipo'         => $faker->randomElement(['Peaje','Carga','Estacionamiento']),
                     'descripcion'  => $faker->words(3,true),
@@ -188,13 +189,24 @@ $diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
             }
             foreach (range(1, rand(1,2)) as $_) {
                 AbonoCaja::create([
-                    'rendicion_id' => $flete->rendicion->id,
+                    'rendicion_id' => $rend->id,
                     'monto'        => $faker->numberBetween(30000,70000),
                     'metodo'       => $faker->randomElement(['Efectivo','Transferencia']),
                 ]);
             }
+
+            // Adicionales: 0–2 por flete
+            foreach (range(1, rand(0,2)) as $_) {
+                Adicional::create([
+                    'flete_id'     => $flete->id,
+                    'rendicion_id' => $rend->id,
+                    'tipo'         => $faker->randomElement(['Demora','Peaje','Carga Extra']),
+                    'descripcion'  => $faker->sentence(4),
+                    'monto'        => $faker->numberBetween(5000,20000),
+                ]);
+            }
         }
 
-        $this->command->info("✅ Seed completo con 500 fletes (Ene–Jun 2025) y expendables.");
+        $this->command->info("✅ Seed completo con 1000 fletes (Ene–Jun 2025), expendables y adicionales.");
     }
 }
