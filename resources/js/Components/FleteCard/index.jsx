@@ -209,12 +209,29 @@ function FleteCard({
 
           <div className="ultimos-registros text-xs">
   <RecordRow
-    ultimosRegistros={ultimosRegistros}
-    viatico={viaticoEfec}
-    saldo={saldoTemporal}
-    onEliminar={handleEliminarRegistro}
-    isSubmitting={isSubmitting}
-  />
+  registros={[
+    ...(flete.rendicion?.abonos      || []),
+    ...(flete.rendicion?.diesels     || []),
+    ...(flete.rendicion?.gastos      || []),
+    ...(flete.rendicion?.adicionales || []).map(a => ({ ...a, tipo: 'Adicional' })),
+    ...(flete.rendicion?.retornos    || []),
+    ...( (flete.rendicion?.comision || 0) > 0
+      ? [{
+          id:         flete.rendicion.id,
+          tipo:       'Comisión',
+          descripcion:'',
+          monto:      flete.rendicion.comision,
+          created_at: flete.rendicion.updated_at,
+        }]
+      : []
+    ),
+  ]}
+  viatico={viaticoEfec}
+  saldo={saldoTemporal}
+  onEliminar={handleEliminarRegistro}
+  isSubmitting={isSubmitting}
+/>
+
 </div>
 
 
