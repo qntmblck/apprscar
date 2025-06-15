@@ -29,11 +29,10 @@ class AdicionalController extends Controller
                 'monto'       => $validated['monto'],
             ]);
 
-            // 2) Recalcular y guardar totales (incluye comisión)
-            $flete = Flete::findOrFail($validated['flete_id']);
+            // 2) Recalcular y guardar totales en rendición
+            $flete     = Flete::findOrFail($validated['flete_id']);
             $rendicion = $flete->rendicion;
             $rendicion->recalcularTotales();
-            $rendicion->save();
 
             // 3) Recargar el flete con todas las relaciones necesarias
             $flete = Flete::with([
@@ -43,9 +42,12 @@ class AdicionalController extends Controller
                 'tracto:id,patente',
                 'rampla:id,patente',
                 'destino:id,nombre',
-                'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-                'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-                'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+                // colecciones de la rendición
+                'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.comisiones'  => fn($q) => $q->orderByDesc('created_at'),
             ])->findOrFail($validated['flete_id']);
 
             // 4) Exponer campos calculados para la tarjeta
@@ -79,7 +81,12 @@ class AdicionalController extends Controller
         $fleteId = $adicional->flete_id;
         $adicional->delete();
 
-        // 1) Recargar flete con todas las relaciones necesarias
+        // 1) Recalcular totales en rendición
+        $flete     = Flete::findOrFail($fleteId);
+        $rendicion = $flete->rendicion;
+        $rendicion->recalcularTotales();
+
+        // 2) Recargar flete con las mismas relaciones
         $flete = Flete::with([
             'clientePrincipal:id,razon_social',
             'conductor:id,name',
@@ -87,16 +94,14 @@ class AdicionalController extends Controller
             'tracto:id,patente',
             'rampla:id,patente',
             'destino:id,nombre',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.comisiones'  => fn($q) => $q->orderByDesc('created_at'),
         ])->findOrFail($fleteId);
 
-        // 2) Recalcular y guardar totales
-        $flete->rendicion->recalcularTotales();
-        $flete->rendicion->save();
-
-        // 3) Exponer campos calculados para la tarjeta
+        // 3) Exponer campos calculados
         $flete->makeVisible(['retorno']);
         $flete->rendicion->makeVisible([
             'saldo',

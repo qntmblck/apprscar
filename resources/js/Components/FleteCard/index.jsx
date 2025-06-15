@@ -245,17 +245,33 @@ function FleteCard({
           </div>
 
           <BackDetails
-  registros={flete.rendicion.gastos.concat(
-    flete.rendicion.diesels,
-    flete.rendicion.abonos
-  )}
-  adicionales={flete.rendicion.gastos.filter(g => g.tipo === 'Adicional')}
-  comision={flete.comision}
-  viaticoEfec={flete.rendicion.viatico_calculado}
-  saldoTemporal={flete.rendicion.saldo}
+  registros={[
+    ...(flete.rendicion?.gastos     || []),
+    ...(flete.rendicion?.diesels    || []),
+    ...(flete.rendicion?.abonos     || []),
+    // force these to be recognized as "Adicional"
+    ...(flete.rendicion?.adicionales || []).map(a => ({
+      ...a,
+      tipo: 'Adicional',
+    })),
+    // only include Comision when it's > 0
+    ...(flete.rendicion?.comision > 0
+      ? [{
+          id:         flete.rendicion.id,
+          tipo:       'Comisión',
+          descripcion:'',
+          monto:      flete.rendicion.comision,
+          created_at: flete.rendicion.updated_at,
+        }]
+      : []),
+  ]}
+  viaticoEfec={flete.rendicion?.viatico_calculado || 0}
+  saldoTemporal={flete.rendicion?.saldo_temporal   || 0}
   onEliminarRegistro={handleEliminarRegistro}
   isSubmitting={isSubmitting}
 />
+
+
 
 
 

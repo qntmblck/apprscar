@@ -32,18 +32,9 @@ class FleteController extends Controller
     ];
 
     $meses = [
-        'Enero'      => 1,
-        'Febrero'    => 2,
-        'Marzo'      => 3,
-        'Abril'      => 4,
-        'Mayo'       => 5,
-        'Junio'      => 6,
-        'Julio'      => 7,
-        'Agosto'     => 8,
-        'Septiembre' => 9,
-        'Octubre'    => 10,
-        'Noviembre'  => 11,
-        'Diciembre'  => 12,
+        'Enero'      => 1,  'Febrero'   => 2,  'Marzo'   => 3,  'Abril'   => 4,
+        'Mayo'       => 5,  'Junio'     => 6,  'Julio'   => 7,  'Agosto'  => 8,
+        'Septiembre' => 9,  'Octubre'   => 10, 'Noviembre'=>11, 'Diciembre'=>12,
     ];
 
     $query = Flete::query()
@@ -73,22 +64,21 @@ class FleteController extends Controller
             'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
             'rendicion.gastos'      => fn($q) => $q
                                             ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
-                                            ->orderBy('id','desc'),
+                                            ->orderByDesc('created_at'),
             'rendicion.diesels'     => fn($q) => $q
                                             ->select(['id','rendicion_id','litros','metodo_pago','monto','created_at'])
-                                            ->orderBy('id','desc'),
+                                            ->orderByDesc('created_at'),
             'rendicion.abonos'      => fn($q) => $q
                                             ->select(['id','rendicion_id','metodo','monto','created_at'])
-                                            ->orderBy('id','desc'),
+                                            ->orderByDesc('created_at'),
             'rendicion.adicionales' => fn($q) => $q
                                             ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
-                                            ->orderBy('id','desc'),
-            // ← eliminada 'rendicion.comisiones'
+                                            ->orderByDesc('created_at'),
         ])
         // Filtro “Titular”: conductor OR colaborador
         ->when(
             ($request->filled('conductor_ids') && is_array($request->conductor_ids))
-            || ($request->filled('colaborador_ids') && is_array($request->colaborador_ids)),
+         || ($request->filled('colaborador_ids') && is_array($request->colaborador_ids)),
             function($q) use ($request) {
                 $q->where(function($sub) use ($request) {
                     if (!empty($request->conductor_ids)) {
@@ -346,13 +336,13 @@ class FleteController extends Controller
         'tracto:id,patente',
         'rampla:id,patente',
         'destino:id,nombre',
-        'rendicion.abonos',
-        'rendicion.gastos',
-        'rendicion.diesels',
+        'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
     ])->findOrFail($flete->id);
 
     if ($flete->rendicion) {
-        // Recalcular totales para asegurar que la comisión esté actualizada
         $flete->rendicion->recalcularTotales();
         $flete->rendicion->save();
 
@@ -370,6 +360,9 @@ class FleteController extends Controller
         'flete' => $flete,
     ], 200);
 }
+
+
+
 
 public function updateTitular(Request $request, Flete $flete)
 {

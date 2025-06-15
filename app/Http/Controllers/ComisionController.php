@@ -9,9 +9,9 @@ use App\Models\Rendicion;
 class ComisionController extends Controller
 {
     /**
-     * Store (or update) la comisión manual de un flete:
-     * - guarda el valor en $flete->comision
-     * - recalcula la rendición (incluye comisión automática + manual)
+     * Store (or update) la comisión manual de una rendición:
+     * - guarda el valor en $rendicion->comision
+     * - recalcula y persiste totales en la rendición
      */
     public function store(Request $request)
     {
@@ -22,17 +22,12 @@ class ComisionController extends Controller
         ]);
 
         try {
-            // 1) Actualizar comisión manual en el Flete
-            $flete = Flete::findOrFail($validated['flete_id']);
-            $flete->comision = $validated['monto'];
-            $flete->save();
-
-            // 2) Recalcular y guardar totales en la rendición
+            // 1) Actualizar comisión manual en la Rendición
             $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
-            $rendicion->recalcularTotales();
-            $rendicion->save();
+            $rendicion->comision = $validated['monto'];
+            $rendicion->recalcularTotales(); // recalcula y guarda
 
-            // 3) Recargar el Flete con relaciones necesarias
+            // 2) Recargar el Flete con la rendición actualizada
             $flete = Flete::with([
                 'clientePrincipal:id,razon_social',
                 'conductor:id,name',
@@ -41,11 +36,14 @@ class ComisionController extends Controller
                 'rampla:id,patente',
                 'destino:id,nombre',
                 'tarifa:id,valor_comision',
-                'rendicion',
-            ])->findOrFail($flete->id);
+                'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
+                'rendicion.gastos:id,rendicion_id,tipo,descripcion,monto,created_at',
+                'rendicion.diesels:id,rendicion_id,litros,metodo_pago,monto,created_at',
+                'rendicion.abonos:id,rendicion_id,metodo,monto,created_at',
+                'rendicion.adicionales:id,rendicion_id,tipo,descripcion,monto,created_at',
+            ])->findOrFail($validated['flete_id']);
 
-            // 4) Asegurar visibilidad de los campos calculados
-            $flete->makeVisible(['comision','retorno']);
+            // 3) Asegurar visibilidad de campos calculados
             $flete->rendicion->makeVisible([
                 'saldo',
                 'total_gastos',
@@ -55,7 +53,7 @@ class ComisionController extends Controller
             ]);
 
             return response()->json([
-                'message' => '✅ Comisión manual registrada correctamente.',
+                'message' => '✅ Comisión registrada correctamente.',
                 'flete'   => $flete,
             ], 201);
 
@@ -68,24 +66,19 @@ class ComisionController extends Controller
     }
 
     /**
-     * Remove la comisión manual de un flete:
-     * - pone comision = 0
-     * - recalcula la rendición
+     * Remove la comisión manual de una rendición:
+     * - pone comision = 0 en la rendición
+     * - recalcula y persiste totales
      */
-    public function destroy($fleteId, Request $request)
+    public function destroy($rendicionId)
     {
         try {
-            // 1) Limpiar la comisión manual
-            $flete = Flete::findOrFail($fleteId);
-            $flete->comision = 0;
-            $flete->save();
+            // 1) Limpiar la comisión manual en la Rendición
+            $rendicion = Rendicion::findOrFail($rendicionId);
+            $rendicion->comision = 0;
+            $rendicion->recalcularTotales(); // recalcula y guarda
 
-            // 2) Recalcular y guardar totales en la rendición asociada
-            $rendicion = $flete->rendicion()->firstOrFail();
-            $rendicion->recalcularTotales();
-            $rendicion->save();
-
-            // 3) Recargar el Flete con relaciones necesarias
+            // 2) Recargar el Flete con la rendición actualizada
             $flete = Flete::with([
                 'clientePrincipal:id,razon_social',
                 'conductor:id,name',
@@ -94,11 +87,14 @@ class ComisionController extends Controller
                 'rampla:id,patente',
                 'destino:id,nombre',
                 'tarifa:id,valor_comision',
-                'rendicion',
-            ])->findOrFail($fleteId);
+                'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
+                'rendicion.gastos:id,rendicion_id,tipo,descripcion,monto,created_at',
+                'rendicion.diesels:id,rendicion_id,litros,metodo_pago,monto,created_at',
+                'rendicion.abonos:id,rendicion_id,metodo,monto,created_at',
+                'rendicion.adicionales:id,rendicion_id,tipo,descripcion,monto,created_at',
+            ])->findOrFail($rendicion->flete_id);
 
-            // 4) Asegurar visibilidad de los campos calculados
-            $flete->makeVisible(['comision','retorno']);
+            // 3) Asegurar visibilidad de campos calculados
             $flete->rendicion->makeVisible([
                 'saldo',
                 'total_gastos',
@@ -108,7 +104,7 @@ class ComisionController extends Controller
             ]);
 
             return response()->json([
-                'message' => '✅ Comisión manual eliminada correctamente.',
+                'message' => '✅ Comisión eliminada correctamente.',
                 'flete'   => $flete,
             ], 200);
 
