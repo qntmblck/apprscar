@@ -1,6 +1,11 @@
 // resources/js/Components/FleteCard/BackTabs.jsx
 import React from 'react'
 import classNames from 'classnames'
+import {
+  BanknotesIcon,
+  ArrowPathIcon,
+  SparklesIcon,
+} from '@heroicons/react/20/solid'
 import AbonoForm from './Forms/AbonoForm'
 import RetornoForm from './Forms/RetornoForm'
 import ComisionForm from './Forms/ComisionForm'
@@ -15,47 +20,80 @@ export default function BackTabs({
   toggleFlip = () => {},
   setIsSubmitting = () => {},
 }) {
-  const backTabs = [
-    { name: 'Abono',    key: 'abono',    count: flete.rendicion?.abonos?.length ?? 0 },
-    { name: 'Retorno',  key: 'retorno',  count: flete.rendicion?.retorno ? 1 : 0 },
-    { name: 'Comisión', key: 'comision', count: flete.rendicion?.comision != null ? 1 : 0 },
+  const abonoCount    = flete.rendicion?.abonos?.length    ?? 0
+  const retornoCount  = flete.rendicion?.retorno ? 1 : 0
+  const comisionCount = flete.rendicion?.comision != null ? 1 : 0
+
+  const tabs = [
+    {
+      key: 'abono',
+      label: 'Abono',
+      icon: BanknotesIcon,
+      count: abonoCount,
+      current: formAbierto === 'abono',
+      color: 'text-green-600',
+      hoverBg: 'hover:bg-green-50',
+    },
+    {
+      key: 'retorno',
+      label: 'Retorno',
+      icon: ArrowPathIcon,
+      count: retornoCount,
+      current: formAbierto === 'retorno',
+      color: 'text-yellow-600',
+      hoverBg: 'hover:bg-yellow-50',
+    },
+    {
+      key: 'comision',
+      label: 'Comisión',
+      icon: SparklesIcon,
+      count: comisionCount,
+      current: formAbierto === 'comision',
+      color: 'text-violet-600',
+      hoverBg: 'hover:bg-violet-50',
+    },
   ]
 
   return (
     <div className="mt-4">
-      <div className="overflow-x-auto border-b border-gray-200 mb-2">
-        <nav className="flex items-center space-x-1 px-4">
-          {backTabs.map(tab => (
+      <nav className="flex items-center border-b border-gray-200 overflow-x-auto px-4 mb-2">
+        {tabs.map(tab => {
+          const iconClass = tab.count > 0 || tab.current
+            ? tab.color
+            : 'text-gray-400 group-hover:text-gray-500'
+
+          return (
             <button
               key={tab.key}
               onClick={() => handleToggleForm(flete.id, tab.key)}
               className={classNames(
-                formAbierto === tab.key
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700',
-                'group inline-flex items-center border-b-2 px-2 py-2 text-sm font-medium transition',
-                'min-w-[80px]'
+                'group inline-flex items-center border-b-2 px-3 py-2 text-sm font-medium transition min-w-[80px]',
+                tab.current
+                  ? `border-current ${tab.color} font-semibold`
+                  : 'border-transparent text-gray-500 hover:text-gray-700',
+                tab.hoverBg
               )}
             >
-              {tab.name}
+              <tab.icon className={classNames('mr-1 h-4 w-4', iconClass)} />
+              <span>{tab.label}</span>
               {tab.count > 0 && (
                 <span
                   className={classNames(
-                    formAbierto === tab.key
-                      ? 'bg-indigo-100 text-indigo-600'
-                      : 'bg-gray-100 text-gray-900',
-                    'ml-1 rounded-full px-1 py-0.5 text-[10px] font-medium'
+                    'ml-1 rounded-full px-1 py-0.5 text-[10px] font-semibold',
+                    tab.current
+                      ? `bg-current/10 ${tab.color}`
+                      : `bg-gray-100 ${tab.color}`
                   )}
                 >
                   {tab.count}
                 </span>
               )}
             </button>
-          ))}
-        </nav>
-      </div>
+          )
+        })}
+      </nav>
 
-      {/* Formularios back */}
+      {/* Formularios de respaldo */}
       {formAbierto === 'abono' && (
         <div className="px-4">
           <AbonoForm
@@ -81,7 +119,6 @@ export default function BackTabs({
           />
         </div>
       )}
-
       {formAbierto === 'retorno' && (
         <div className="px-4">
           <RetornoForm
@@ -106,7 +143,6 @@ export default function BackTabs({
           />
         </div>
       )}
-
       {formAbierto === 'comision' && (
         <div className="px-4">
           <ComisionForm

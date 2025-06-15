@@ -1,16 +1,25 @@
 // resources/js/Components/Forms/AdicionalForm.jsx
 import { useState } from 'react'
+import { CameraIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid'
 
 export default function AdicionalForm({
   fleteId,
   rendicionId,
-  onSubmit,    // (payload) => Promise
+  onSubmit,    // (FormData) => Promise
   onCancel,
   onSuccess,   // callback con flete actualizado
 }) {
-  const [form, setForm] = useState({ descripcion: '', monto: '' })
+  const [form, setForm] = useState({ descripcion: '', monto: '', foto: null })
   const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(false)
+  const [exito, setExito] = useState(false)
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target
+    setForm(prev => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }))
+  }
 
   const handleSend = async () => {
     setError(null)
@@ -18,22 +27,21 @@ export default function AdicionalForm({
       setError('Debes completar todos los campos.')
       return
     }
-
-    const payload = {
-      flete_id: fleteId,
-      rendicion_id: rendicionId,
-      tipo: 'Adicional',
-      descripcion: form.descripcion.trim(),
-      monto: Number(form.monto),
-    }
+    const payload = new FormData()
+    payload.append('flete_id', fleteId)
+    payload.append('rendicion_id', rendicionId)
+    payload.append('tipo', 'Adicional')
+    payload.append('descripcion', form.descripcion.trim())
+    payload.append('monto', form.monto)
+    if (form.foto instanceof File) payload.append('foto', form.foto)
 
     try {
       const res = await onSubmit(payload)
       if (res?.data?.flete) {
         onSuccess(res.data.flete)
-        setForm({ descripcion: '', monto: '' })
-        setSuccess(true)
-        setTimeout(() => setSuccess(false), 2000)
+        setForm({ descripcion: '', monto: '', foto: null })
+        setExito(true)
+        setTimeout(() => setExito(false), 2000)
       } else {
         throw new Error('No se devolvió el flete actualizado.')
       }
@@ -49,51 +57,63 @@ export default function AdicionalForm({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-inner text-xs w-full">
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner text-xs w-full">
       {error && (
-        <div className="text-red-600 bg-red-100 p-2 rounded mb-2 text-[10px]">
+        <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded mb-2">
           ❌ {error}
         </div>
       )}
 
-      <label className="block text-[11px] font-medium text-gray-700">Detalle</label>
-      <input
-        type="text"
-        value={form.descripcion}
-        onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-        placeholder="Descripción adicional"
-        className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
-      />
+      <div className="grid grid-cols-2 gap-2">
+        {/* Descripción ocupa ambas filas en columna 1 */}
+        <input
+          type="text"
+          name="descripcion"
+          placeholder="✏️ Descripción"
+          value={form.descripcion}
+          onChange={handleChange}
+          className="row-span-2 p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+        />
 
-      <label className="block text-[11px] font-medium text-gray-700 mt-2">Monto</label>
-      <input
-        type="number"
-        value={form.monto}
-        onChange={(e) => setForm({ ...form, monto: e.target.value })}
-        placeholder="0"
-        className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
-      />
+        {/* Fila 1, columna 2: Monto */}
+        <input
+          type="number"
+          name="monto"
+          placeholder="💰 Monto"
+          value={form.monto}
+          onChange={handleChange}
+          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+        />
 
-      <div className="mt-4 flex gap-2">
-        <button
-          type="button"
-          onClick={handleSend}
-          className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full"
-        >
-          Enviar
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full"
-        >
-          Cancelar
-        </button>
+        {/* Fila 2, columna 2: Foto + Enviar */}
+        <div className="flex h-6 overflow-hidden rounded-lg shadow-md">
+          <label
+            htmlFor={`foto-${fleteId}`}
+            className="group flex-shrink-0 w-1/2 h-6 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 cursor-pointer"
+          >
+            <CameraIcon className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
+            <input
+              id={`foto-${fleteId}`}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              name="foto"
+              onChange={handleChange}
+              className="hidden"
+            />
+          </label>
+          <button
+            onClick={handleSend}
+            className="group flex-grow h-6 flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200"
+          >
+            <PaperAirplaneIcon className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200" />
+          </button>
+        </div>
       </div>
 
-      {success && (
-        <div className="text-green-600 bg-green-100 p-2 rounded mt-2 text-[10px]">
-          ✔️ Adicional registrado
+      {exito && (
+        <div className="text-green-600 text-[10px] bg-green-100 p-2 rounded mt-2">
+          ✔️ Adicional registrado correctamente
         </div>
       )}
     </div>

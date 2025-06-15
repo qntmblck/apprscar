@@ -4,12 +4,11 @@ import { useState } from 'react';
 export default function ComisionForm({
   fleteId,
   rendicionId,
-  onSubmit,   // (payload) => Promise(axios response)
+  onSubmit,
   onCancel,
-  onSuccess,  // callback con el flete actualizado
+  onSuccess,
 }) {
   const [comision, setComision] = useState('');
-  const [descripcion, setDescripcion] = useState('');
   const [error, setError] = useState(null);
   const [exito, setExito] = useState(false);
 
@@ -24,7 +23,6 @@ export default function ComisionForm({
       rendicion_id: rendicionId,
       tipo: 'Comisión',
       monto: Number(comision),
-      descripcion: descripcion || null,
     };
 
     try {
@@ -32,7 +30,6 @@ export default function ComisionForm({
       if (res?.data?.flete) {
         onSuccess(res.data.flete);
         setComision('');
-        setDescripcion('');
         setExito(true);
         setTimeout(() => setExito(false), 2000);
       } else {
@@ -57,34 +54,25 @@ export default function ComisionForm({
         </div>
       )}
 
-      <label className="block text-[11px] font-medium text-gray-700">Comisión manual</label>
-      <input
-        type="number"
-        value={comision}
-        onChange={(e) => setComision(e.target.value)}
-        className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
-      />
+      <div className="grid grid-cols-2 gap-2">
+        {/* Columna 1: Comisión manual */}
+        <input
+          type="number"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          name="comision"
+          placeholder="💰 Comisión manual"
+          value={comision}
+          onChange={e => setComision(e.target.value)}
+          className="p-3 h-10 rounded border border-gray-300 bg-white w-full text-base"
+        />
 
-      <label className="block text-[11px] font-medium text-gray-700 mt-2">Descripción (opcional)</label>
-      <textarea
-        value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
-        className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
-        rows={2}
-      />
-
-      <div className="mt-4 flex gap-2">
+        {/* Columna 2: Enviar */}
         <button
           onClick={handleSend}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-[11px] w-full"
+          className="bg-violet-600 hover:bg-violet-700 text-white px-4 h-10 rounded text-[11px] transition-colors w-full"
         >
           Enviar
-        </button>
-        <button
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full"
-        >
-          Cancelar
         </button>
       </div>
 

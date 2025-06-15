@@ -1,5 +1,6 @@
+// resources/js/Components/Forms/GastoForm.jsx
 import { useState } from 'react'
-import { CameraIcon } from '@heroicons/react/20/solid'
+import { CameraIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid'
 
 const tipos = ['Carga', 'Descarga', 'Camioneta', 'Estacionamiento', 'Peaje', 'Otros']
 
@@ -10,42 +11,32 @@ export default function GastoForm({ fleteId, rendicionId, submitForm, onCancel, 
     descripcion: '',
     foto: null,
   })
-
-  const [exito, setExito] = useState(false)
   const [error, setError] = useState(null)
+  const [exito, setExito] = useState(false)
 
   const handleChange = (e) => {
     const { name, value, files } = e.target
-    setForm(prev => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }))
+    setForm(prev => ({ ...prev, [name]: files ? files[0] : value }))
   }
 
   const handleSend = async () => {
     setError(null)
-
     if (!form.tipo || !form.monto) {
       setError('Debes seleccionar tipo y monto.')
       return
     }
-
-    const payload = {
-      flete_id: fleteId,
-      rendicion_id: rendicionId,
-      tipo: form.tipo,
-      monto: form.monto,
-      descripcion: form.descripcion,
-    }
-
-    if (form.foto instanceof File) {
-      payload.foto = form.foto
-    }
+    const payload = new FormData()
+    payload.append('flete_id', fleteId)
+    payload.append('rendicion_id', rendicionId)
+    payload.append('tipo', form.tipo)
+    payload.append('monto', form.monto)
+    payload.append('descripcion', form.descripcion)
+    if (form.foto instanceof File) payload.append('foto', form.foto)
 
     try {
       const res = await submitForm('/gasto', payload)
       if (res?.data?.flete) {
-        onSuccess && onSuccess(res.data.flete)
+        onSuccess?.(res.data.flete)
         setForm({ tipo: '', monto: '', descripcion: '', foto: null })
         setExito(true)
         setTimeout(() => setExito(false), 1800)
@@ -53,100 +44,97 @@ export default function GastoForm({ fleteId, rendicionId, submitForm, onCancel, 
         throw new Error('No se pudo registrar el gasto.')
       }
     } catch (e) {
-      console.error('Error al enviar gasto:', e)
-
-      const mensaje =
+      const msg =
         e.response?.data?.message ||
         e.response?.data?.error ||
         (e.response?.data?.errors
           ? Object.values(e.response.data.errors).flat().join(' ')
           : `Error: ${e.message}`)
-
-      setError(mensaje)
+      setError(msg)
     }
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 text-xs shadow-md w-full overflow-visible">
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner text-xs w-full">
+      {/* Error */}
       {error && (
-        <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded-md mb-2">
+        <div className="text-red-600 text-[10px] bg-red-100 p-2 rounded mb-2">
           ❌ {error}
         </div>
       )}
 
+      {/* Formulario 2x2 */}
       <div className="grid grid-cols-2 gap-2">
-        {/* Fila 1: Tipo / Monto */}
-        <select
-          name="tipo"
-          value={form.tipo}
-          onChange={handleChange}
-          className="px-2 py-2 rounded-md border border-gray-300 bg-white w-full text-[11px]"
-        >
-          <option value="">📂 Tipo</option>
-          {tipos.map((tipo) => (
-            <option key={tipo} value={tipo}>{tipo}</option>
-          ))}
-        </select>
-
+        {/* Col 1, Fila 1: Monto */}
         <input
           type="text"
+          name="monto"
           inputMode="numeric"
           pattern="[0-9]*"
-          name="monto"
           placeholder="💰 Monto"
           value={form.monto}
           onChange={handleChange}
-          className="px-2 py-2 rounded-md border border-gray-300 bg-white w-full text-[11px]"
+          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
         />
 
-        {/* Fila 2: Descripción / Subir Foto */}
+        {/* Col 2, Fila 1: Descripción */}
         <input
           type="text"
           name="descripcion"
           placeholder="✏️ Descripción"
           value={form.descripcion}
           onChange={handleChange}
-          className="px-2 py-2 rounded-md border border-gray-300 bg-white w-full text-[11px] col-span-1"
+          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
         />
 
-        <label
-          htmlFor={`foto-${fleteId}`}
-          className="flex items-center justify-center gap-1 bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded-md cursor-pointer w-full text-[11px] transition-colors"
-        >
-          <CameraIcon className="w-4 h-4" />
-          Foto
-          <input
-            id={`foto-${fleteId}`}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            name="foto"
-            onChange={handleChange}
-            className="hidden"
-          />
-        </label>
+        {/* Col 1, Fila 2: Tipo (igual a Método en Diesel) */}
+<select
+  name="tipo"
+  value={form.tipo}
+  onChange={handleChange}
+  className="h-6 px-2 py-0.5 rounded border border-gray-300 bg-white w-full text-[11px]"
+>
+  <option value="">📂 Tipo</option>
+  {tipos.map(t => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
 
-        {/* Fila 3: Enviar / Cancelar */}
-        <button
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSend}
-          className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
-        >
-          Enviar
-        </button>
+
+        {/* Col 2, Fila 2: Foto + Enviar */}
+        <div className="flex h-6 overflow-hidden rounded-lg shadow-md">
+          <label
+            htmlFor={`foto-${fleteId}`}
+            className="group flex-shrink-0 w-1/2 h-6 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 cursor-pointer"
+          >
+            <CameraIcon className="h-6 w-6 text-white transition-transform group-hover:scale-110 duration-200" />
+            <input
+              id={`foto-${fleteId}`}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              name="foto"
+              onChange={handleChange}
+              className="hidden"
+            />
+          </label>
+          <button
+            onClick={handleSend}
+            className="group flex-grow h-6 flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200"
+          >
+            <PaperAirplaneIcon className="h-6 w-6 text-white transition-transform group-hover:rotate-12 group-hover:scale-110 duration-200" />
+          </button>
+        </div>
       </div>
 
+      {/* Éxito */}
       {exito && (
-        <div className="text-green-600 text-[10px] text-right mt-2">
+        <div className="text-green-600 text-[10px] bg-green-100 p-2 rounded mt-2">
           ✔️ Gasto registrado correctamente
         </div>
       )}
     </div>
   )
-
 }

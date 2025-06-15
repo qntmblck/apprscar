@@ -7,9 +7,9 @@ import {
   IdentificationIcon,
   CalendarDaysIcon,
   TruckIcon,
-  ArrowRightOnRectangleIcon,
+  ArrowRightEndOnRectangleIcon,
   ShoppingCartIcon,
-  DocumentDuplicateIcon,
+  ClipboardDocumentListIcon,
   CheckIcon
 } from '@heroicons/react/20/solid'
 import { DayPicker } from 'react-day-picker'
@@ -28,6 +28,7 @@ export default function DetailsGrid({
   tractos = [],
   ramplas = [],
   onSelectFechaSalida,
+  onSelectFechaLlegada,
 }) {
   // Textos
   const [titularText,  setTitularText]  = useState(flete.conductor?.name || flete.colaborador?.name || '')
@@ -81,18 +82,23 @@ export default function DetailsGrid({
   }
 
   const topTractos = tractos.slice(0,10)
+  const topRamplas = ramplas.slice(0,10)
   const openRampla = () => {
     const opening = activeMenu !== 'Rampla'
     setActiveMenu(opening ? 'Rampla' : null)
     if (opening) setRamplaSug(topRamplas)
   }
-  const topRamplas = ramplas.slice(0,10)
+
+  // Mantener seleccionada la llegada para resaltar rango
+  const [selectedLlegada, setSelectedLlegada] = useState(
+    flete.fecha_llegada ? new Date(flete.fecha_llegada) : undefined
+  )
 
   return (
     <div className="overflow-x-auto scrollbar-thin mb-4">
       {errorMsg && <div className="mb-2 text-sm text-red-600 px-2">{errorMsg}</div>}
 
-      {/* Dos columnas: izquierda y derecha */}
+      {/* Dos columnas */}
       <div className="grid min-w-0 grid-cols-[1fr_1fr] gap-x-4 gap-y-2 text-sm text-gray-700">
 
         {/* Titular */}
@@ -139,14 +145,14 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Guía/Ruta */}
+        {/* Guía/Ruta (ClipboardDocumentListIcon) */}
         <div className="relative whitespace-nowrap">
           <button
             data-toggle-type="GuiaRuta"
             onClick={() => setActiveMenu(activeMenu==='GuiaRuta'?null:'GuiaRuta')}
             className="flex items-center gap-x-2 w-full"
           >
-            <DocumentDuplicateIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
+            <ClipboardDocumentListIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
             <span className="truncate px-1">{guiaRutaText || '—'}</span>
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
@@ -254,7 +260,7 @@ export default function DetailsGrid({
         <div className="relative whitespace-nowrap">
           <button
             data-toggle-type="Rampla"
-            onClick={() => { setActiveMenu('Rampla'); setRamplaSug(topRamplas) }}
+            onClick={openRampla}
             className="flex items-center gap-x-2 w-full"
           >
             <ShoppingCartIcon className="h-6 w-6 text-sky-800 flex-shrink-0"/>
@@ -294,10 +300,33 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Llegada */}
-        <div className="flex items-center gap-x-2 whitespace-nowrap">
-          <ArrowRightOnRectangleIcon className="h-6 w-6 text-gray-400 flex-shrink-0"/>
-          <span className="px-1">{fechaLlegadaFormatted}</span>
+        {/* Fecha de Llegada */}
+        <div className="relative whitespace-nowrap">
+          <button
+            data-toggle-type="Llegada"
+            onClick={() => setActiveMenu(activeMenu==='Llegada'?null:'Llegada')}
+            className="flex items-center gap-x-2 w-full"
+          >
+            <ArrowRightEndOnRectangleIcon className="h-6 w-6 text-yellow-500 flex-shrink-0"/>
+            <span className="px-1">{fechaLlegadaFormatted}</span>
+            <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
+          </button>
+          <PortalDropdown isOpen={activeMenu==='Llegada'} type="Llegada">
+            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border border-gray-200 shadow-lg p-2 rounded">
+              <DayPicker
+                mode="single"
+                selected={selectedLlegada}
+                disabled={{ before: new Date(flete.fecha_salida) }}
+                selectedDays={[{ from: new Date(flete.fecha_salida), to: selectedLlegada }]}
+                onSelect={d => {
+                  if (!d) return
+                  setSelectedLlegada(d)
+                  onSelectFechaLlegada(flete.id, d)
+                  setActiveMenu(null)
+                }}
+              />
+            </div>
+          </PortalDropdown>
         </div>
 
       </div>

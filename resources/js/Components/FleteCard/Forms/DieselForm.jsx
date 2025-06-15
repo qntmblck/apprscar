@@ -14,29 +14,22 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
 
   const handleChange = (e) => {
     const { name, value, files } = e.target
-    setForm((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }))
+    setForm(prev => ({ ...prev, [name]: files ? files[0] : value }))
   }
 
   const handleSend = async () => {
     setError(null)
-
     if (!form.monto || !form.litros || !form.metodo_pago) {
       setError('Completa todos los campos obligatorios.')
       return
     }
-
     const payload = new FormData()
     payload.append('flete_id', fleteId)
     payload.append('rendicion_id', rendicionId)
     payload.append('monto', form.monto)
     payload.append('litros', form.litros)
     payload.append('metodo_pago', form.metodo_pago)
-    if (form.foto instanceof File) {
-      payload.append('foto', form.foto)
-    }
+    if (form.foto instanceof File) payload.append('foto', form.foto)
 
     try {
       const res = await onSubmit(payload)
@@ -49,13 +42,13 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
         throw new Error('No se devolvió el flete actualizado.')
       }
     } catch (e) {
-      const message =
+      const msg =
         e.response?.data?.message ||
         e.response?.data?.error ||
         (e.response?.data?.errors
           ? Object.values(e.response.data.errors).flat().join(' ')
           : 'Error inesperado al registrar el diesel.')
-      setError(message)
+      setError(msg)
     }
   }
 
@@ -95,28 +88,26 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
         />
 
         {/* Método de pago */}
-        <select
-          name="metodo_pago"
-          value={form.metodo_pago}
-          onChange={handleChange}
-          className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
-        >
-          <option value="">Método de pago</option>
-          <option value="Efectivo">Efectivo</option>
-          <option value="Transferencia">Transferencia</option>
-          <option value="Crédito">Crédito</option>
-        </select>
+<select
+  name="metodo_pago"
+  value={form.metodo_pago}
+  onChange={handleChange}
+  className="h-6 px-2 py-0.5 rounded border border-gray-300 bg-white w-full text-[11px]"
+>
+  <option value="">Método</option>
+  <option value="Efectivo">Efectivo</option>
+  <option value="Transferencia">Transferencia</option>
+  <option value="Crédito">Crédito</option>
+</select>
 
-        {/* Cámara + Enviar en misma celda */}
-        <div className="flex h-full overflow-hidden rounded-lg shadow-md">
+
+        {/* Cámara + Enviar (iconos h-6) */}
+        <div className="flex h-6 overflow-hidden rounded-lg shadow-md">
           <label
             htmlFor={`foto-${fleteId}`}
-            className="group relative flex-shrink-0 w-1/2 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 ease-out cursor-pointer"
+            className="group flex-shrink-0 w-1/2 h-6 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 cursor-pointer"
           >
             <CameraIcon className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
-            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
-              Tomar foto
-            </span>
             <input
               id={`foto-${fleteId}`}
               type="file"
@@ -129,12 +120,9 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
           </label>
           <button
             onClick={handleSend}
-            className="group relative flex-grow flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 ease-out"
+            className="group flex-grow h-6 flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200"
           >
             <PaperAirplaneIcon className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200" />
-            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
-              Enviar
-            </span>
           </button>
         </div>
       </div>

@@ -4,8 +4,8 @@ import classNames from 'classnames'
 import {
   WrenchScrewdriverIcon,
   CurrencyDollarIcon,
-  SparklesIcon,
-  BanknotesIcon as BankIcon
+  ArrowRightEndOnRectangleIcon,
+  InboxArrowDownIcon,
 } from '@heroicons/react/20/solid'
 import DieselForm from './Forms/DieselForm'
 import GastoForm from './Forms/GastoForm'
@@ -21,55 +21,104 @@ export default function FrontTabs({
   actualizarFleteEnLista,
   setIsSubmitting
 }) {
-  const frontTabs = [
-    { name: 'Diesel',    key: 'diesel',    icon: WrenchScrewdriverIcon, count: flete.rendicion?.diesels?.length ?? 0,    current: formAbierto === 'diesel' },
-    { name: 'Gasto',     key: 'gasto',     icon: CurrencyDollarIcon,       count: flete.rendicion?.gastos?.length  ?? 0,    current: formAbierto === 'gasto' },
-    { name: 'Viático',   key: 'finalizar', icon: SparklesIcon,            count: 0,                                       current: formAbierto === 'finalizar' },
-    { name: 'Adicional', key: 'adicional', icon: BankIcon,                count: flete.rendicion?.adicionales?.length??0, current: formAbierto === 'adicional' }
+  const dieselCount    = flete.rendicion?.diesels?.length    ?? 0
+  const gastoCount     = flete.rendicion?.gastos?.length     ?? 0
+  const viaticoCount   = flete.rendicion?.viaticos?.length   ?? 0
+  const adicionalCount = flete.rendicion?.adicionales?.length ?? 0
+
+  const tabs = [
+    {
+      key: 'diesel',
+      icon: WrenchScrewdriverIcon,
+      count: dieselCount,
+      current: formAbierto === 'diesel',
+      color: 'text-blue-600',
+      hoverBg: 'hover:bg-blue-50',
+      label: 'Diésel',
+    },
+    {
+      key: 'gasto',
+      icon: CurrencyDollarIcon,
+      count: gastoCount,
+      current: formAbierto === 'gasto',
+      color: 'text-red-600',
+      hoverBg: 'hover:bg-red-50',
+      label: 'Gasto',
+    },
+    {
+      key: 'finalizar',
+      icon: ArrowRightEndOnRectangleIcon,
+      count: viaticoCount,
+      current: formAbierto === 'finalizar',
+      color: 'text-yellow-600',
+      hoverBg: 'hover:bg-yellow-50',
+      label: 'Viático',
+      forceIconColor: 'text-yellow-600', // siempre amarillo
+    },
+    {
+      key: 'adicional',
+      icon: InboxArrowDownIcon,
+      count: adicionalCount,
+      current: formAbierto === 'adicional',
+      color: 'text-black font-bold',
+      hoverBg: 'hover:bg-green-50',
+      label: '', // oculta texto
+    },
   ]
 
   return (
     <div className="mt-4">
-      <div className="overflow-x-auto">
-        <nav className="flex items-center space-x-1 border-b border-gray-200">
-          <div className="flex-1 flex space-x-1 overflow-auto">
-            {frontTabs.map(tab => (
+      <nav className="flex items-center border-b border-gray-200 overflow-x-auto">
+        <div className="flex-1 flex space-x-1">
+          {tabs.map(tab => {
+            const isViatico = tab.key === 'finalizar'
+            const iconColorClass = isViatico
+              ? tab.forceIconColor
+              : (tab.count > 0 || tab.current
+                  ? tab.color
+                  : 'text-gray-400 group-hover:text-gray-500')
+
+            return (
               <button
                 key={tab.key}
                 onClick={() => handleToggleForm(flete.id, tab.key)}
                 className={classNames(
-                  tab.current ? 'border-indigo-500 text-current' : 'border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700',
-                  'group inline-flex items-center border-b-2 px-2 py-2 text-sm font-medium transition'
+                  'group inline-flex items-center border-b-2 px-3 py-2 transition',
+                  tab.current
+                    ? `border-current ${tab.color} font-semibold`
+                    : 'border-transparent text-gray-500 hover:text-gray-700',
+                  tab.hoverBg
                 )}
                 style={{ minWidth: 80 }}
               >
-                <tab.icon className={classNames(
-                  tab.current ? 'text-current' : 'text-gray-400 group-hover:text-gray-500',
-                  'mr-1 h-4 w-4'
-                )} />
-                {tab.name}
+                <tab.icon className={classNames('mr-1 h-4 w-4', iconColorClass)} />
+                {tab.label && <span>{tab.label}</span>}
                 {tab.count > 0 && (
-                  <span className={classNames(
-                    tab.current ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-900',
-                    'ml-1 rounded-full px-1 py-0.5 text-[10px] font-medium'
-                  )}>
+                  <span
+                    className={classNames(
+                      'ml-1 rounded-full px-1 py-0.5 text-[10px] font-semibold',
+                      tab.current
+                        ? `bg-current/10 ${tab.color}`
+                        : `bg-gray-100 ${tab.color}`
+                    )}
+                  >
                     {tab.count}
                   </span>
                 )}
               </button>
-            ))}
-          </div>
-          <div className="flex-shrink-0">
-            {flete.pagado ? (
-              <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
-                Pagado
-              </span>
-            ) : (
-              <input type="checkbox" className="h-4 w-4 text-green-600 border-gray-300 rounded" />
-            )}
-          </div>
-        </nav>
-      </div>
+            )
+          })}
+        </div>
+        <div className="flex-shrink-0">
+          {flete.pagado ? (
+            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
+              Pagado
+            </span>
+          ) : (
+            <input type="checkbox" className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+          )}
+        </div>
+      </nav>
 
       {/* Formularios */}
       {formAbierto === 'diesel' && (

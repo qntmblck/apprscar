@@ -1,95 +1,73 @@
+// resources/js/Components/Forms/FinalizarForm.jsx
 import { useState, useEffect } from 'react'
-import Calendar from 'react-calendar'
-import 'react-calendar/dist/Calendar.css'
-import './calendar-overrides.css'
+import { CameraIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid'
 
 export default function FinalizarForm({
   fleteId,
   rendicionId,
   fechaSalida,
+  fechaLlegada,           // Asumimos que ahora llega la fecha de llegada
   fletePosteriorEnMismoDia = false,
   onSubmit,
   onCancel,
   onSuccess,
 }) {
-  const [form, setForm] = useState({ fecha_termino: '', viatico_efectivo: '' })
-  const [viaticoCalculado, setViaticoCalculado] = useState(0)
-  const [exito, setExito] = useState(false)
+  const [viaticoEfec, setViaticoEfec] = useState('')
+  const [dias, setDias] = useState(0)
+  const [viaticoSuggest, setViaticoSuggest] = useState(0)
+  const [foto, setFoto] = useState(null)
   const [error, setError] = useState(null)
+  const [exito, setExito] = useState(false)
 
+  // Calculamos días y viático sugerido cuando cambian fechas
   useEffect(() => {
-    if (form.fecha_termino && fechaSalida) {
+    if (fechaSalida && fechaLlegada) {
       const start = new Date(fechaSalida)
-      const end = new Date(form.fecha_termino)
+      const end = new Date(fechaLlegada)
       if (!isNaN(start) && !isNaN(end)) {
-        let dias = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
-        if (fletePosteriorEnMismoDia) dias = Math.max(0, dias - 1)
-        setViaticoCalculado(dias * 15000)
+        let days = Math.floor((end - start) / (1000*60*60*24)) + 1
+        if (fletePosteriorEnMismoDia) days = Math.max(0, days - 1)
+        setDias(days)
+        setViaticoSuggest(days * 15000)
       }
     }
-  }, [form.fecha_termino, fechaSalida, fletePosteriorEnMismoDia])
+  }, [fechaSalida, fechaLlegada, fletePosteriorEnMismoDia])
 
-  const handleDateChange = (date) => {
-    const datePlusOne = new Date(date)
-    datePlusOne.setDate(datePlusOne.getDate() + 1)
-    const fechaISO = datePlusOne.toISOString().split('T')[0]
-    setForm((prev) => ({ ...prev, fecha_termino: fechaISO }))
-  }
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const marcarFechaSalida = ({ date, view }) => {
-    if (view === 'month' && fechaSalida) {
-      const salida = new Date(fechaSalida)
-      if (
-        date.getFullYear() === salida.getFullYear() &&
-        date.getMonth() === salida.getMonth() &&
-        date.getDate() === salida.getDate()
-      ) {
-        return 'marcar-salida'
-      }
-    }
-    return null
+  const handleFile = (e) => {
+    setFoto(e.target.files[0] || null)
   }
 
   const handleSend = async () => {
     setError(null)
-
-    if (!form.fecha_termino && form.viatico_efectivo === '') {
-      setError('Debes ingresar al menos la fecha o el viático efectivo.')
+    if (viaticoEfec === '' && !foto) {
+      setError('Debes ingresar viático efectivo o tomar foto.')
       return
     }
-
-    const payload = {
-      flete_id: fleteId,
-      rendicion_id: rendicionId,
-    }
-
-    if (form.fecha_termino) payload.fecha_termino = form.fecha_termino
-    if (form.viatico_efectivo !== '') payload.viatico_efectivo = form.viatico_efectivo
+    const payload = new FormData()
+    payload.append('flete_id', fleteId)
+    payload.append('rendicion_id', rendicionId)
+    if (viaticoEfec !== '') payload.append('viatico_efectivo', viaticoEfec)
+    if (foto instanceof File) payload.append('foto', foto)
 
     try {
       const res = await onSubmit(payload)
       if (res?.data?.flete) {
         onSuccess(res.data.flete)
-        setForm({ fecha_termino: '', viatico_efectivo: '' })
-        setViaticoCalculado(0)
+        setViaticoEfec('')
+        setFoto(null)
         setExito(true)
-        setTimeout(() => setExito(false), 1800)
+        setTimeout(() => setExito(false), 2000)
       } else {
-        throw new Error('No se pudo finalizar el flete.')
+        throw new Error('No se devolvió el flete actualizado.')
       }
     } catch (e) {
-      const message =
+      const msg =
         e.response?.data?.message ||
         e.response?.data?.error ||
         (e.response?.data?.errors
           ? Object.values(e.response.data.errors).flat().join(' ')
-          : 'Error inesperado al finalizar el flete.')
-      setError(message)
+          : 'Error inesperado al finalizar.')
+      setError(msg)
     }
   }
 
@@ -102,49 +80,61 @@ export default function FinalizarForm({
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="col-span-2 w-full">
-          <Calendar
-            onChange={handleDateChange}
-            value={form.fecha_termino ? new Date(form.fecha_termino) : null}
-            tileClassName={marcarFechaSalida}
-            className="w-full rounded border border-gray-300 text-[11px]"
-            locale="es-CL"
-          />
+        {/* Columna 1: viático sugerido + días */}
+        <div className="col-span-1 row-span-2 bg-white border border-gray-300 rounded-lg p-3 flex flex-col justify-center items-center">
+          <span className="text-lg font-semibold text-gray-800">
+            ${viaticoSuggest.toLocaleString('es-CL')}
+          </span>
+          <span className="text-[10px] text-gray-600 mt-1">
+            {dias} día{dias !== 1 && 's'} de viaje
+          </span>
         </div>
 
-        <input
-          type="text"
-          value={viaticoCalculado.toLocaleString('es-CL')}
-          readOnly
-          placeholder="🌊 Calculado"
-          className="p-2 rounded border border-gray-200 bg-gray-100 text-gray-500 w-full text-[11px]"
-        />
+        {/* Columna 2, Fila 1: viático efectivo */}
         <input
           type="text"
           name="viatico_efectivo"
-          placeholder="💵 Efectivo"
-          value={form.viatico_efectivo}
-          onChange={handleChange}
+          placeholder="💵 Viático efectivo"
+          value={viaticoEfec}
+          onChange={e => setViaticoEfec(e.target.value)}
           className="p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
         />
 
-        <button
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSend}
-          className="bg-[#149e60] hover:bg-green-700 text-white px-3 py-2 rounded text-[11px] w-full transition-colors"
-        >
-          Enviar
-        </button>
+        {/* Columna 2, Fila 2: foto + enviar */}
+        <div className="flex h-full overflow-hidden rounded-lg shadow-md">
+          <label
+            htmlFor={`foto-${fleteId}`}
+            className="group relative flex-shrink-0 w-1/2 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 ease-out cursor-pointer"
+          >
+            <CameraIcon className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
+            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
+              Tomar foto
+            </span>
+            <input
+              id={`foto-${fleteId}`}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              name="foto"
+              onChange={handleFile}
+              className="hidden"
+            />
+          </label>
+          <button
+            onClick={handleSend}
+            className="group relative flex-grow flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 ease-out"
+          >
+            <PaperAirplaneIcon className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200" />
+            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
+              Enviar
+            </span>
+          </button>
+        </div>
       </div>
 
       {exito && (
-        <div className="text-green-600 text-[10px] text-right mt-2">
-          ✔️ Viático registrado
+        <div className="text-green-600 text-[10px] bg-green-100 p-2 rounded mt-2">
+          ✔️ Finalización registrada
         </div>
       )}
     </div>

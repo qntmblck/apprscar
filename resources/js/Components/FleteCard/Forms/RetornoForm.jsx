@@ -1,39 +1,39 @@
 // resources/js/Components/Forms/RetornoForm.jsx
-import { useState } from 'react';
+import { useState } from 'react'
 
 export default function RetornoForm({
   fleteId,
   rendicionId,
-  onSubmit,   // (payload) => Promise(axios response)
+  onSubmit,
   onCancel,
-  onSuccess,  // callback con el flete actualizado
+  onSuccess,
 }) {
-  const [monto, setMonto] = useState('');
-  const [error, setError] = useState(null);
-  const [exito, setExito] = useState(false);
+  const [monto, setMonto] = useState('')
+  const [error, setError] = useState(null)
+  const [exito, setExito] = useState(false)
 
   const handleSend = async () => {
-    setError(null);
+    setError(null)
     if (!monto) {
-      setError('Debes ingresar un monto.');
-      return;
+      setError('Debes ingresar un monto.')
+      return
     }
     const payload = {
       flete_id: fleteId,
       rendicion_id: rendicionId,
       tipo: 'Retorno',
       monto: Number(monto),
-    };
+    }
 
     try {
-      const res = await onSubmit(payload);
+      const res = await onSubmit(payload)
       if (res?.data?.flete) {
-        onSuccess(res.data.flete);
-        setMonto('');
-        setExito(true);
-        setTimeout(() => setExito(false), 2000);
+        onSuccess(res.data.flete)
+        setMonto('')
+        setExito(true)
+        setTimeout(() => setExito(false), 2000)
       } else {
-        throw new Error('No se devolvió el flete actualizado.');
+        throw new Error('No se devolvió el flete actualizado.')
       }
     } catch (e) {
       const msg =
@@ -41,10 +41,10 @@ export default function RetornoForm({
         e.response?.data?.error ||
         (e.response?.data?.errors
           ? Object.values(e.response.data.errors).flat().join(' ')
-          : 'Error inesperado al registrar el retorno.');
-      setError(msg);
+          : 'Error inesperado al registrar el retorno.')
+      setError(msg)
     }
-  };
+  }
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner text-xs w-full">
@@ -54,26 +54,25 @@ export default function RetornoForm({
         </div>
       )}
 
-      <label className="block text-[11px] font-medium text-gray-700">Monto Retorno</label>
-      <input
-        type="number"
-        value={monto}
-        onChange={(e) => setMonto(e.target.value)}
-        className="mt-1 block w-full rounded border-gray-300 text-[11px] py-1 px-2"
-      />
+      <div className="grid grid-cols-2 gap-2">
+        {/* Columna 1: Monto Retorno */}
+        <input
+          type="number"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          name="monto"
+          placeholder="💰 Monto Retorno"
+          value={monto}
+          onChange={e => setMonto(e.target.value)}
+          className="p-3 h-10 rounded border border-gray-300 bg-white w-full text-base"
+        />
 
-      <div className="mt-4 flex gap-2">
+        {/* Columna 2: Enviar (amarillo) */}
         <button
           onClick={handleSend}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-[11px] w-full"
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 h-10 rounded text-[11px] transition-colors w-full"
         >
           Enviar
-        </button>
-        <button
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded text-[11px] w-full"
-        >
-          Cancelar
         </button>
       </div>
 
@@ -83,5 +82,5 @@ export default function RetornoForm({
         </div>
       )}
     </div>
-  );
+  )
 }
