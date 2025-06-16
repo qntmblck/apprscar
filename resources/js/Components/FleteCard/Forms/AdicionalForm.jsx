@@ -72,7 +72,7 @@ export default function AdicionalForm({
           value={form.descripcion}
           onChange={handleChange}
           rows={4}
-          className="row-span-2 p-2 rounded border border-gray-300 bg-white w-full text-base text-gray-800 resize-none align-top"
+          className="row-span-2 h-20 p-2 rounded border border-gray-300 bg-white w-full text-base text-gray-800 resize-none align-top"
         />
 
         {/* Fila 1, columna 2: Monto */}
