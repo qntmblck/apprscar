@@ -6,7 +6,7 @@ use App\Models\Flete;
 use App\Models\Pago;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\Snappy\Facades\SnappyPdf as PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\JsonResponse;
@@ -42,15 +42,13 @@ class PagoController extends Controller
                 ? base64_encode(file_get_contents($logoPath))
                 : '';
 
-            // 3) Renderizar Blade con Snappy y forzar descarga
-            $pdf = PDF::loadView(
-                    'pdf.resumen_pagos',
-                    compact('fletes', 'periodo', 'logoBase64')
-                )
-                ->setOption('enable-local-file-access', true)
-                ->setOption('margin-top', '10mm')
-                ->setOption('margin-bottom', '10mm')
-                ->setPaper('a4');
+            // 3) Renderizar Blade con Dompdf y forzar descarga
+            $pdf = Pdf::loadView('pdf.resumen_pagos', compact('fletes', 'periodo', 'logoBase64'))
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled'      => true,
+                ]);
 
             return $pdf->download("resumen-pagos-{$periodo}.pdf");
         } catch (Throwable $e) {
@@ -108,14 +106,12 @@ class PagoController extends Controller
                 : '';
 
             // 3) Renderizar Blade de liquidación y forzar descarga
-            $pdf = PDF::loadView(
-                    'pdf.liquidacion_pago',
-                    compact('fletes', 'periodo', 'logoBase64')
-                )
-                ->setOption('enable-local-file-access', true)
-                ->setOption('margin-top', '10mm')
-                ->setOption('margin-bottom', '10mm')
-                ->setPaper('a4');
+            $pdf = Pdf::loadView('pdf.liquidacion_pago', compact('fletes', 'periodo', 'logoBase64'))
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled'      => true,
+                ]);
 
             return $pdf->download("liquidacion-fletes-{$periodo}.pdf");
         } catch (Throwable $e) {
