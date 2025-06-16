@@ -21,6 +21,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FleteController;
 use App\Http\Controllers\FleteConductorController;
 use App\Http\Controllers\FleteBatchController;
+use App\Http\Controllers\PagoController;               // ← Importa PagoController
 use App\Http\Controllers\DieselController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\AbonoController;
@@ -127,35 +128,36 @@ Route::middleware('auth')->group(function () {
 
     // Crear y cerrar (superadmin y admin)
     Route::middleware('role:superadmin|admin')->group(function () {
-        Route::post('/fletes',                    [FleteController::class, 'store'])->name('fletes.store');
-        Route::post('/fletes/{flete}/cerrar',     [FleteController::class, 'cerrarRendicion'])
+        Route::post('/fletes',                [FleteController::class, 'store'])->name('fletes.store');
+        Route::post('/fletes/{flete}/cerrar', [FleteController::class, 'cerrarRendicion'])
             ->name('fletes.cerrarRendicion');
     });
 
     // AJAX DetailsGrid
-    Route::post('/fletes/{flete}/titular',      [FleteController::class, 'updateTitular'])
+    Route::post('/fletes/{flete}/titular',       [FleteController::class, 'updateTitular'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.titular');
-    Route::post('/fletes/{flete}/tracto',       [FleteController::class, 'updateTracto'])
+    Route::post('/fletes/{flete}/tracto',        [FleteController::class, 'updateTracto'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.tracto');
-    Route::post('/fletes/{flete}/rampla',       [FleteController::class, 'updateRampla'])
+    Route::post('/fletes/{flete}/rampla',        [FleteController::class, 'updateRampla'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.rampla');
-    Route::post('/fletes/{flete}/guiaruta',     [FleteController::class, 'updateGuiaRuta'])
+    Route::post('/fletes/{flete}/guiaruta',      [FleteController::class, 'updateGuiaRuta'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.guiaruta');
-    Route::post('/fletes/{flete}/fecha-salida', [FleteController::class, 'updateFechaSalida'])
+    Route::post('/fletes/{flete}/fecha-salida',  [FleteController::class, 'updateFechaSalida'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.fecha-salida');
-    Route::get('/fletes/suggest-titulares', [FleteController::class, 'suggestTitulares'])
-     ->name('fletes.suggestTitulares')
-     ->middleware('auth');
-
+    Route::post('/fletes/{flete}/fecha_llegada', [FleteController::class, 'updateFechaLlegada'])
+        ->name('fletes.updateFechaLlegada');
+    Route::get('/fletes/suggest-titulares',      [FleteController::class, 'suggestTitulares'])
+        ->middleware('auth')
+        ->name('fletes.suggestTitulares');
 
     // Otras acciones
-    Route::post('/fletes/{flete}/finalizar',   [FleteController::class, 'finalizar'])->name('fletes.finalizar');
-    Route::post('/rendicion/{id}/viatico',     [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
+    Route::post('/fletes/{flete}/finalizar', [FleteController::class, 'finalizar'])->name('fletes.finalizar');
+    Route::post('/rendicion/{id}/viatico',   [FleteController::class, 'registrarViatico'])->name('rendicion.viatico');
 
     // Conductor específico
     Route::middleware('role:conductor')->prefix('conductor')->group(function () {
@@ -163,20 +165,26 @@ Route::middleware('auth')->group(function () {
             ->name('conductor.fletes.index');
     });
 
-    // Formularios frontal
-    Route::post('/adicionales',   [AdicionalController::class, 'store'])->name('adicionales.store');
-    Route::post('/diesel',        [DieselController::class, 'store'])->name('diesel.store');
-    Route::delete('/diesels/{id}',[DieselController::class, 'destroy'])->name('diesel.destroy');
-    Route::post('/gasto',         [GastoController::class, 'store'])->name('gasto.store');
-    Route::delete('/gastos/{id}', [GastoController::class, 'destroy'])->name('gasto.destroy');
-
-    // Formularios trasera
-    Route::post('/abonos',        [AbonoController::class, 'store'])->name('abonos.store');
-    Route::delete('/abonos/{id}', [AbonoController::class, 'destroy'])->name('abonos.destroy');
-    Route::post('/retornos',      [RetornoController::class, 'store'])->name('retornos.store');
-    Route::delete('/retornos/{id}', [RetornoController::class, 'destroy'])->name('retornos.destroy');
-    Route::post('/comisiones',    [ComisionController::class, 'store'])->name('comisiones.store');
+    // Formularios frontal y trasera...
+    Route::post('/adicionales',    [AdicionalController::class, 'store'])->name('adicionales.store');
+    Route::post('/diesel',         [DieselController::class, 'store'])->name('diesel.store');
+    Route::delete('/diesels/{id}', [DieselController::class, 'destroy'])->name('diesel.destroy');
+    Route::post('/gasto',          [GastoController::class, 'store'])->name('gasto.store');
+    Route::delete('/gastos/{id}',  [GastoController::class, 'destroy'])->name('gasto.destroy');
+    Route::post('/abonos',         [AbonoController::class, 'store'])->name('abonos.store');
+    Route::delete('/abonos/{id}',  [AbonoController::class, 'destroy'])->name('abonos.destroy');
+    Route::post('/retornos',       [RetornoController::class, 'store'])->name('retornos.store');
+    Route::delete('/retornos/{id}',[RetornoController::class, 'destroy'])->name('retornos.destroy');
+    Route::post('/comisiones',     [ComisionController::class, 'store'])->name('comisiones.store');
     Route::delete('/comisiones/{id}', [ComisionController::class, 'destroy'])->name('comisiones.destroy');
+
+    // ——— Nuevas rutas batch ———
+    Route::post('/fletes/batch/export',   [FleteBatchController::class, 'exportExcel'])
+        ->name('fletes.batch.export');
+    Route::post('/fletes/batch/resumen',  [PagoController::class, 'resumen'])   // ← PagoController
+        ->name('fletes.batch.resumen');
+    Route::post('/fletes/batch/liquidar', [PagoController::class, 'liquidar']) // ← PagoController
+        ->name('fletes.batch.liquidar');
 });
 
 // ——————————————

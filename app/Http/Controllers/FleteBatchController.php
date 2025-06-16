@@ -4,66 +4,63 @@ namespace App\Http\Controllers;
 
 use App\Models\Flete;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class FleteBatchController extends Controller
 {
-    public function asignarPeriodo(Request $request)
+    /**
+     * Export selected fletes as CSV respaldo.
+     */
+    public function exportExcel(Request $request): StreamedResponse|JsonResponse
     {
-        $request->validate([
-            'flete_ids' => 'required|array',
-            'flete_ids.*' => 'integer|exists:fletes,id',
-            'periodo' => 'required|string|in:Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre',
-            'pagado' => 'required|boolean',
-        ]);
-
-        $fletes = Flete::whereIn('id', $request->flete_ids)->get();
-
-        foreach ($fletes as $flete) {
-            $flete->update([
-                'periodo' => $request->periodo,
-                'pagado' => $request->pagado,
+        try {
+            $request->validate([
+                'flete_ids'   => 'required|array',
+                'flete_ids.*' => 'integer|exists:fletes,id',
             ]);
+
+            $fletes = Flete::with(['conductor', 'clientePrincipal', 'destino', 'rendicion'])
+                            ->whereIn('id', $request->flete_ids)
+                            ->get();
+
+            $exportData = $fletes->map(function($f) {
+                return [
+                    'ID'            => $f->id,
+                    'Conductor'     => optional($f->conductor)->name,
+                    'Cliente'       => optional($f->clientePrincipal)->nombre,
+                    'Destino'       => optional($f->destino)->nombre,
+                    'Fecha Salida'  => $f->fecha_salida,
+                    'Fecha Llegada' => $f->fecha_llegada,
+                    'Comisión'      => $f->rendicion->comision ?? 0,
+                    'Saldo'         => $f->rendicion->saldo ?? 0,
+                    'Pagado'        => $f->pagado ? 'Sí' : 'No',
+                ];
+            })->toArray();
+
+            return response()->streamDownload(function() use ($exportData) {
+                $handle = fopen('php://output', 'w');
+                // BOM UTF-8 para Excel
+                fprintf($handle, "\xEF\xBB\xBF");
+                // Cabeceras
+                if (!empty($exportData)) {
+                    fputcsv($handle, array_keys($exportData[0]));
+                }
+                // Filas
+                foreach ($exportData as $row) {
+                    fputcsv($handle, $row);
+                }
+                fclose($handle);
+            }, 'respaldo_fletes.csv', [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="respaldo_fletes.csv"',
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message'   => $e->getMessage(),
+                'exception' => $e->__toString(),
+            ], 500);
         }
-
-        return response()->json(['message' => 'Fletes actualizados correctamente.']);
     }
-    public function actualizarPagos(Request $request)
-{
-    $request->validate([
-        'conductor_id' => 'required|exists:users,id',
-        'periodo' => 'required|string|in:Enero,Febrero,...,Diciembre',
-        'flete_ids' => 'required|array',
-        'flete_ids.*' => 'integer|exists:fletes,id',
-    ]);
-
-    $conductorId = $request->conductor_id;
-    $periodo = $request->periodo;
-    $fleteIdsPagados = $request->flete_ids;
-
-    // Traer todos los fletes del conductor en ese periodo
-    $todosFletesPeriodo = Flete::where('conductor_id', $conductorId)
-        ->where('periodo', $periodo)
-        ->get();
-
-    // Marcar los seleccionados como pagados, el resto como no pagados
-    foreach ($todosFletesPeriodo as $flete) {
-        $flete->update([
-            'pagado' => in_array($flete->id, $fleteIdsPagados),
-        ]);
-    }
-
-    // Recalcular total
-    $fletesPagados = $todosFletesPeriodo->whereIn('id', $fleteIdsPagados);
-    $totalComision = $fletesPagados->sum('comision');
-    $totalSaldo = $fletesPagados->pluck('rendicion.saldo')->sum();
-
-    // Crear o actualizar pago
-    \App\Models\Pago::updateOrCreate(
-        ['conductor_id' => $conductorId, 'periodo' => $periodo],
-        ['total_comision' => $totalComision, 'total_saldo' => $totalSaldo, 'fecha_pago' => now()]
-    );
-
-    return response()->json(['message' => '✅ Pagos actualizados.']);
-}
-
 }

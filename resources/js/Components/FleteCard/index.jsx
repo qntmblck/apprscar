@@ -2,8 +2,6 @@
 import React, { useState, useMemo, useCallback, useEffect, memo } from 'react'
 import axios from 'axios'
 import { formatDateSimple } from '@/helpers/date'
-import { DayPicker } from 'react-day-picker'
-import 'react-day-picker/dist/style.css'
 import Header from './Header'
 import DetailsGrid from './DetailsGrid'
 import FrontTabs from './FrontTabs'
@@ -34,15 +32,25 @@ function FleteCard({
   // handlers de edición
   onSelectTitular,
   onSelectFechaSalida,
+  onSelectFechaLlegada,
   onSelectTracto,
   onSelectRampla,
   onSelectGuiaRuta,
+
+  // **NUEVOS** props para selección
+  selectedIds = [],
+  toggleSelect,
 }) {
   const [flipped, setFlipped] = useState(false)
   const [errorCierre, setErrorCierre] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeMenu, setActiveMenu] = useState(null)
   const formAbierto = openForm[flete.id]
+
+  // estado local para la fecha de llegada seleccionada
+  const [selectedLlegada, setSelectedLlegada] = useState(
+    flete.fecha_llegada ? new Date(flete.fecha_llegada) : undefined
+  )
 
   // temp guía/ruta
   const [tempGuia, setTempGuia] = useState(flete.guiaruta || '')
@@ -118,10 +126,10 @@ function FleteCard({
   )
   const fechaLlegadaFormatted = useMemo(
     () =>
-      flete.fecha_llegada
-        ? formatDateSimple(flete.fecha_llegada)
+      selectedLlegada
+        ? formatDateSimple(selectedLlegada)
         : 'No registrada',
-    [flete.fecha_llegada]
+    [selectedLlegada]
   )
   const viaticoEfec = useMemo(
     () => flete.rendicion?.viatico_efectivo ?? 0,
@@ -157,16 +165,8 @@ function FleteCard({
   }, [flete.rendicion])
 
   return (
-    <div
-      className={`flete-card w-full h-full ${
-        formAbierto ? 'expanded' : ''
-      }`}
-    >
-      <div
-        className={`flete-card-inner h-full ${
-          flipped ? 'rotate-y-180' : ''
-        }`}
-      >
+    <div className={`flete-card w-full h-full ${formAbierto ? 'expanded' : ''}`}>
+      <div className={`flete-card-inner h-full ${flipped ? 'rotate-y-180' : ''}`}>
         {/* Cara Frontal */}
         <div
           className={`flete-card-front bg-white border border-gray-200 shadow rounded-lg p-4 ${
@@ -189,51 +189,45 @@ function FleteCard({
             setActiveMenu={setActiveMenu}
             fechaSalidaFormatted={fechaSalidaFormatted}
             fechaLlegadaFormatted={fechaLlegadaFormatted}
-            viaticoEfec={viaticoEfec}
-            saldoTemporal={saldoTemporal}
             conductores={conductores}
             colaboradores={colaboradores}
             tractos={tractos}
             ramplas={ramplas}
-            guias={guias}
             onSelectTitular={onSelectTitular}
-            onSelectFechaSalida={onSelectFechaSalida}
+            onSelectFechaSalida={(id, fecha) => {
+              onSelectFechaSalida(id, fecha)
+              setSelectedLlegada(undefined)
+            }}
+            onSelectFechaLlegada={(id, fecha) => {
+              onSelectFechaLlegada(id, fecha)
+              setSelectedLlegada(fecha)
+            }}
             onSelectTracto={onSelectTracto}
             onSelectRampla={onSelectRampla}
             onSelectGuiaRuta={onSelectGuiaRuta}
           />
 
-          {errorCierre && (
-            <div className="error-cierre">{errorCierre}</div>
-          )}
+          {/* Error de cierre */}
+          {errorCierre && <div className="error-cierre">{errorCierre}</div>}
 
           <div className="ultimos-registros text-xs">
-  <RecordRow
-  registros={[
-    ...(flete.rendicion?.abonos      || []),
-    ...(flete.rendicion?.diesels     || []),
-    ...(flete.rendicion?.gastos      || []),
-    ...(flete.rendicion?.adicionales || []).map(a => ({ ...a, tipo: 'Adicional' })),
-    ...(flete.rendicion?.retornos    || []),
-    ...( (flete.rendicion?.comision || 0) > 0
-      ? [{
-          id:         flete.rendicion.id,
-          tipo:       'Comisión',
-          descripcion:'',
-          monto:      flete.rendicion.comision,
-          created_at: flete.rendicion.updated_at,
-        }]
-      : []
-    ),
-  ]}
-  viatico={viaticoEfec}
-  saldo={saldoTemporal}
-  onEliminar={handleEliminarRegistro}
-  isSubmitting={isSubmitting}
-/>
-
-</div>
-
+            <RecordRow
+              registros={[
+                ...(flete.rendicion?.abonos || []),
+                ...(flete.rendicion?.diesels || []),
+                ...(flete.rendicion?.gastos || []),
+                ...(flete.rendicion?.adicionales || []).map(a => ({ ...a, tipo: 'Adicional' })),
+                ...(flete.rendicion?.retornos || []),
+                ...(flete.rendicion?.comisiones || flete.rendicion?.comision > 0
+                  ? [{ id: flete.rendicion.id, tipo: 'Comisión', monto: flete.rendicion.comision, created_at: flete.rendicion.updated_at }]
+                  : []),
+              ]}
+              viatico={viaticoEfec}
+              saldo={saldoTemporal}
+              onEliminar={handleEliminarRegistro}
+              isSubmitting={isSubmitting}
+            />
+          </div>
 
           <FrontTabs
             flete={flete}
@@ -243,6 +237,10 @@ function FleteCard({
             submitForm={submitForm}
             actualizarFleteEnLista={actualizarFleteEnLista}
             setIsSubmitting={setIsSubmitting}
+
+            // **NUEVOS** props de selección
+            selectedIds={selectedIds}
+            toggleSelect={toggleSelect}
           />
         </div>
 
@@ -253,44 +251,18 @@ function FleteCard({
           }`}
         >
           <div className="flex justify-end">
-            <button
-              onClick={handleFlip}
-              className="text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
               <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
 
           <BackDetails
-  registros={[
-    ...(flete.rendicion?.gastos      || []),
-    ...(flete.rendicion?.diesels     || []),
-    ...(flete.rendicion?.abonos      || []),
-    // force these to be recognized as "Adicional"
-    ...(flete.rendicion?.adicionales || []).map(a => ({
-      ...a,
-      tipo: 'Adicional',
-    })),
-    // only include Comisión when it's > 0
-    ...(flete.rendicion?.comision > 0
-      ? [{
-          id:          `com-${flete.rendicion.id}`,
-          tipo:        'Comisión',
-          descripcion: '',
-          monto:       flete.rendicion.comision,
-          created_at:  flete.rendicion.updated_at,
-        }]
-      : []),
-  ]}
-  viaticoEfec={flete.rendicion?.viatico_calculado || 0}
-  saldoTemporal={flete.rendicion?.saldo_temporal   || 0}
-  onEliminarRegistro={handleEliminarRegistro}
-  isSubmitting={isSubmitting}
-/>
-
-
-
-
+            registros={detallesBack}
+            viaticoEfec={flete.rendicion?.viatico_calculado || 0}
+            saldoTemporal={flete.rendicion?.saldo_temporal || 0}
+            onEliminarRegistro={handleEliminarRegistro}
+            isSubmitting={isSubmitting}
+          />
 
           <BackTabs
             flete={flete}

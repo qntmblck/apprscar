@@ -468,17 +468,19 @@ public function updateGuiaRuta(Request $request, Flete $flete)
     ]);
 }
 
-public function updateFechaSalida(Request $request, Flete $flete)
+
+
+public function updateFechaLlegada(Request $request, Flete $flete)
 {
     $request->validate([
-        'fecha_salida' => 'required|date',
+        'fecha_llegada' => 'required|date',
     ]);
 
     $flete->update([
-        'fecha_salida' => $request->input('fecha_salida'),
+        'fecha_llegada' => $request->input('fecha_llegada'),
     ]);
 
-    // Recalcular comisión tras cambiar fecha de salida
+    // si hay rendición, recalcular totales
     if ($flete->rendicion) {
         $flete->rendicion->recalcularTotales();
         $flete->rendicion->save();

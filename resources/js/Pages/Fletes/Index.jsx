@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+// resources/js/Pages/Fletes/Index.jsx
+import React, { useState, useEffect, useCallback } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import axios from 'axios'
+import { saveAs } from 'file-saver'
+import { ArrowPathIcon, DocumentArrowDownIcon } from '@heroicons/react/20/solid'
 import FiltrosBar from './FiltrosBar'
 import FleteList from './FleteList'
 import Pagination from './Pagination'
@@ -50,12 +53,18 @@ export default function Index({
   const [activeTab, setActiveTab]           = useState('')
   const [showAll, setShowAll]               = useState(false)
 
+  // Estado de selección de fletes
+  const [selectedIds, setSelectedIds]       = useState([])
+
+  // Nuevo estado para el botón Resumir
+  const [isLoadingResumen, setIsLoadingResumen] = useState(false)
+
   // Flags para UI
   const hasDest    = data.destino.trim() !== ''
   const hasClient  = data.cliente_ids.length === 1
   const tooManyMulti =
     data.cliente_ids.length > 1 ||
-    data.tracto_ids.length > 1 ||
+    data.tracto_ids.length  > 1 ||
     data.conductor_ids.length > 1 ||
     data.colaborador_ids.length > 1
   const hasFilters =
@@ -66,7 +75,7 @@ export default function Index({
     data.colaborador_ids.length > 0 ||
     data.fecha_desde !== ''
 
-  // Sincronizar lista de fletes al cargar datos
+  // Sincronizar lista de fletes
   useEffect(() => {
     const lista = paginatedFletes.data || []
     lista.sort((a, b) => new Date(b.fecha_salida) - new Date(a.fecha_salida))
@@ -81,7 +90,7 @@ export default function Index({
     return () => clearTimeout(timer)
   }, [data, get])
 
-  // Para cerrar dropdowns de filtro al click fuera
+  // Cerrar dropdowns al click fuera
   useEffect(() => {
     function handleClickOutside(e) {
       if (!activeTab) return
@@ -101,7 +110,7 @@ export default function Index({
     else setRange(r || { from: undefined, to: undefined })
   }, [])
 
-  // Abrir/cerrar formularios en cada tarjeta
+  // Formularios en tarjetas
   const handleToggleForm = useCallback((id, tipo) => {
     setOpenForm(prev => ({ ...prev, [id]: prev[id] === tipo ? null : tipo }))
   }, [])
@@ -118,12 +127,22 @@ export default function Index({
     setData(name, arr)
   }, [data, setData])
 
-  // Actualizar un flete en la lista tras cambios
+  // Toggle selección
+  const toggleSelect = useCallback(id => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }, [])
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds([])
+  }, [])
+
+  // Actualizar flete en lista
   const actualizarFleteEnLista = useCallback(f => {
     setFletesState(prev => prev.map(x => (x.id === f.id ? f : x)))
   }, [])
 
-  // Envío de formularios (diesel, gastos, etc.)
+  // Envío de formularios (diésel, gastos, etc.)
   const submitForm = useCallback(
     async (ruta, payload, onSuccess, onError) => {
       try {
@@ -133,7 +152,10 @@ export default function Index({
         onSuccess?.(res.data.flete)
         return res
       } catch (err) {
-        const msg = err.response?.data?.message || err.response?.data?.error || 'Error procesando formulario'
+        const msg = err.response?.data?.message
+          || err.response?.data
+          || err.message
+          || 'Error procesando formulario'
         setErrorMensaje(msg)
         onError?.()
         throw err
@@ -142,14 +164,126 @@ export default function Index({
     []
   )
 
-  // Eliminar registro (abono/gasto/etc.)
+  // Acciones batch con detalle de error
+  const handleDownloadSpreadsheet = useCallback(async () => {
+    try {
+      setErrorMensaje(null)
+      const res = await axios.post(
+        route('fletes.batch.export'),
+        { flete_ids: selectedIds },
+        { responseType: 'blob' }
+      )
+      saveAs(res.data, 'respaldo_fletes.csv')
+    } catch (e) {
+      console.error('Error exportando planilla:', e.response || e)
+      const status = e.response?.status
+      const data   = e.response?.data
+      const msg = status
+        ? `Error ${status}: ${typeof data === 'object'
+            ? JSON.stringify(data, null, 2)
+            : data}`
+        : e.message
+      setErrorMensaje(msg)
+    }
+  }, [selectedIds])
+
+  // Modificado: handleResumenPdf con loading
+  const handleResumenPdf = useCallback(async () => {
+  setErrorMensaje(null);
+  setIsLoadingResumen(true);
+
+  try {
+    const res = await axios.post(
+      route('fletes.batch.resumen'),
+      { flete_ids: selectedIds },
+      {
+        responseType: 'blob',
+        headers: { Accept: 'application/json' },
+      }
+    );
+    saveAs(res.data, 'resumen_fletes.pdf');
+  } catch (e) {
+    console.error('Error generando resumen PDF:', e);
+
+    let msg = 'Error generando resumen.';
+    const blob = e.response?.data;
+
+    if (blob instanceof Blob) {
+      const text = await blob.text();
+      try {
+        const json = JSON.parse(text);
+        msg = json.message || JSON.stringify(json, null, 2);
+      } catch {
+        msg = text;
+      }
+    } else if (e.response?.data?.message) {
+      msg = e.response.data.message;
+    } else {
+      msg = e.message;
+    }
+
+    setErrorMensaje(msg);
+  } finally {
+    setIsLoadingResumen(false);
+  }
+}, [selectedIds])
+
+
+  const handleLiquidar = useCallback(async () => {
+  setErrorMensaje(null);
+  setIsLoadingLiquidar(true);
+
+  try {
+    const res = await axios.post(
+      route('fletes.batch.liquidar'),
+      { flete_ids: selectedIds },
+      {
+        responseType: 'blob',
+        headers: { Accept: 'application/json' },
+      }
+    );
+    saveAs(res.data, 'liquidacion_fletes.pdf');
+    handleClearSelection();
+    get(route('fletes.index'), { preserveState: true, data });
+  } catch (e) {
+    console.error('Error liquidando fletes:', e);
+
+    let msg = 'Error liquidando fletes.';
+    const blob = e.response?.data;
+
+    if (blob instanceof Blob) {
+      const text = await blob.text();
+      try {
+        const json = JSON.parse(text);
+        msg = json.message || JSON.stringify(json, null, 2);
+      } catch {
+        msg = text;
+      }
+    } else if (e.response?.data?.message) {
+      msg = e.response.data.message;
+    } else {
+      msg = e.message;
+    }
+
+    setErrorMensaje(msg);
+  } finally {
+    setIsLoadingLiquidar(false);
+  }
+}, [selectedIds, get, data, handleClearSelection]);
+
+
+  // Eliminar registro
   const eliminarRegistro = useCallback(
     async id => {
       try {
         const res = await axios.delete(`/registro/${id}`)
         if (res.data.flete) actualizarFleteEnLista(res.data.flete)
-      } catch {
-        setErrorMensaje('No se pudo eliminar el registro.')
+      } catch (e) {
+        console.error('Error al eliminar registro:', e.response || e)
+        const msg = e.response?.data?.message
+          || JSON.stringify(e.response?.data)
+          || 'No se pudo eliminar el registro.'
+        setErrorMensaje(msg)
       }
     },
     [actualizarFleteEnLista]
@@ -158,13 +292,13 @@ export default function Index({
   // Limpiar filtros
   const handleClear = useCallback(() => {
     setData({
-      conductor_ids: [],
+      conductor_ids:   [],
       colaborador_ids: [],
-      cliente_ids: [],
-      tracto_ids: [],
-      destino: '',
-      fecha_desde: '',
-      fecha_hasta: '',
+      cliente_ids:     [],
+      tracto_ids:      [],
+      destino:         '',
+      fecha_desde:     '',
+      fecha_hasta:     '',
     })
     setRange({ from: undefined, to: undefined })
     setShowAll(false)
@@ -179,10 +313,11 @@ export default function Index({
       return
     }
     try {
+      setErrorMensaje(null)
       await quickCreateFlete(data, destinos, tractos, setSuccessMensaje, setErrorMensaje)
       get(route('fletes.index'), { preserveState: true, data })
     } catch {
-      // errorMensaje ya viene seteado
+      // errorMensaje ya seteado
     }
   }
 
@@ -193,8 +328,8 @@ export default function Index({
     return () => window.removeEventListener('toggleShowAll', toggle)
   }, [])
 
-  // **Handlers de edición de DetailsGrid:**
-  const onSelectTitular     = useCallback(async (id, opt) => {
+  // Handlers DetailsGrid (sin cambios)
+  const onSelectTitular = useCallback(async (id, opt) => {
     try {
       const res = await axios.post(`/fletes/${id}/titular`, {
         conductor_id: opt.id,
@@ -202,45 +337,60 @@ export default function Index({
       })
       if (res.data.flete) actualizarFleteEnLista(res.data.flete)
     } catch {
-      alert('Error guardando titular')
+      setErrorMensaje('Error guardando titular')
     }
   }, [actualizarFleteEnLista])
 
-  const onSelectTracto      = useCallback(async (id, opt) => {
+  const onSelectTracto = useCallback(async (id, opt) => {
     try {
       const res = await axios.post(`/fletes/${id}/tracto`, { tracto_id: opt.id })
       if (res.data.flete) actualizarFleteEnLista(res.data.flete)
     } catch {
-      alert('Error guardando tracto')
+      setErrorMensaje('Error guardando tracto')
     }
   }, [actualizarFleteEnLista])
 
-  const onSelectRampla      = useCallback(async (id, opt) => {
+  const onSelectRampla = useCallback(async (id, opt) => {
     try {
       const res = await axios.post(`/fletes/${id}/rampla`, { rampla_id: opt.id })
       if (res.data.flete) actualizarFleteEnLista(res.data.flete)
     } catch {
-      alert('Error guardando rampla')
+      setErrorMensaje('Error guardando rampla')
     }
   }, [actualizarFleteEnLista])
 
-  const onSelectGuiaRuta    = useCallback(async (id, text) => {
+  const onSelectGuiaRuta = useCallback(async (id, text) => {
     try {
       const res = await axios.post(`/fletes/${id}/guiaruta`, { guiaruta: text })
       if (res.data.flete) actualizarFleteEnLista(res.data.flete)
     } catch {
-      alert('Error guardando guía/ruta')
+      setErrorMensaje('Error guardando guía/ruta')
     }
   }, [actualizarFleteEnLista])
 
   const onSelectFechaSalida = useCallback(async (id, date) => {
     try {
-      const res = await axios.post(`/fletes/${id}/fecha-salida`, {
-        fecha_salida: date.toISOString(),
-      })
+      const iso = date.toISOString().split('T')[0]
+      const res = await axios.post(
+        window.route('fletes.fecha-salida', { flete: id }),
+        { fecha_salida: iso }
+      )
       if (res.data.flete) actualizarFleteEnLista(res.data.flete)
     } catch {
-      alert('Error guardando fecha de salida')
+      setErrorMensaje('Error guardando fecha de salida')
+    }
+  }, [actualizarFleteEnLista])
+
+  const onSelectFechaLlegada = useCallback(async (id, date) => {
+    try {
+      const iso = date.toISOString().split('T')[0]
+      const res = await axios.post(
+        window.route('fletes.updateFechaLlegada', { flete: id }),
+        { fecha_llegada: iso }
+      )
+      if (res.data.flete) actualizarFleteEnLista(res.data.flete)
+    } catch {
+      setErrorMensaje('Error guardando fecha de llegada')
     }
   }, [actualizarFleteEnLista])
 
@@ -259,10 +409,74 @@ export default function Index({
         )}
         {errorMensaje && (
           <div className="text-red-700 bg-red-100 border border-red-200 rounded p-2 text-sm">
-            {errorMensaje}
+            <pre className="whitespace-pre-wrap">{errorMensaje}</pre>
           </div>
         )}
       </div>
+
+      {selectedIds.length > 0 && (
+        <div className="fixed top-0 inset-x-0 z-50 flex justify-end py-2 pr-20">
+          <div className="bg-transparent shadow-md rounded px-2 py-1 flex items-center space-x-1">
+            <button
+              onClick={handleClearSelection}
+              className="p-2 hover:bg-gray-100 rounded"
+              title="Limpiar selección"
+            >
+              <ArrowPathIcon className="h-5 w-5 text-red-600" />
+            </button>
+
+            <button
+              onClick={handleDownloadSpreadsheet}
+              className="p-2 hover:bg-gray-100 rounded"
+              title="Descargar planilla"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5 text-green-600" />
+            </button>
+
+            <button
+              onClick={handleResumenPdf}
+              disabled={isLoadingResumen}
+              className={`
+                flex items-center px-2 py-1 text-xs text-white rounded transition-colors
+                ${isLoadingResumen
+                  ? 'bg-blue-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'}
+              `}
+            >
+              {isLoadingResumen && (
+                <svg
+                  className="animate-spin h-4 w-4 mr-1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+              )}
+              {isLoadingResumen ? 'Resumiendo...' : 'Resumir'}
+            </button>
+
+            <button
+              onClick={handleLiquidar}
+              className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors"
+            >
+              Liquidar
+            </button>
+          </div>
+        </div>
+      )}
 
       <FiltrosBar
         data={data}
@@ -300,8 +514,6 @@ export default function Index({
         actualizarFleteEnLista={actualizarFleteEnLista}
         submitForm={submitForm}
         onEliminarRegistro={eliminarRegistro}
-
-        /** Listas necesarias para DetailsGrid **/
         conductores={conductores}
         colaboradores={colaboradores}
         clientes={clientes}
@@ -309,12 +521,14 @@ export default function Index({
         destinos={destinos}
         ramplas={ramplas}
         guias={guias}
-
         onSelectTitular={onSelectTitular}
         onSelectTracto={onSelectTracto}
         onSelectRampla={onSelectRampla}
         onSelectGuiaRuta={onSelectGuiaRuta}
         onSelectFechaSalida={onSelectFechaSalida}
+        onSelectFechaLlegada={onSelectFechaLlegada}
+        selectedIds={selectedIds}
+        toggleSelect={toggleSelect}
       />
 
       <Pagination

@@ -1,4 +1,3 @@
-// resources/js/Pages/Fletes/FleteList.jsx
 import React, { useMemo } from 'react'
 import FleteCard from '@/Components/FleteCard'
 
@@ -12,7 +11,7 @@ export default function FleteList({
   actualizarFleteEnLista,
   submitForm,
   onEliminarRegistro,
-  // añadidos:
+
   conductores,
   colaboradores,
   clientes,
@@ -20,11 +19,17 @@ export default function FleteList({
   destinos,
   ramplas,
   guias,
+
   onSelectTitular,
   onSelectTracto,
   onSelectRampla,
   onSelectGuiaRuta,
   onSelectFechaSalida,
+  onSelectFechaLlegada,
+
+  // **NUEVOS** props
+  selectedIds,
+  toggleSelect,
 }) {
   const allCards = useMemo(
     () =>
@@ -39,7 +44,6 @@ export default function FleteList({
             submitForm={submitForm}
             onEliminarRegistro={onEliminarRegistro}
 
-            /** listas para DetailsGrid **/
             conductores={conductores}
             colaboradores={colaboradores}
             clientes={clientes}
@@ -48,12 +52,16 @@ export default function FleteList({
             ramplas={ramplas}
             guias={guias}
 
-            // forwardamos los handlers de DetailsGrid
             onSelectTitular={onSelectTitular}
             onSelectTracto={onSelectTracto}
             onSelectRampla={onSelectRampla}
             onSelectGuiaRuta={onSelectGuiaRuta}
             onSelectFechaSalida={onSelectFechaSalida}
+            onSelectFechaLlegada={onSelectFechaLlegada}
+
+            // **NUEVOS**:
+            selectedIds={selectedIds}
+            toggleSelect={toggleSelect}
           />
         </div>
       )),
@@ -77,6 +85,9 @@ export default function FleteList({
       onSelectRampla,
       onSelectGuiaRuta,
       onSelectFechaSalida,
+      onSelectFechaLlegada,
+      selectedIds,
+      toggleSelect,
     ]
   )
 

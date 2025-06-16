@@ -66,13 +66,13 @@ export default function AdicionalForm({
 
       <div className="grid grid-cols-2 gap-2">
         {/* Descripción ocupa ambas filas en columna 1 */}
-        <input
-          type="text"
+        <textarea
           name="descripcion"
           placeholder="✏️ Descripción"
           value={form.descripcion}
           onChange={handleChange}
-          className="row-span-2 p-2 rounded border border-gray-300 bg-white w-full text-[11px]"
+          rows={4}
+          className="row-span-2 p-2 rounded border border-gray-300 bg-white w-full text-base text-gray-800 resize-none align-top"
         />
 
         {/* Fila 1, columna 2: Monto */}

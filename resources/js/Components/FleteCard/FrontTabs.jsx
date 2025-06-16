@@ -19,7 +19,10 @@ export default function FrontTabs({
   handleCloseForm,
   submitForm,
   actualizarFleteEnLista,
-  setIsSubmitting
+  setIsSubmitting,
+  // Props para selección
+  selectedIds = [],
+  toggleSelect,
 }) {
   const dieselCount    = flete.rendicion?.diesels?.length    ?? 0
   const gastoCount     = flete.rendicion?.gastos?.length     ?? 0
@@ -53,7 +56,7 @@ export default function FrontTabs({
       color: 'text-yellow-600',
       hoverBg: 'hover:bg-yellow-50',
       label: 'Viático',
-      forceIconColor: 'text-yellow-600', // siempre amarillo
+      forceIconColor: 'text-yellow-600',
     },
     {
       key: 'adicional',
@@ -69,6 +72,7 @@ export default function FrontTabs({
   return (
     <div className="mt-4">
       <nav className="flex items-center border-b border-gray-200 overflow-x-auto">
+        {/* Pestañas de acciones individuales */}
         <div className="flex-1 flex space-x-1">
           {tabs.map(tab => {
             const isViatico = tab.key === 'finalizar'
@@ -109,18 +113,25 @@ export default function FrontTabs({
             )
           })}
         </div>
+
+        {/* Checkbox de selección o badge Pagado */}
         <div className="flex-shrink-0">
           {flete.pagado ? (
             <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
               Pagado
             </span>
           ) : (
-            <input type="checkbox" className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+            <input
+              type="checkbox"
+              checked={selectedIds.includes(flete.id)}
+              onChange={() => toggleSelect(flete.id)}
+              className="h-4 w-4 text-green-600 border-gray-300 rounded"
+            />
           )}
         </div>
       </nav>
 
-      {/* Formularios */}
+      {/* Formularios desplegables */}
       {formAbierto === 'diesel' && (
         <div className="px-2 pt-2">
           <DieselForm

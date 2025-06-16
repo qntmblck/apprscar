@@ -6,7 +6,7 @@ export default function FinalizarForm({
   fleteId,
   rendicionId,
   fechaSalida,
-  fechaLlegada,           // Ahora recibimos la fecha de llegada
+  fechaLlegada,           // Asumimos que ahora llega la fecha de llegada
   fletePosteriorEnMismoDia = false,
   onSubmit,
   onCancel,
@@ -25,7 +25,7 @@ export default function FinalizarForm({
       const start = new Date(fechaSalida)
       const end = new Date(fechaLlegada)
       if (!isNaN(start) && !isNaN(end)) {
-        let days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
+        let days = Math.floor((end - start) / (1000*60*60*24)) + 1
         if (fletePosteriorEnMismoDia) days = Math.max(0, days - 1)
         setDias(days)
         setViaticoSuggest(days * 15000)
@@ -46,8 +46,6 @@ export default function FinalizarForm({
     const payload = new FormData()
     payload.append('flete_id', fleteId)
     payload.append('rendicion_id', rendicionId)
-    // Siempre enviamos la fecha de llegada recibida
-    payload.append('fecha_termino', fechaLlegada)
     if (viaticoEfec !== '') payload.append('viatico_efectivo', viaticoEfec)
     if (foto instanceof File) payload.append('foto', foto)
 
@@ -109,6 +107,9 @@ export default function FinalizarForm({
             className="group relative flex-shrink-0 w-1/2 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-200 ease-out cursor-pointer"
           >
             <CameraIcon className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
+            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
+              Tomar foto
+            </span>
             <input
               id={`foto-${fleteId}`}
               type="file"
@@ -124,6 +125,9 @@ export default function FinalizarForm({
             className="group relative flex-grow flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 ease-out"
           >
             <PaperAirplaneIcon className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200" />
+            <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-xs text-white bg-black bg-opacity-60 rounded px-2 py-1 pointer-events-none transition-opacity duration-200">
+              Enviar
+            </span>
           </button>
         </div>
       </div>
