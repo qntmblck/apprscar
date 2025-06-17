@@ -33,6 +33,7 @@ export default function BackTabs({
       current: formAbierto === 'abono',
       color: 'text-green-600',
       hoverBg: 'hover:bg-green-50',
+      minWidth: 80,
     },
     {
       key: 'retorno',
@@ -42,6 +43,7 @@ export default function BackTabs({
       current: formAbierto === 'retorno',
       color: 'text-yellow-600',
       hoverBg: 'hover:bg-yellow-50',
+      minWidth: 80,
     },
     {
       key: 'comision',
@@ -51,6 +53,7 @@ export default function BackTabs({
       current: formAbierto === 'comision',
       color: 'text-violet-600',
       hoverBg: 'hover:bg-violet-50',
+      minWidth: 80,
     },
   ]
 
@@ -67,15 +70,16 @@ export default function BackTabs({
               key={tab.key}
               onClick={() => handleToggleForm(flete.id, tab.key)}
               className={classNames(
-                'group inline-flex items-center border-b-2 px-3 py-2 text-sm font-medium transition min-w-[80px]',
+                'group inline-flex flex-shrink-0 items-center border-b-2 px-3 py-2 text-xs font-medium transition',
                 tab.current
                   ? `border-current ${tab.color} font-semibold`
                   : 'border-transparent text-gray-500 hover:text-gray-700',
                 tab.hoverBg
               )}
+              style={{ minWidth: tab.minWidth }}
             >
               <tab.icon className={classNames('mr-1 h-4 w-4', iconClass)} />
-              <span>{tab.label}</span>
+              <span className="text-xs">{tab.label}</span>
               {tab.count > 0 && (
                 <span
                   className={classNames(
