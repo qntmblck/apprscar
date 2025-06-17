@@ -17,8 +17,24 @@ export default function Header({
   onFlip,
   submitForm,
   actualizarFleteEnLista,
-  onCerrar,
 }) {
+  // Construye y envía el payload para cerrar o reabrir la rendición
+  const toggleEstado = async () => {
+    const payload = {
+      flete_id:     flete.id,
+      rendicion_id: flete.rendicion.id,
+      // Al cerrar (cuando está Activo) enviamos fecha_termino
+      ...(flete.rendicion.estado === 'Activo' && {
+        fecha_termino: new Date().toISOString().slice(0, 10),
+      }),
+    }
+    await submitForm(
+      `/fletes/${flete.id}/finalizar`,
+      payload,
+      actualizarFleteEnLista
+    )
+  }
+
   return (
     <div className="w-full overflow-hidden mb-4">
       <div className="w-full flex justify-between items-center">
@@ -69,10 +85,10 @@ export default function Header({
             </button>
           )}
 
-          {/* Cerrar/Reabrir */}
+          {/* Cerrar/Reabrir (iconos e estilos actualizados) */}
           {flete.rendicion?.estado === 'Activo' ? (
             <button
-              onClick={() => onCerrar(flete.id)}
+              onClick={toggleEstado}
               disabled={isSubmitting}
               className={classNames(
                 'p-1 rounded-full transition-colors',
@@ -80,19 +96,21 @@ export default function Header({
               )}
               aria-label="Cerrar rendición"
             >
-              <LockClosedIcon className="h-4 w-4 text-black" />
+              {/* Activo: candado abierto en verde */}
+              <LockOpenIcon className="h-4 w-4 text-green-600" />
             </button>
           ) : (
             <button
-              onClick={() => onCerrar(flete.id)}
+              onClick={toggleEstado}
               disabled={isSubmitting}
               className={classNames(
-                'p-1 rounded-full transition-colors',
+                'p-1 rounded-full transition-colors font-bold',
                 isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-green-50'
               )}
               aria-label="Reabrir rendición"
             >
-              <LockOpenIcon className="h-4 w-4 text-green-600" />
+              {/* Cerrado: candado cerrado en negro y negrita */}
+              <LockClosedIcon className="h-4 w-4 text-black" />
             </button>
           )}
 

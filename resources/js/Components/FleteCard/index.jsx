@@ -47,6 +47,9 @@ function FleteCard({
   const [activeMenu, setActiveMenu] = useState(null)
   const formAbierto = openForm[flete.id]
 
+  // Determino si está cerrado (estado distinto de 'Activo')
+  const isClosed = flete.rendicion?.estado !== 'Activo'
+
   // estado local para la fecha de llegada seleccionada
   const [selectedLlegada, setSelectedLlegada] = useState(
     flete.fecha_llegada ? new Date(flete.fecha_llegada) : undefined
@@ -80,8 +83,17 @@ function FleteCard({
     setErrorCierre(null)
     setIsSubmitting(true)
     try {
-      const res = await axios.post(`/fletes/${flete.id}/cerrar`)
-      if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+      const payload = {
+        flete_id:     flete.id,
+        rendicion_id: flete.rendicion.id,
+        ...(flete.rendicion.estado === 'Activo' && {
+          fecha_termino: new Date().toISOString().slice(0, 10),
+        }),
+      }
+      const res = await axios.post(`/fletes/${flete.id}/finalizar`, payload)
+      if (res.data?.flete) {
+        actualizarFleteEnLista(res.data.flete)
+      }
     } catch (e) {
       const msg =
         e.response?.data?.message ||
@@ -93,7 +105,12 @@ function FleteCard({
     } finally {
       setIsSubmitting(false)
     }
-  }, [flete.id, actualizarFleteEnLista])
+  }, [
+    flete.id,
+    flete.rendicion.id,
+    flete.rendicion.estado,
+    actualizarFleteEnLista,
+  ])
 
   const handleEliminarRegistro = useCallback(
     async registro => {
@@ -169,10 +186,13 @@ function FleteCard({
       <div className={`flete-card-inner h-full ${flipped ? 'rotate-y-180' : ''}`}>
         {/* Cara Frontal */}
         <div
-          className={`flete-card-front bg-white border border-gray-200 shadow rounded-lg p-4 ${
-            !flipped ? 'active' : ''
-          }`}
+          className={classNames(
+            'flete-card-front bg-white border border-gray-200 shadow rounded-lg p-4',
+            !flipped && 'active',
+            isClosed && 'opacity-70'
+          )}
         >
+          {/* Header siempre activo (incluye ojo + cierre/reapertura) */}
           <Header
             flete={flete}
             flipped={flipped}
@@ -183,97 +203,94 @@ function FleteCard({
             actualizarFleteEnLista={actualizarFleteEnLista}
           />
 
-          <DetailsGrid
-            flete={flete}
-            activeMenu={activeMenu}
-            setActiveMenu={setActiveMenu}
-            fechaSalidaFormatted={fechaSalidaFormatted}
-            fechaLlegadaFormatted={fechaLlegadaFormatted}
-            conductores={conductores}
-            colaboradores={colaboradores}
-            tractos={tractos}
-            ramplas={ramplas}
-            onSelectTitular={onSelectTitular}
-            onSelectFechaSalida={(id, fecha) => {
-              onSelectFechaSalida(id, fecha)
-              setSelectedLlegada(undefined)
-            }}
-            onSelectFechaLlegada={(id, fecha) => {
-              onSelectFechaLlegada(id, fecha)
-              setSelectedLlegada(fecha)
-            }}
-            onSelectTracto={onSelectTracto}
-            onSelectRampla={onSelectRampla}
-            onSelectGuiaRuta={onSelectGuiaRuta}
-          />
+          {/* TODO lo demás bloqueable si isClosed */}
+          <div className={isClosed ? 'pointer-events-none' : ''}>
+            <DetailsGrid
+              flete={flete}
+              activeMenu={activeMenu}
+              setActiveMenu={setActiveMenu}
+              fechaSalidaFormatted={fechaSalidaFormatted}
+              fechaLlegadaFormatted={fechaLlegadaFormatted}
+              conductores={conductores}
+              colaboradores={colaboradores}
+              tractos={tractos}
+              ramplas={ramplas}
+              onSelectTitular={onSelectTitular}
+              onSelectFechaSalida={(id, fecha) => {
+                onSelectFechaSalida(id, fecha)
+                setSelectedLlegada(undefined)
+              }}
+              onSelectFechaLlegada={(id, fecha) => {
+                onSelectFechaLlegada(id, fecha)
+                setSelectedLlegada(fecha)
+              }}
+              onSelectTracto={onSelectTracto}
+              onSelectRampla={onSelectRampla}
+              onSelectGuiaRuta={onSelectGuiaRuta}
+            />
 
-          {/* Error de cierre */}
-          {errorCierre && <div className="error-cierre">{errorCierre}</div>}
+            {errorCierre && <div className="error-cierre">{errorCierre}</div>}
 
-          <div className="ultimos-registros text-xs">
-            <RecordRow
-              registros={[
-                ...(flete.rendicion?.abonos || []),
-                ...(flete.rendicion?.diesels || []),
-                ...(flete.rendicion?.gastos || []),
-                ...(flete.rendicion?.adicionales || []).map(a => ({ ...a, tipo: 'Adicional' })),
-                ...(flete.rendicion?.retornos || []),
-                ...(flete.rendicion?.comisiones || flete.rendicion?.comision > 0
-                  ? [{ id: flete.rendicion.id, tipo: 'Comisión', monto: flete.rendicion.comision, created_at: flete.rendicion.updated_at }]
-                  : []),
-              ]}
-              viatico={viaticoEfec}
-              saldo={saldoTemporal}
-              onEliminar={handleEliminarRegistro}
-              isSubmitting={isSubmitting}
+            <div className="ultimos-registros text-xs">
+              <RecordRow
+                registros={ultimosRegistros}
+                viatico={viaticoEfec}
+                saldo={saldoTemporal}
+                onEliminar={handleEliminarRegistro}
+                isSubmitting={isSubmitting}
+              />
+            </div>
+
+            <FrontTabs
+              flete={flete}
+              formAbierto={formAbierto}
+              handleToggleForm={handleToggleForm}
+              handleCloseForm={handleCloseForm}
+              submitForm={submitForm}
+              actualizarFleteEnLista={actualizarFleteEnLista}
+              setIsSubmitting={setIsSubmitting}
+              selectedIds={selectedIds}
+              toggleSelect={toggleSelect}
             />
           </div>
-
-          <FrontTabs
-            flete={flete}
-            formAbierto={formAbierto}
-            handleToggleForm={handleToggleForm}
-            handleCloseForm={handleCloseForm}
-            submitForm={submitForm}
-            actualizarFleteEnLista={actualizarFleteEnLista}
-            setIsSubmitting={setIsSubmitting}
-
-            // **NUEVOS** props de selección
-            selectedIds={selectedIds}
-            toggleSelect={toggleSelect}
-          />
         </div>
 
         {/* Cara Trasera */}
         <div
-          className={`flete-card-back bg-white border border-gray-200 shadow rounded-lg p-4 ${
-            flipped ? 'active' : ''
-          }`}
+          className={classNames(
+            'flete-card-back bg-white border border-gray-200 shadow rounded-lg p-4',
+            flipped && 'active',
+            isClosed && 'opacity-70'
+          )}
         >
+          {/* Botón de cerrar trasera siempre activo */}
           <div className="flex justify-end">
             <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
               <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
 
-          <BackDetails
-            registros={detallesBack}
-            viaticoEfec={flete.rendicion?.viatico_calculado || 0}
-            saldoTemporal={flete.rendicion?.saldo_temporal || 0}
-            onEliminarRegistro={handleEliminarRegistro}
-            isSubmitting={isSubmitting}
-          />
+          {/* TODO lo demás bloqueable si isClosed */}
+          <div className={isClosed ? 'pointer-events-none' : ''}>
+            <BackDetails
+              registros={detallesBack}
+              viaticoEfec={flete.rendicion?.viatico_calculado || 0}
+              saldoTemporal={flete.rendicion?.saldo_temporal || 0}
+              onEliminarRegistro={handleEliminarRegistro}
+              isSubmitting={isSubmitting}
+            />
 
-          <BackTabs
-            flete={flete}
-            formAbierto={formAbierto}
-            handleToggleForm={handleToggleForm}
-            handleCloseForm={handleCloseForm}
-            submitForm={submitForm}
-            actualizarFleteEnLista={actualizarFleteEnLista}
-            toggleFlip={handleFlip}
-            setIsSubmitting={setIsSubmitting}
-          />
+            <BackTabs
+              flete={flete}
+              formAbierto={formAbierto}
+              handleToggleForm={handleToggleForm}
+              handleCloseForm={handleCloseForm}
+              submitForm={submitForm}
+              actualizarFleteEnLista={actualizarFleteEnLista}
+              toggleFlip={handleFlip}
+              setIsSubmitting={setIsSubmitting}
+            />
+          </div>
         </div>
       </div>
     </div>

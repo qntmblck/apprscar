@@ -248,49 +248,84 @@ class FleteController extends Controller
 
 
     public function finalizar(Request $request)
-    {
-        $validated = $request->validate([
-            'flete_id'         => 'required|exists:fletes,id',
-            'rendicion_id'     => 'required|exists:rendiciones,id',
-            'fecha_termino'    => 'nullable|date',
-            'viatico_efectivo' => 'nullable|numeric|min:0',
-        ]);
+{
+    $validated = $request->validate([
+        'flete_id'         => 'required|exists:fletes,id',
+        'rendicion_id'     => 'required|exists:rendiciones,id',
+        'fecha_termino'    => 'nullable|date',
+        'viatico_efectivo' => 'nullable|numeric|min:0',
+    ]);
 
-        $flete     = Flete::findOrFail($validated['flete_id']);
-        $rendicion = Rendicion::with(['diesels','gastos','abonos'])
-                              ->findOrFail($validated['rendicion_id']);
+    // 1) Cargar los modelos
+    $flete     = Flete::findOrFail($validated['flete_id']);
+    $rendicion = Rendicion::with([
+        'abonos',
+        'diesels',
+        'gastos',
+        'adicionales',
+    ])->findOrFail($validated['rendicion_id']);
 
-        if (! empty($validated['fecha_termino'])) {
-            $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
-            $rendicion->estado = 'Cerrado';
-        } else {
-            $rendicion->estado = 'Activo';
-        }
-
-        if (isset($validated['viatico_efectivo'])) {
-            $rendicion->viatico_efectivo  = $validated['viatico_efectivo'];
-            $rendicion->viatico_calculado = $validated['viatico_efectivo'];
-        }
-
-        $rendicion->recalcularTotales();
-        $rendicion->save();
-
-        $fresh = $flete->fresh([
-            'clientePrincipal',
-            'destino',
-            'conductor',
-            'tracto',
-            'rampla',
-            'rendicion.abonos',
-            'rendicion.diesels',
-            'rendicion.gastos',
-        ]);
-
-        return response()->json([
-            'message' => 'Flete finalizado correctamente.',
-            'flete'   => $fresh,
-        ], 200);
+    // 2) Alternar estado y, al cerrar, actualizar fecha_llegada
+    if (! empty($validated['fecha_termino'])) {
+        $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
+        $rendicion->estado = 'Cerrado';
+    } else {
+        $rendicion->estado = 'Activo';
     }
+
+    // 3) Ajustar viático si viene en el request
+    if (isset($validated['viatico_efectivo'])) {
+        $rendicion->viatico_efectivo  = $validated['viatico_efectivo'];
+        $rendicion->viatico_calculado = $validated['viatico_efectivo'];
+    }
+
+    // 4) Recalcular totales y guardar
+    $rendicion->recalcularTotales();
+    $rendicion->save();
+
+    // 5) Refrescar Flete con todas sus relaciones para la UI
+    $fresh = $flete
+        ->fresh()
+        ->load([
+            // Relaciones de cabecera de Flete
+            'clientePrincipal:id,razon_social',
+            'cliente:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'destino:id,nombre',
+            'tracto:id,patente',
+            'rampla:id,patente',
+
+            // Relación singular de Retorno en Flete
+            'retorno:id,flete_id,valor,descripcion,created_at',
+
+            // Rendición y sus sub-relaciones
+            'rendicion',
+            'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+        ])
+        ->makeVisible([
+            // Campos de Flete que usa tu UI
+            'fecha_salida',
+            'fecha_llegada',
+            'guiaruta',
+            // Campos calculados de Rendición
+            'rendicion.saldo',
+            'rendicion.saldo_temporal',
+            'rendicion.viatico_calculado',
+            'rendicion.comision',
+            'rendicion.total_gastos',
+            'rendicion.total_diesel',
+        ]);
+
+    return response()->json([
+        'message' => 'Flete actualizado correctamente.',
+        'flete'   => $fresh,
+    ], 200);
+}
+
 
     public function registrarViatico(Request $request)
     {
