@@ -31,6 +31,16 @@ export default function FrontTabs({
 
   const tabs = [
     {
+      key: 'adicional',
+      icon: InboxArrowDownIcon,
+      count: adicionalCount,
+      current: formAbierto === 'adicional',
+      color: 'text-black font-bold',
+      hoverBg: 'hover:bg-green-50',
+      label: null,
+      minWidth: 36,
+    },
+    {
       key: 'diesel',
       icon: WrenchScrewdriverIcon,
       count: dieselCount,
@@ -38,6 +48,7 @@ export default function FrontTabs({
       color: 'text-blue-600',
       hoverBg: 'hover:bg-blue-50',
       label: 'Diésel',
+      minWidth: 80,
     },
     {
       key: 'gasto',
@@ -47,6 +58,7 @@ export default function FrontTabs({
       color: 'text-red-600',
       hoverBg: 'hover:bg-red-50',
       label: 'Gasto',
+      minWidth: 80,
     },
     {
       key: 'finalizar',
@@ -57,26 +69,17 @@ export default function FrontTabs({
       hoverBg: 'hover:bg-yellow-50',
       label: 'Viático',
       forceIconColor: 'text-yellow-600',
-    },
-    {
-      key: 'adicional',
-      icon: InboxArrowDownIcon,
-      count: adicionalCount,
-      current: formAbierto === 'adicional',
-      color: 'text-black font-bold',
-      hoverBg: 'hover:bg-green-50',
-      label: '', // oculta texto
+      minWidth: 80,
     },
   ]
 
   return (
     <div className="mt-4">
-      <nav className="flex items-center border-b border-gray-200 overflow-x-auto">
-        {/* Pestañas de acciones individuales */}
-        <div className="flex-1 flex space-x-1">
+      <nav className="flex items-center border-b border-gray-200 h-10">
+        {/* Pestañas: scroll horizontal en overflow-x-auto */}
+        <div className="flex items-center space-x-1 px-1 flex-1 overflow-x-auto">
           {tabs.map(tab => {
-            const isViatico = tab.key === 'finalizar'
-            const iconColorClass = isViatico
+            const iconColorClass = tab.forceIconColor
               ? tab.forceIconColor
               : (tab.count > 0 || tab.current
                   ? tab.color
@@ -87,16 +90,16 @@ export default function FrontTabs({
                 key={tab.key}
                 onClick={() => handleToggleForm(flete.id, tab.key)}
                 className={classNames(
-                  'group inline-flex items-center border-b-2 px-3 py-2 transition',
+                  'group inline-flex flex-shrink-0 items-center border-b-2 px-3 py-1 transition',
                   tab.current
                     ? `border-current ${tab.color} font-semibold`
                     : 'border-transparent text-gray-500 hover:text-gray-700',
                   tab.hoverBg
                 )}
-                style={{ minWidth: 80 }}
+                style={{ minWidth: tab.minWidth }}
               >
                 <tab.icon className={classNames('mr-1 h-4 w-4', iconColorClass)} />
-                {tab.label && <span>{tab.label}</span>}
+                {tab.label && <span className="text-xs">{tab.label}</span>}
                 {tab.count > 0 && (
                   <span
                     className={classNames(
@@ -114,10 +117,10 @@ export default function FrontTabs({
           })}
         </div>
 
-        {/* Checkbox de selección o badge Pagado */}
-        <div className="flex-shrink-0">
+        {/* Checkbox siempre visible al final */}
+        <div className="flex-none ml-2 flex items-center pr-2">
           {flete.pagado ? (
-            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
               Pagado
             </span>
           ) : (
