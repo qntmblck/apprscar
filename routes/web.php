@@ -181,11 +181,9 @@ Route::middleware('auth')->group(function () {
     // ——— Nuevas rutas batch ———
     Route::post('/fletes/batch/export',   [FleteBatchController::class, 'exportExcel'])
         ->name('fletes.batch.export');
-    Route::post('/fletes/batch/resumen',  [PagoController::class, 'resumen'])   // ← PagoController
-        ->name('fletes.batch.resumen');
-    Route::post('/fletes/batch/liquidar', [PagoController::class, 'liquidar']) // ← PagoController
-        ->name('fletes.batch.liquidar');
-});
+    Route::post('/fletes/batch/notificar', [FleteBatchController::class, 'notificarMasivo'])
+        ->name('fletes.batch.notificar');
+}); // Cierra el grupo 'auth'
 
 // ——————————————
 // Activar superadmin manualmente

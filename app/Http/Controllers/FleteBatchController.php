@@ -63,4 +63,49 @@ class FleteBatchController extends Controller
             ], 500);
         }
     }
+
+    public function notificarMasivo(Request $request): JsonResponse
+    {
+        $request->validate([
+            'flete_ids'   => 'required|array',
+            'flete_ids.*' => 'integer|exists:fletes,id',
+        ]);
+
+        $ids = $request->input('flete_ids');
+
+        // Procesamos en chunks de 3 para no saturar
+        Flete::whereIn('id', $ids)
+            ->chunk(3, function ($chunk) {
+                foreach ($chunk as $flete) {
+                    // Cargamos relaciones necesarias
+                    $flete->load(['clientePrincipal', 'conductor', 'rendicion.adicionales']);
+
+                    // Preparamos payload
+                    $payload = [
+                        'flete'       => $flete,
+                        'adicionales' => $flete->rendicion->adicionales ?? [],
+                    ];
+
+                    // Envío síncrono para validar errores
+                    try {
+                        Mail::to($flete->clientePrincipal->email)
+                            ->cc($flete->conductor->email)
+                            ->send(new FleteNotificado($payload));
+
+                        // Opcional: marcar notificado sólo si no hay failures
+                        if (count(Mail::failures()) === 0) {
+                            $flete->update(['estado_notificado' => true]);
+                        }
+                    } catch (\Throwable $e) {
+                        // Loguear y continuar con el siguiente
+                        \Log::error("Error notificando flete {$flete->id}: ".$e->getMessage());
+                    }
+                }
+            });
+
+        return response()->json([
+            'message' => 'Envío de notificaciones iniciado en lotes de 3.',
+        ]);
+    }
+
 }

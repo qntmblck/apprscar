@@ -35,6 +35,15 @@ export default function Header({
     )
   }
 
+  // Envía notificación vía FleteBatchController
+  const handleNotify = async () => {
+    await submitForm(
+      route('fletes.batch.notificar'),
+      { flete_ids: [flete.id] },
+      () => actualizarFleteEnLista({ ...flete, estado_notificado: true })
+    )
+  }
+
   return (
     <div className="w-full overflow-hidden mb-4">
       <div className="w-full flex justify-between items-center">
@@ -61,28 +70,22 @@ export default function Header({
         {/* Acciones: íconos más juntos */}
         <div className="flex items-center space-x-1 flex-shrink-0">
           {/* Notificar */}
-          {flete.estado === 'Sin Notificar' ? (
-            <span className="p-1 rounded-full">
-              <EnvelopeIcon className="h-4 w-4 text-black" />
-            </span>
-          ) : (
+          {!flete.estado_notificado ? (
             <button
-              onClick={async () => {
-                await submitForm(
-                  `/fletes/${flete.id}/notificar`,
-                  { flete_id: flete.id },
-                  actualizarFleteEnLista
-                )
-              }}
+              onClick={handleNotify}
               disabled={isSubmitting}
               className={classNames(
                 'p-1 rounded-full transition-colors',
                 isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-green-50'
               )}
-              aria-label="Notificado"
+              aria-label="Notificar"
             >
-              <EnvelopeOpenIcon className="h-4 w-4 text-green-600" />
+              <EnvelopeIcon className="h-4 w-4 text-black" />
             </button>
+          ) : (
+            <span className="p-1 rounded-full">
+              <EnvelopeOpenIcon className="h-4 w-4 text-green-600" />
+            </span>
           )}
 
           {/* Cerrar/Reabrir (iconos e estilos actualizados) */}
