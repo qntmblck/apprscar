@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use App\Models\Cliente;
 use App\Models\User;
 use App\Models\Destino;
@@ -43,7 +44,24 @@ class Flete extends Model
         'km_recorridos',
     ];
 
-    /** 3. Booted: mantener snapshots **/
+    /** 3. Casts para fecha **/
+    protected $casts = [
+        'fecha_salida'  => 'datetime',
+        'fecha_llegada' => 'datetime',
+    ];
+
+    /** 3b. Accessors para asegurar Carbon **/
+    public function getFechaSalidaAttribute($value)
+    {
+        return $value ? Carbon::parse($value) : null;
+    }
+
+    public function getFechaLlegadaAttribute($value)
+    {
+        return $value ? Carbon::parse($value) : null;
+    }
+
+    /** 4. Booted: mantener snapshots **/
     protected static function booted()
     {
         static::saving(function (self $flete) {
@@ -66,7 +84,7 @@ class Flete extends Model
         });
     }
 
-    /** 4. Relaciones **/
+    /** 5. Relaciones **/
     public function clientePrincipal()
     {
         return $this->belongsTo(Cliente::class, 'cliente_principal_id');
@@ -142,7 +160,7 @@ class Flete extends Model
                     ->where('periodo', $periodo);
     }
 
-    /** 5. Accesores personalizados **/
+    /** 6. Accesores personalizados **/
 
     // Valor factura ajustado
     public function getValorFacturaAttribute(): float

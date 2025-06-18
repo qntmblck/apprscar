@@ -1,3 +1,6 @@
+// resources/js/Pages/Fletes/FiltrosBar.jsx
+import React, { useState, useEffect } from 'react'
+import { usePage } from '@inertiajs/react'
 import {
   ArrowPathIcon,
   CalendarDaysIcon,
@@ -13,21 +16,66 @@ import classNames from 'classnames'
 import PortalDropdown from './PortalDropdown'
 
 export default function FiltrosBar({
-  data, setData, range, setRange, get,
-  activeTab, setActiveTab, suggestions, setSuggestions,
-  clientes, conductores, colaboradores, tractos, destinos,
-  handleToggleMultiSelect, handleCreateClick, handleClear,
-  hasDest, hasClient, tooManyMulti, hasFilters, handleRangeSelect,
-  topDestinos = destinos.slice(0, 10), // ← fallback a primeros 10
+  data,
+  setData,
+  range,
+  setRange,
+  get,
+  activeTab,
+  setActiveTab,
+  suggestions,
+  setSuggestions,
+  clientes,
+  conductores,
+  colaboradores,
+  tractos,
+  destinos,
+  handleToggleMultiSelect,
+  handleCreateClick,
+  handleClear,
+  hasDest,
+  hasClient,
+  tooManyMulti,
+  hasFilters,
+  handleRangeSelect,
+  topDestinos = destinos.slice(0, 10),
 }) {
+  const { props } = usePage()
+  const [clientesList, setClientesList] = useState(clientes)
+
+  // Mantener lista de clientes al recargar vía Inertia
+  useEffect(() => {
+    setClientesList(props.clientes)
+  }, [props.clientes])
+
+  // Al abrir “Cliente”, recarga solo esa prop
+  useEffect(() => {
+    if (activeTab === 'Cliente') {
+      get('/fletes', {
+        only: ['clientes'],
+        preserveState: true,
+        replace: true,
+      })
+    }
+  }, [activeTab, get])
+
+  // Construye payload y dispara creación
+const onCrear = () => {
+  if (!hasDest || !hasClient || tooManyMulti || data.cliente_ids.length === 0) {
+    return
+  }
+  handleCreateClick()
+}
+
+
   return (
     <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-nowrap flex overflow-x-auto items-center gap-x-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-x-2 overflow-x-auto">
 
         {/* Limpiar filtros */}
         <button
           onClick={handleClear}
-          className="inline-flex items-center bg-white p-1 border-b-2 border-transparent rounded hover:border-gray-300"
+          className="inline-flex items-center p-1 bg-white border-b-2 border-transparent rounded hover:border-gray-300"
         >
           <ArrowPathIcon
             className={classNames(
@@ -42,10 +90,12 @@ export default function FiltrosBar({
           icon={BuildingStorefrontIcon}
           label="Cliente"
           isActive={activeTab === 'Cliente'}
-          onClick={() => setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')}
+          onClick={() =>
+            setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')
+          }
         >
           <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-            {clientes.map(c => (
+            {clientesList.map(c => (
               <CheckboxItem
                 key={c.id}
                 label={c.razon_social}
@@ -67,9 +117,7 @@ export default function FiltrosBar({
           onClick={() => {
             const opening = activeTab !== 'Destino'
             setActiveTab(opening ? 'Destino' : '')
-            if (opening) {
-              setSuggestions(topDestinos)
-            }
+            if (opening) setSuggestions(topDestinos)
           }}
         >
           <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
@@ -78,10 +126,7 @@ export default function FiltrosBar({
                 type="text"
                 placeholder="Destino..."
                 value={data.destino}
-                onFocus={() => {
-                  // al enfocar, mostrar sugerencias iniciales
-                  setSuggestions(topDestinos)
-                }}
+                onFocus={() => setSuggestions(topDestinos)}
                 onChange={e => {
                   const v = e.target.value
                   setData('destino', v)
@@ -90,7 +135,9 @@ export default function FiltrosBar({
                     v.trim() === ''
                       ? topDestinos
                       : destinos
-                          .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
+                          .filter(d =>
+                            d.nombre.toLowerCase().includes(v.toLowerCase())
+                          )
                           .slice(0, 10)
                   )
                 }}
@@ -104,8 +151,8 @@ export default function FiltrosBar({
                   setData('destino', d.nombre)
                   setData('destino_id', d.id)
                   setSuggestions([])
-                  get(route('fletes.index'), { preserveState: true, data })
                   setActiveTab('')
+                  get('/fletes', { preserveState: true, data })
                 }}
                 className="px-3 py-2 text-base text-gray-700 cursor-pointer hover:bg-gray-100"
               >
@@ -118,7 +165,7 @@ export default function FiltrosBar({
         {/* Crear */}
         <div className="relative flex-shrink-0">
           <button
-            onClick={handleCreateClick}
+            onClick={onCrear}
             className={classNames(
               hasDest && hasClient && !tooManyMulti
                 ? 'bg-green-700 hover:bg-green-800 text-white'
@@ -135,7 +182,9 @@ export default function FiltrosBar({
           icon={CalendarDaysIcon}
           label="Fecha"
           isActive={activeTab === 'Fecha'}
-          onClick={() => setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')}
+          onClick={() =>
+            setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')
+          }
         >
           <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
             <DayPicker
@@ -163,7 +212,7 @@ export default function FiltrosBar({
                   setData('fecha_desde', desde)
                   setData('fecha_hasta', hasta)
                   setActiveTab('')
-                  get(route('fletes.index'), {
+                  get('/fletes', {
                     preserveState: true,
                     data: { ...data, fecha_desde: desde, fecha_hasta: hasta },
                   })
@@ -177,51 +226,61 @@ export default function FiltrosBar({
         </FiltroBoton>
 
         {/* Titular */}
-        <FiltroBoton
-          icon={IdentificationIcon}
-          label="Titular"
-          isActive={activeTab === 'Titular'}
-          onClick={() => setActiveTab(activeTab === 'Titular' ? '' : 'Titular')}
-        >
-          <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-            {colaboradores.map(u => {
-              const isChecked = data.colaborador_ids.includes(String(u.id))
-              return (
-                <CheckboxItem
-                  key={`col-${u.id}`}
-                  label={u.name}
-                  checked={isChecked}
-                  onClick={() => {
-                    handleToggleMultiSelect('colaborador_ids', u.id)
-                    setActiveTab('')
-                  }}
-                  className={classNames(
-                    isChecked ? 'bg-indigo-50' : '',
-                    'hover:bg-indigo-100'
-                  )}
-                />
-              )
-            })}
-            {conductores.map(u => (
-              <CheckboxItem
-                key={`c-${u.id}`}
-                label={u.name}
-                checked={data.conductor_ids.includes(String(u.id))}
-                onClick={() => {
-                  handleToggleMultiSelect('conductor_ids', u.id)
-                  setActiveTab('')
-                }}
-              />
-            ))}
-          </div>
-        </FiltroBoton>
+<FiltroBoton
+  icon={IdentificationIcon}
+  label="Titular"
+  isActive={activeTab === 'Titular'}
+  onClick={() =>
+    setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
+  }
+>
+  <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+    {colaboradores.map(colaborador => (
+      <CheckboxItem
+        key={`colaborador-${colaborador.id}`}
+        label={colaborador.name}
+        checked={data.colaborador_ids.includes(String(colaborador.id))}
+        onClick={() => {
+          handleToggleMultiSelect('colaborador_ids', colaborador.id)
+          setActiveTab('')
+        }}
+        className={classNames(
+          data.colaborador_ids.includes(String(colaborador.id))
+            ? 'bg-indigo-50'
+            : '',
+          'hover:bg-indigo-100'
+        )}
+      />
+    ))}
+    {conductores.map(conductor => (
+      <CheckboxItem
+        key={`conductor-${conductor.id}`}
+        label={conductor.name}
+        checked={data.conductor_ids.includes(String(conductor.id))}
+        onClick={() => {
+          handleToggleMultiSelect('conductor_ids', conductor.id)
+          setActiveTab('')
+        }}
+        className={classNames(
+          data.conductor_ids.includes(String(conductor.id))
+            ? 'bg-indigo-50'
+            : '',
+          'hover:bg-indigo-100'
+        )}
+      />
+    ))}
+  </div>
+</FiltroBoton>
+
 
         {/* Tracto */}
         <FiltroBoton
           icon={TruckIcon}
           label="Tracto"
           isActive={activeTab === 'Tracto'}
-          onClick={() => setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')}
+          onClick={() =>
+            setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
+          }
         >
           <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
             {tractos.map(t => (
@@ -249,11 +308,18 @@ function FiltroBoton({ icon: Icon, isActive, onClick, children, label }) {
         data-toggle-type={label}
         onClick={onClick}
         className={classNames(
-          isActive ? 'border-indigo-500' : 'border-transparent hover:border-indigo-300',
+          isActive
+            ? 'border-indigo-500'
+            : 'border-transparent hover:border-indigo-300',
           'inline-flex items-center bg-white p-1 border-b-2 rounded'
         )}
       >
-        <Icon className={classNames(isActive ? 'text-indigo-600' : 'text-gray-500', 'h-5 w-5')} />
+        <Icon
+          className={classNames(
+            isActive ? 'text-indigo-600' : 'text-gray-500',
+            'h-5 w-5'
+          )}
+        />
       </button>
       <PortalDropdown isOpen={isActive} type={label}>
         {children}

@@ -1,3 +1,4 @@
+// resources/js/Components/DashboardHeader.jsx
 import { useState, useEffect, useMemo } from 'react'
 import { usePage, Link } from '@inertiajs/react'
 import { Bars3Icon, XMarkIcon, UserIcon } from '@heroicons/react/24/outline'
@@ -110,11 +111,10 @@ export default function DashboardHeader() {
         </div>
       </div>
 
-      {/* Menú móvil — solo una línea sutil */}
+      {/* Menú móvil con fondo semitransparente */}
       {mobileMenuOpen && (
-        <div className="absolute top-0 left-0 z-60 w-full border-b border-gray-200 bg-transparent px-4 py-1">
-          <div className="flex items-center justify-between">
-            {/* Enlaces en una sola fila con scroll horizontal */}
+        <div className="absolute top-0 left-0 z-60 w-full px-4 py-1">
+          <div className="bg-white bg-opacity-50 shadow-md rounded px-2 py-1 flex items-center justify-between space-x-1">
             <div className="flex space-x-4 overflow-x-auto">
               {navigation.map((item) => (
                 <Link
@@ -143,7 +143,6 @@ export default function DashboardHeader() {
                 </Link>
               ))}
             </div>
-            {/* Única “X” para cerrar el menú */}
             <button
               type="button"
               className="p-2 text-gray-500 flex-shrink-0"
@@ -160,20 +159,13 @@ export default function DashboardHeader() {
 
 function getNavigation(roles) {
   const navigation = []
-
-  // 1. Servicios (superadmin o admin)
   if (roles.includes('superadmin') || roles.includes('admin')) {
     navigation.push({ name: 'Servicios', href: '/fletes' })
   }
-
-  // 2. Panel
   navigation.push({ name: 'Panel', href: getDashboardUrl(roles) })
-
-  // 3. Usuarios (solo superadmin)
   if (roles.includes('superadmin')) {
     navigation.push({ name: 'Usuarios', href: '/usuarios' })
   }
-
   return navigation
 }
 

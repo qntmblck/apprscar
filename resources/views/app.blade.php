@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
+
     {{-- 1. Meta CSRF obligatorio para Laravel --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -34,8 +35,6 @@
 
     {{--
         9. Exponer Ziggy en window.route.
-        Cuando hagas npm run build, Vite dejará en public/vendor/ziggy/js
-        la versión optimizada.
     --}}
     <script type="module">
         import route from '/vendor/ziggy/js';

@@ -22,6 +22,6 @@ class FleteNotificado extends Mailable
     {
         return $this
             ->subject("Detalles de tu Flete #{$this->flete->id}")
-            ->markdown('emails.fletes.notificado');
+            ->markdown('emails.fletes.notificado_plain');
     }
 }

@@ -36,25 +36,26 @@ export default function Index({
     cliente_ids:     filters.cliente_ids     || [],
     tracto_ids:      filters.tracto_ids      || [],
     destino:         filters.destino         || '',
+    destino_id:      filters.destino_id      || '',
     fecha_desde:     filters.fecha_desde     || '',
     fecha_hasta:     filters.fecha_hasta     || '',
   })
 
   // Estado local
-  const [suggestions, setSuggestions]       = useState([])
-  const [range, setRange]                   = useState({
+  const [suggestions, setSuggestions]         = useState([])
+  const [range, setRange]                     = useState({
     from: filters.fecha_desde ? new Date(filters.fecha_desde) : undefined,
     to:   filters.fecha_hasta ? new Date(filters.fecha_hasta) : undefined,
   })
-  const [fletesState, setFletesState]       = useState([])
-  const [openForm, setOpenForm]             = useState({})
-  const [errorMensaje, setErrorMensaje]     = useState(null)
-  const [successMensaje, setSuccessMensaje] = useState(null)
-  const [activeTab, setActiveTab]           = useState('')
-  const [showAll, setShowAll]               = useState(false)
+  const [fletesState, setFletesState]         = useState([])
+  const [openForm, setOpenForm]               = useState({})
+  const [errorMensaje, setErrorMensaje]       = useState(null)
+  const [successMensaje, setSuccessMensaje]   = useState(null)
+  const [activeTab, setActiveTab]             = useState('')
+  const [showAll, setShowAll]                 = useState(false)
 
   // Estado de selección de fletes
-  const [selectedIds, setSelectedIds]         = useState([])
+  const [selectedIds, setSelectedIds]           = useState([])
   const [isLoadingResumen, setIsLoadingResumen] = useState(false)
   const [isLoadingLiquidar, setIsLoadingLiquidar] = useState(false)
 
@@ -84,7 +85,7 @@ export default function Index({
   // Refetch al cambiar filtros
   useEffect(() => {
     const timer = setTimeout(() => {
-      get(route('fletes.index'), { preserveState: true, data })
+      get('/fletes', { preserveState: true, data })
     }, 300)
     return () => clearTimeout(timer)
   }, [data, get])
@@ -174,7 +175,7 @@ export default function Index({
     try {
       setErrorMensaje(null)
       const res = await axios.post(
-        route('fletes.batch.export'),
+        '/fletes/batch/export',
         { flete_ids: selectedIds },
         { responseType: 'blob' }
       )
@@ -197,7 +198,7 @@ export default function Index({
     setIsLoadingResumen(true)
     try {
       const res = await axios.post(
-        route('fletes.batch.resumen'),
+        '/pagos/resumen',
         { flete_ids: selectedIds },
         {
           responseType: 'blob',
@@ -233,7 +234,7 @@ export default function Index({
     setIsLoadingLiquidar(true)
     try {
       const res = await axios.post(
-        route('fletes.batch.liquidar'),
+        '/pagos/liquidar',
         { flete_ids: selectedIds },
         {
           responseType: 'blob',
@@ -242,7 +243,7 @@ export default function Index({
       )
       saveAs(res.data, 'liquidacion_fletes.pdf')
       handleClearSelection()
-      get(route('fletes.index'), { preserveState: true, data })
+      get('/fletes', { preserveState: false, data })
     } catch (e) {
       console.error('Error liquidando fletes:', e)
       let msg = 'Error liquidando fletes.'
@@ -266,7 +267,6 @@ export default function Index({
     }
   }, [selectedIds, get, data, handleClearSelection])
 
-  // Eliminar registro
   const eliminarRegistro = useCallback(
     async id => {
       try {
@@ -283,24 +283,46 @@ export default function Index({
     [actualizarFleteEnLista]
   )
 
-  // Limpiar filtros
+  // Limpiar filtros, cerrar dropdowns y sugerencias
+
   const handleClear = useCallback(() => {
-    setData({
+  // 1) Vaciar formulario
+  setData('conductor_ids', []);
+  setData('colaborador_ids', []);
+  setData('cliente_ids', []);
+  setData('tracto_ids', []);
+  setData('destino', '');
+  setData('destino_id', '');
+  setData('fecha_desde', '');
+  setData('fecha_hasta', '');
+
+  // 2) Reset de estado local
+  setRange({ from: undefined, to: undefined });
+  setShowAll(false);
+  setActiveTab('');
+  setSuggestions([]);
+
+  // 3) Disparo inmediato SIN preserveState
+  get('/fletes', {
+    preserveState: false,
+    replace: true,
+    data: {
       conductor_ids:   [],
       colaborador_ids: [],
       cliente_ids:     [],
       tracto_ids:      [],
       destino:         '',
+      destino_id:      '',
       fecha_desde:     '',
       fecha_hasta:     '',
-    })
-    setRange({ from: undefined, to: undefined })
-    setShowAll(false)
-    get(route('fletes.index'), { preserveState: true, data: {} })
-  }, [setData, get])
+    },
+  });
+}, [get, setData, setRange, setShowAll, setActiveTab, setSuggestions]);
 
-  // Crear flete rápido
-  const handleCreateClick = async () => {
+
+
+  // Crear flete rápido y forzar volver a la página 1
+  const handleCreateClick = useCallback(async () => {
     if (!(hasDest && hasClient) || tooManyMulti) {
       setErrorMensaje('Seleccione cliente y destino.')
       setSuccessMensaje(null)
@@ -309,11 +331,14 @@ export default function Index({
     try {
       setErrorMensaje(null)
       await quickCreateFlete(data, destinos, tractos, setSuccessMensaje, setErrorMensaje)
-      get(route('fletes.index'), { preserveState: true, data })
+      get('/fletes', {
+        preserveState: false,
+        data: { ...data, page: 1 },
+      })
     } catch {
-      // ya seteado errorMensaje
+      // errorMensaje ya seteado
     }
-  }
+  }, [data, destinos, tractos, hasDest, hasClient, tooManyMulti, get])
 
   // Toggle mostrar todos
   useEffect(() => {
@@ -352,16 +377,7 @@ export default function Index({
 
       {selectedIds.length > 0 && (
         <div className="fixed top-0 inset-x-0 z-50 flex justify-end py-2 pr-20">
-          <div className="bg-transparent shadow-md rounded px-2 py-1 flex items-center space-x-1">
-            {/* Seleccionar todos */}
-            <button
-              onClick={handleSelectAll}
-              className="p-2 hover:bg-gray-100 rounded"
-              title="Seleccionar todos"
-            >
-              <CheckCircleIcon className="h-5 w-5 text-blue-600" />
-            </button>
-
+          <div className="bg-white bg-opacity-50 shadow-md rounded px-2 py-1 flex items-center space-x-1">
             {/* Limpiar selección */}
             <button
               onClick={handleClearSelection}
@@ -369,6 +385,15 @@ export default function Index({
               title="Limpiar selección"
             >
               <ArrowPathIcon className="h-5 w-5 text-red-600" />
+            </button>
+
+            {/* Seleccionar todos */}
+            <button
+              onClick={handleSelectAll}
+              className="p-2 hover:bg-gray-100 rounded"
+              title="Seleccionar todos"
+            >
+              <CheckCircleIcon className="h-5 w-5 text-blue-600" />
             </button>
 
             {/* Descargar planilla */}
@@ -391,37 +416,16 @@ export default function Index({
                   : 'bg-blue-600 hover:bg-blue-700'}
               `}
             >
-              {isLoadingResumen && (
-                <svg
-                  className="animate-spin h-4 w-4 mr-1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  />
-                </svg>
-              )}
               {isLoadingResumen ? 'Resumiendo...' : 'Resumir'}
             </button>
 
             {/* Liquidar */}
             <button
               onClick={handleLiquidar}
+              disabled={isLoadingLiquidar}
               className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors"
             >
-              Liquidar
+              {isLoadingLiquidar ? 'Liquidando...' : 'Liquidar'}
             </button>
           </div>
         </div>
@@ -445,7 +449,6 @@ export default function Index({
         handleToggleMultiSelect={handleToggleMultiSelect}
         handleCreateClick={handleCreateClick}
         handleClear={handleClear}
-        errorMensaje={errorMensaje}
         hasDest={hasDest}
         hasClient={hasClient}
         tooManyMulti={tooManyMulti}
@@ -481,10 +484,10 @@ export default function Index({
       />
 
       <Pagination
-        current_page={current_page}
-        last_page={last_page}
-        prev_page_url={prev_page_url}
-        next_page_url={next_page_url}
+        current_page={paginatedFletes.current_page}
+        last_page={paginatedFletes.last_page}
+        prev_page_url={paginatedFletes.prev_page_url}
+        next_page_url={paginatedFletes.next_page_url}
         get={get}
         data={data}
       />

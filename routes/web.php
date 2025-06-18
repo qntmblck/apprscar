@@ -4,6 +4,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as BaseVerify;
+use App\Http\Middleware\VerifyCsrfToken;
 
 // ——————————————
 // Controladores
@@ -21,7 +23,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FleteController;
 use App\Http\Controllers\FleteConductorController;
 use App\Http\Controllers\FleteBatchController;
-use App\Http\Controllers\PagoController;               // ← Importa PagoController
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\DieselController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\AbonoController;
@@ -108,9 +110,6 @@ Route::middleware(['auth'])->group(function () {
 // Gestión de usuarios (solo superadmin)
 // ——————————————
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
-    Route::post('/fletes/batch/asignar-periodo', [FleteBatchController::class, 'asignarPeriodo'])
-        ->name('fletes.batch.asignar-periodo');
-
     Route::get('/usuarios',                [UserController::class, 'index'])->name('usuarios.index');
     Route::post('/usuarios/{user}/role',   [UserController::class, 'updateRole'])->name('usuarios.updateRole');
     Route::delete('/usuarios/{user}/role', [UserController::class, 'removeRole'])->name('usuarios.removeRole');
@@ -166,23 +165,29 @@ Route::middleware('auth')->group(function () {
     });
 
     // Formularios frontal y trasera...
-    Route::post('/adicionales',    [AdicionalController::class, 'store'])->name('adicionales.store');
-    Route::post('/diesel',         [DieselController::class, 'store'])->name('diesel.store');
-    Route::delete('/diesels/{id}', [DieselController::class, 'destroy'])->name('diesel.destroy');
-    Route::post('/gasto',          [GastoController::class, 'store'])->name('gasto.store');
-    Route::delete('/gastos/{id}',  [GastoController::class, 'destroy'])->name('gasto.destroy');
-    Route::post('/abonos',         [AbonoController::class, 'store'])->name('abonos.store');
-    Route::delete('/abonos/{id}',  [AbonoController::class, 'destroy'])->name('abonos.destroy');
-    Route::post('/retornos',       [RetornoController::class, 'store'])->name('retornos.store');
-    Route::delete('/retornos/{id}',[RetornoController::class, 'destroy'])->name('retornos.destroy');
-    Route::post('/comisiones',     [ComisionController::class, 'store'])->name('comisiones.store');
+    Route::post('/adicionales',     [AdicionalController::class, 'store'])->name('adicionales.store');
+    Route::post('/diesel',          [DieselController::class, 'store'])->name('diesel.store');
+    Route::delete('/diesels/{id}',  [DieselController::class, 'destroy'])->name('diesel.destroy');
+    Route::post('/gasto',           [GastoController::class, 'store'])->name('gasto.store');
+    Route::delete('/gastos/{id}',   [GastoController::class, 'destroy'])->name('gastos.destroy');
+    Route::post('/abonos',          [AbonoController::class, 'store'])->name('abonos.store');
+    Route::delete('/abonos/{id}',   [AbonoController::class, 'destroy'])->name('abonos.destroy');
+    Route::post('/retornos',        [RetornoController::class, 'store'])->name('retornos.store');
+    Route::delete('/retornos/{id}', [RetornoController::class, 'destroy'])->name('retornos.destroy');
+    Route::post('/comisiones',      [ComisionController::class, 'store'])->name('comisiones.store');
     Route::delete('/comisiones/{id}', [ComisionController::class, 'destroy'])->name('comisiones.destroy');
 
     // ——— Nuevas rutas batch ———
-    Route::post('/fletes/batch/export',   [FleteBatchController::class, 'exportExcel'])
+    Route::post('/fletes/batch/export',     [FleteBatchController::class, 'exportExcel'])
         ->name('fletes.batch.export');
     Route::post('/fletes/batch/notificar', [FleteBatchController::class, 'notificarMasivo'])
-        ->name('fletes.batch.notificar');
+    ->withoutMiddleware('auth')
+    ->withoutMiddleware(BaseVerify::class)
+    ->name('fletes.batch.notificar');
+
+    // ——— Rutas para pagos/resumen y pagos/liquidar ———
+    Route::post('/pagos/resumen',  [PagoController::class, 'resumen'])->name('pagos.resumen');
+    Route::post('/pagos/liquidar', [PagoController::class, 'liquidar'])->name('pagos.liquidar');
 }); // Cierra el grupo 'auth'
 
 // ——————————————

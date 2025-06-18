@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Flete;
+use App\Mail\FleteNotificado;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class FleteBatchController extends Controller
 {
@@ -64,48 +67,51 @@ class FleteBatchController extends Controller
         }
     }
 
+
     public function notificarMasivo(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'flete_ids'   => 'required|array',
             'flete_ids.*' => 'integer|exists:fletes,id',
         ]);
 
-        $ids = $request->input('flete_ids');
+        $fletes = Flete::with('rendicion.adicionales')
+                        ->findMany($validated['flete_ids']);
 
-        // Procesamos en chunks de 3 para no saturar
-        Flete::whereIn('id', $ids)
-            ->chunk(3, function ($chunk) {
-                foreach ($chunk as $flete) {
-                    // Cargamos relaciones necesarias
-                    $flete->load(['clientePrincipal', 'conductor', 'rendicion.adicionales']);
+        foreach ($fletes as $flete) {
+            try {
+                $html = view('emails.fletes.notificado', [
+                    'flete'       => $flete,
+                    'adicionales' => $flete->rendicion->adicionales,
+                ])->render();
 
-                    // Preparamos payload
-                    $payload = [
-                        'flete'       => $flete,
-                        'adicionales' => $flete->rendicion->adicionales ?? [],
-                    ];
+                Mail::html($html, function($msg) use ($flete) {
+                    $msg->from(config('mail.from.address'), config('mail.from.name'));
+                    $msg->to('contacto@scartransportes.cl');
+                    $msg->cc('scartransportes@gmail.com');
+                    $msg->subject("Notificación Flete #{$flete->id}");
+                });
 
-                    // Envío síncrono para validar errores
-                    try {
-                        Mail::to($flete->clientePrincipal->email)
-                            ->cc($flete->conductor->email)
-                            ->send(new FleteNotificado($payload));
-
-                        // Opcional: marcar notificado sólo si no hay failures
-                        if (count(Mail::failures()) === 0) {
-                            $flete->update(['estado_notificado' => true]);
-                        }
-                    } catch (\Throwable $e) {
-                        // Loguear y continuar con el siguiente
-                        \Log::error("Error notificando flete {$flete->id}: ".$e->getMessage());
-                    }
-                }
-            });
+                Log::info("Email Flete #{$flete->id} enviado correctamente.");
+            } catch (Throwable $e) {
+                Log::error("Error enviando Flete #{$flete->id}: " . $e->getMessage());
+                return response()->json([
+                    'message' => 'Error interno enviando correo.',
+                    'error'   => $e->getMessage(),
+                ], 500);
+            }
+        }
 
         return response()->json([
-            'message' => 'Envío de notificaciones iniciado en lotes de 3.',
+            'message' => 'Todos los correos procesados con éxito.',
         ]);
     }
-
 }
+
+
+
+
+
+
+
+
