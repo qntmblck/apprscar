@@ -321,24 +321,43 @@ export default function Index({
 
 
 
-  // Crear flete rápido y forzar volver a la página 1
-  const handleCreateClick = useCallback(async () => {
-    if (!(hasDest && hasClient) || tooManyMulti) {
-      setErrorMensaje('Seleccione cliente y destino.')
-      setSuccessMensaje(null)
-      return
-    }
-    try {
-      setErrorMensaje(null)
-      await quickCreateFlete(data, destinos, tractos, setSuccessMensaje, setErrorMensaje)
-      get('/fletes', {
-        preserveState: false,
-        data: { ...data, page: 1 },
-      })
-    } catch {
-      // errorMensaje ya seteado
-    }
-  }, [data, destinos, tractos, hasDest, hasClient, tooManyMulti, get])
+  // ... (todo lo anterior permanece igual)
+
+// Crear flete rápido y forzar volver a la página 1
+const handleCreateClick = useCallback(async () => {
+  if (!(hasDest && hasClient) || tooManyMulti) {
+    setErrorMensaje('Seleccione cliente y destino.')
+    setSuccessMensaje(null)
+    return
+  }
+  try {
+    setErrorMensaje(null)
+    // quickCreateFlete ahora devuelve la respuesta completa (res)
+    const res = await quickCreateFlete(
+      data,
+      destinos,
+      tractos,
+      setSuccessMensaje,
+      setErrorMensaje
+    )
+
+    // Extraer el flete recién creado
+    const nuevoFlete = res.data.flete
+
+    // Insertarlo al inicio de la lista local
+    setFletesState(prev => [nuevoFlete, ...prev])
+
+    // Opcional: abrir el formulario de ese flete para que esté "listo para completar"
+    setOpenForm(prev => ({ ...prev, [nuevoFlete.id]: 'diesel' }))
+
+  } catch {
+    // errorMensaje ya seteado
+  }
+}, [
+  data, destinos, tractos, hasDest, hasClient,
+  tooManyMulti, /* ya no necesitas get aquí */
+])
+
 
   // Toggle mostrar todos
   useEffect(() => {

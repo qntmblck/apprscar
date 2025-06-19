@@ -123,39 +123,40 @@ class FleteController extends Controller
 
     public function store(Request $request)
 {
-    // 1) Validar destino y cliente (viene como user_id)
+    // 1) Validación básica
     $validated = $request->validate([
         'destino_id'           => 'required|exists:destinos,id',
         'cliente_principal_id' => 'required|exists:users,id',
     ]);
 
-    // 2) Asegurar registro en clientes para la FK
-    $user    = User::findOrFail($validated['cliente_principal_id']);
+    // 2) Normalizar y asegurar FK en clientes
+    $user = User::findOrFail($validated['cliente_principal_id']);
+    // convertir rut vacío en NULL
+    $rut = trim($user->rut ?? '') ?: null;
+
     $cliente = Cliente::firstOrCreate(
         ['user_id' => $user->id],
         [
             'razon_social' => $user->name,
-            'rut'          => $user->rut       ?? '',
+            'rut'          => $rut,
             'giro'         => $user->giro      ?? '',
             'direccion'    => $user->direccion ?? '',
             'telefono'     => $user->telefono  ?? '',
         ]
     );
 
-    // 3) Determinar tracto_id: último usado o aleatorio
+    // 3) Elegir tracto por último usado o aleatorio
     $userId    = $request->user()->id;
-    $lastFlete = Flete::where(function($q) use ($userId) {
-            $q->where('conductor_id', $userId)
-              ->orWhere('colaborador_id', $userId);
-        })
-        ->whereNotNull('tracto_id')
-        ->orderByDesc('created_at')
-        ->first();
+    $lastFlete = Flete::where(fn($q) => $q->where('conductor_id', $userId)
+                                         ->orWhere('colaborador_id', $userId))
+                      ->whereNotNull('tracto_id')
+                      ->orderByDesc('created_at')
+                      ->first();
     $tractoId = $lastFlete
         ? $lastFlete->tracto_id
         : Tracto::inRandomOrder()->value('id');
 
-    // 4) Crear flete, referenciando el id de Cliente
+    // 4) Crear flete “borrador”
     $flete = Flete::create([
         'destino_id'           => $validated['destino_id'],
         'cliente_principal_id' => $cliente->id,
@@ -182,39 +183,53 @@ class FleteController extends Controller
         'viatico_calculado' => 0,
     ]);
 
-    // 6) Recalcular totales y capturar mensaje de descuento si aplica
-    $mensajeDescuento = $rendicion->recalcularTotales();
-    if ($mensajeDescuento) {
-        session()->flash('info', $mensajeDescuento);
+    // 6) Recalcular totales y capturar mensaje
+    if ($mensaje = $rendicion->recalcularTotales()) {
+        session()->flash('info', $mensaje);
     }
     $rendicion->save();
 
-    // 7) Recargar relaciones para la respuesta
-    $flete->load([
-        'clientePrincipal:id,razon_social',
-        'conductor:id,name',
-        'colaborador:id,name',
-        'tracto:id,patente',
-        'rampla:id,patente',
-        'destino:id,nombre',
-        'tarifa:id,valor_comision',
-        'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
+    // 7) Refrescar modelo con todas sus relaciones y sub-colecciones
+    $fresh = $flete
+        ->fresh()
+        ->load([
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'tarifa:id,valor_comision',
+            'rendicion',
+            'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+        ]);
+
+    // 8) Exponer los campos calculados que usa la UI
+    $fresh->makeVisible(['retorno']);
+    $fresh->rendicion->makeVisible([
+        'saldo',
+        'total_gastos',
+        'total_diesel',
+        'viatico_calculado',
+        'comision',
     ]);
 
-    // 8) Responder JSON o redirect
+    // 9) Responder en JSON si es AJAX
     if ($request->expectsJson()) {
         return response()->json([
             'message' => 'Flete “borrador” creado correctamente.',
-            'flete'   => $flete,
+            'flete'   => $fresh,
         ], 201);
     }
 
+    // 10) Fallback para petición web normal
     return redirect()
         ->route('fletes.index')
         ->with('success', 'Flete “borrador” creado correctamente.');
 }
-
-
 
 
 

@@ -54,11 +54,14 @@ export async function quickCreateFlete(
     setSuccessMensaje('Flete creado correctamente.')
     setErrorMensaje(null)
 
+    // Devolver la respuesta completa para que el frontend reciba todos los datos
+    return res
+
     // Si prefieres recargar Inertia (Opción A), descomenta:
     // router.reload({ only: ['fletes'] })
 
-    // Opción B: devolver el flete para insertarlo en el estado
-    return res.data.flete
+    // Opción B original: devolver solo el flete para insertarlo en el estado
+    // return res.data.flete
 
   } catch (err) {
     const detalle =
