@@ -5,68 +5,50 @@ import { router } from '@inertiajs/react'
 
 /**
  * Crea un flete “borrador” al vuelo y devuelve el objeto flete creado.
- * Lanza router.reload() si prefieres recargar Inertia, o retorna el flete
- * para insertarlo directamente en el estado de la lista.
+ * Recibe un payload con:
+ *   destino_id,
+ *   cliente_principal_id,
+ *   conductor_id? (nullable),
+ *   colaborador_id? (nullable),
+ *   tracto_id? (nullable),
+ *   rampla_id? (nullable),
+ *   fecha_salida?,
+ *   estado?,
+ *   notificar?
  */
 export async function quickCreateFlete(
-  data,
-  destinos,
-  tractos,
+  payload,
   setSuccessMensaje,
   setErrorMensaje
 ) {
-  // 1) Extraemos el cliente y el destino (exactamente uno de cada uno)
-  const cliente_principal_id = Array.isArray(data.cliente_ids)
-    ? data.cliente_ids[0]
-    : data.cliente_ids
-
-  const destino_id = Array.isArray(data.destino_ids)
-    ? data.destino_ids[0]
-    : data.destino_ids
-
-  // 2) Validamos que ambos existan
-  if (!destino_id) {
-    setErrorMensaje('Destino no válido. Selecciona uno de la lista.')
-    setSuccessMensaje(null)
-    return
-  }
-  if (!cliente_principal_id) {
-    setErrorMensaje('Cliente no válido. Selecciona uno de la lista.')
+  // 1) Validar destino y cliente
+  if (!payload.destino_id || !payload.cliente_principal_id) {
+    setErrorMensaje('Debes seleccionar cliente y destino.')
     setSuccessMensaje(null)
     return
   }
 
-  // 3) Fecha de hoy
-  const today = new Date().toISOString().split('T')[0]
+  // 2) Fecha por defecto si no viene
+  if (!payload.fecha_salida) {
+    payload.fecha_salida = new Date().toISOString().split('T')[0]
+  }
 
-  // 4) Seleccionar un tracto aleatorio
-  const tractoObj = tractos[Math.floor(Math.random() * tractos.length)]
-  const tracto_id = tractoObj.id
-
-  // 5) Seleccionar una rampla del tracto (si existe)
-  const rampla_id = tractoObj.ramplas?.[0]?.id || null
+  // 3) Estado y notificar por defecto
+  payload.estado    = payload.estado    ?? 'Sin Notificar'
+  payload.notificar = payload.notificar ?? false
 
   try {
-    // 6) POST al backend con todos los campos necesarios
-    const res = await axios.post(route('fletes.store'), {
-      destino_id,
-      tracto_id,
-      rampla_id,
-      cliente_principal_id,
-      fecha_salida: today,
-      estado:       'Activo',
-      notificar:    false,
-    })
+    // 4) POST al backend con TODO el payload
+    const res = await axios.post(route('fletes.store'), payload)
 
     setSuccessMensaje('Flete creado correctamente.')
     setErrorMensaje(null)
 
-    // Si prefieres recargar Inertia (Opción A), descomenta:
+    // Opción A: recarga Inertia para mostrar la lista
     // router.reload({ only: ['fletes'] })
 
-    // Opción B: devolver el flete para insertarlo en el estado
+    // Opción B: devolver el flete nuevo para insertarlo manualmente
     return res.data.flete
-
   } catch (err) {
     const detalle =
       err.response?.data?.errors
@@ -76,5 +58,6 @@ export async function quickCreateFlete(
           'Error al crear el flete.'
     setErrorMensaje(detalle)
     setSuccessMensaje(null)
+    throw err
   }
 }

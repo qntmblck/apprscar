@@ -45,7 +45,6 @@ export default function FiltrosBar({
   const [clientesList, setClientesList] = useState(clientes)
   const [destInput, setDestInput] = useState('')
 
-  // Cuando destino_ids queda vacío, restablece input y sugerencias
   useEffect(() => {
     if (data.destino_ids.length === 0) {
       setDestInput('')
@@ -53,12 +52,10 @@ export default function FiltrosBar({
     }
   }, [data.destino_ids, setSuggestions, topDestinos])
 
-  // Sincronizar lista de clientes si cambia
   useEffect(() => {
     setClientesList(props.clientes)
   }, [props.clientes])
 
-  // Al abrir el dropdown de Destino, restablece
   useEffect(() => {
     if (activeTab === 'Destino') {
       setSuggestions(topDestinos)
@@ -69,20 +66,25 @@ export default function FiltrosBar({
   const handleDestSearch = e => {
     const v = e.target.value
     setDestInput(v)
-    if (!v.trim()) {
-      setSuggestions(topDestinos)
-    } else {
-      setSuggestions(
-        destinos
-          .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
-          .slice(0, 10)
-      )
-    }
+    setSuggestions(
+      !v.trim()
+        ? topDestinos
+        : destinos
+            .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
+            .slice(0, 10)
+    )
   }
 
   const onCrear = () => {
-    if (!hasDest || !hasClient || tooManyMulti) return
-    handleCreateClick()
+    if (!hasDest || !hasClient) return
+
+    handleCreateClick({
+      destino_id:           data.destino_ids[0],
+      cliente_principal_id: data.cliente_ids[0],
+      conductor_id:   data.conductor_ids[0]   ?? null,
+      colaborador_id: data.colaborador_ids[0] ?? null,
+      tracto_id:      data.tracto_ids[0]      ?? null,
+    })
   }
 
   return (
@@ -138,7 +140,6 @@ export default function FiltrosBar({
           }
         >
           <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-            {/* Input de búsqueda */}
             <div className="p-2">
               <input
                 type="text"
@@ -148,8 +149,6 @@ export default function FiltrosBar({
                 className="w-full px-2 py-1 text-base border rounded focus:outline-none"
               />
             </div>
-
-            {/* Seleccionados */}
             {data.destino_ids.length > 0 && (
               <div className="divide-y divide-gray-100">
                 {data.destino_ids.map(selId => {
@@ -174,8 +173,6 @@ export default function FiltrosBar({
                 })}
               </div>
             )}
-
-            {/* Sugerencias */}
             {suggestions
               .filter(d => !data.destino_ids.includes(String(d.id)))
               .map(d => (
@@ -196,12 +193,70 @@ export default function FiltrosBar({
           </div>
         </FiltroBoton>
 
+        {/* Titular (multi) */}
+        <FiltroBoton
+          icon={IdentificationIcon}
+          label="Titular"
+          isActive={activeTab === 'Titular'}
+          hasSelection={
+            data.colaborador_ids.length + data.conductor_ids.length > 0
+          }
+          onClick={() =>
+            setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
+          }
+        >
+          <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+            {colaboradores.map(col => (
+              <CheckboxItem
+                key={`col-${col.id}`}
+                label={col.name}
+                checked={data.colaborador_ids.some(id => Number(id) === col.id)}
+                onClick={() =>
+                  handleToggleMultiSelect('colaborador_ids', col.id)
+                }
+              />
+            ))}
+            {conductores.map(cond => (
+              <CheckboxItem
+                key={`cond-${cond.id}`}
+                label={cond.name}
+                checked={data.conductor_ids.some(id => Number(id) === cond.id)}
+                onClick={() =>
+                  handleToggleMultiSelect('conductor_ids', cond.id)
+                }
+              />
+            ))}
+          </div>
+        </FiltroBoton>
+
+        {/* Tracto (multi) */}
+        <FiltroBoton
+          icon={TruckIcon}
+          label="Tracto"
+          isActive={activeTab === 'Tracto'}
+          hasSelection={data.tracto_ids.length > 0}
+          onClick={() =>
+            setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
+          }
+        >
+          <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+            {tractos.map(t => (
+              <CheckboxItem
+                key={t.id}
+                label={t.patente}
+                checked={data.tracto_ids.some(id => Number(id) === t.id)}
+                onClick={() => handleToggleMultiSelect('tracto_ids', t.id)}
+              />
+            ))}
+          </div>
+        </FiltroBoton>
+
         {/* Crear */}
         <div className="relative flex-shrink-0">
           <button
             onClick={onCrear}
             className={classNames(
-              hasDest && hasClient && !tooManyMulti
+              hasDest && hasClient
                 ? 'bg-green-700 hover:bg-green-800 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed',
               'inline-flex items-center p-1 rounded'
@@ -259,71 +314,6 @@ export default function FiltrosBar({
             </div>
           </div>
         </FiltroBoton>
-
-        {/* Titular */}
-        <FiltroBoton
-          icon={IdentificationIcon}
-          label="Titular"
-          isActive={activeTab === 'Titular'}
-          hasSelection={
-            data.colaborador_ids.length > 0 ||
-            data.conductor_ids.length > 0
-          }
-          onClick={() =>
-            setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
-          }
-        >
-          <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-            {colaboradores.map(colaborador => (
-              <CheckboxItem
-                key={`colaborador-${colaborador.id}`}
-                label={colaborador.name}
-                checked={data.colaborador_ids.includes(String(colaborador.id))}
-                onClick={() => {
-                  handleToggleMultiSelect('colaborador_ids', colaborador.id)
-                  setActiveTab('')
-                }}
-              />
-            ))}
-            {conductores.map(conductor => (
-              <CheckboxItem
-                key={`conductor-${conductor.id}`}
-                label={conductor.name}
-                checked={data.conductor_ids.includes(String(conductor.id))}
-                onClick={() => {
-                  handleToggleMultiSelect('conductor_ids', conductor.id)
-                  setActiveTab('')
-                }}
-              />
-            ))}
-          </div>
-        </FiltroBoton>
-
-        {/* Tracto */}
-        <FiltroBoton
-          icon={TruckIcon}
-          label="Tracto"
-          isActive={activeTab === 'Tracto'}
-          hasSelection={data.tracto_ids.length > 0}
-          onClick={() =>
-            setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
-          }
-        >
-          <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-            {tractos.map(t => (
-              <CheckboxItem
-                key={t.id}
-                label={t.patente}
-                checked={data.tracto_ids.includes(String(t.id))}
-                onClick={() => {
-                  handleToggleMultiSelect('tracto_ids', t.id)
-                  setActiveTab('')
-                }}
-              />
-            ))}
-          </div>
-        </FiltroBoton>
-
       </div>
     </div>
   )
@@ -336,9 +326,7 @@ function FiltroBoton({ icon: Icon, isActive, hasSelection = false, onClick, chil
         data-toggle-type={label}
         onClick={onClick}
         className={classNames(
-          isActive
-            ? 'border-violet-500'
-            : 'border-transparent hover:border-violet-300',
+          isActive ? 'border-violet-500' : 'border-transparent hover:border-violet-300',
           'inline-flex items-center bg-white p-1 border-b-2 rounded'
         )}
       >

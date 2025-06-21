@@ -127,32 +127,36 @@ class FleteController extends Controller
 
 public function store(Request $request)
 {
-    // 1) Validar destino y cliente (ahora cliente_principal_id = clientes.id)
+    // 1) Validar destino, cliente y opcionales
     $validated = $request->validate([
-        'destino_id'           => 'required|exists:destinos,id',
-        'cliente_principal_id' => 'required|exists:clientes,id',
+        'destino_id'             => 'required|exists:destinos,id',
+        'cliente_principal_id'   => 'required|exists:clientes,id',
+        'conductor_id'           => 'nullable|exists:users,id',
+        'colaborador_id'         => 'nullable|exists:users,id',
+        'tracto_id'              => 'nullable|exists:tractos,id',
     ]);
 
-    // 2) A partir del cliente existente extraemos el user_id
+    // 2) Extraer user_id del cliente principal
     $clienteModel = Cliente::findOrFail($validated['cliente_principal_id']);
     $userId       = $clienteModel->user_id;
 
-    // 3) Determinar tracto_id: último usado o aleatorio
-    $lastFlete = Flete::where(function($q) use ($userId) {
-            $q->where('conductor_id', $userId)
-              ->orWhere('colaborador_id', $userId);
-        })
-        ->whereNotNull('tracto_id')
-        ->orderByDesc('created_at')
-        ->first();
-    $tractoId = $lastFlete
-        ? $lastFlete->tracto_id
-        : Tracto::inRandomOrder()->value('id');
+    // 3) Determinar tracto si no viene en la petición
+    $tractoId = $validated['tracto_id']
+        ?? Flete::where(function($q) use ($userId) {
+                $q->where('conductor_id', $userId)
+                  ->orWhere('colaborador_id', $userId);
+            })
+            ->whereNotNull('tracto_id')
+            ->orderByDesc('created_at')
+            ->value('tracto_id')
+        ?? Tracto::inRandomOrder()->value('id');
 
-    // 4) Crear flete usando cliente_principal_id y con estado "Sin Notificar"
+    // 4) Crear flete
     $flete = Flete::create([
         'destino_id'           => $validated['destino_id'],
         'cliente_principal_id' => $validated['cliente_principal_id'],
+        'conductor_id'         => $validated['conductor_id']   ?? null,
+        'colaborador_id'       => $validated['colaborador_id'] ?? null,
         'tracto_id'            => $tractoId,
         'fecha_salida'         => now()->toDateString(),
         'estado'               => 'Sin Notificar',
@@ -160,15 +164,15 @@ public function store(Request $request)
         'tipo'                 => 'Directo',
     ]);
 
-    // 4bis) Asociar tarifa por defecto si existe
+    // 4bis) Asociar tarifa por defecto
     if ($tarifa = Tarifa::where('destino_id', $flete->destino_id)
-                        ->where('tipo', $flete->tipo)
-                        ->first()) {
+                       ->where('tipo', $flete->tipo)
+                       ->first()) {
         $flete->tarifa_id = $tarifa->id;
         $flete->save();
     }
 
-    // 5) Crear rendición inicial con estado "Activo"
+    // 5) Crear rendición inicial
     $rendicion = $flete->rendicion()->create([
         'user_id'           => $userId,
         'estado'            => 'Activo',
@@ -176,14 +180,13 @@ public function store(Request $request)
         'viatico_calculado' => 0,
     ]);
 
-    // 6) Recalcular totales y capturar mensaje de descuento si aplica
-    $mensajeDescuento = $rendicion->recalcularTotales();
-    if ($mensajeDescuento) {
-        session()->flash('info', $mensajeDescuento);
+    // 6) Recalcular totales y guardar mensaje
+    if ($mensaje = $rendicion->recalcularTotales()) {
+        session()->flash('info', $mensaje);
+        $rendicion->save();
     }
-    $rendicion->save();
 
-    // 7) Recargar relaciones para la respuesta
+    // 7) Recargar relaciones
     $flete->load([
         'clientePrincipal:id,razon_social',
         'conductor:id,name',
@@ -207,6 +210,7 @@ public function store(Request $request)
         ->route('fletes.index')
         ->with('success', 'Flete “borrador” creado correctamente.');
 }
+
 
 
     public function finalizar(Request $request)

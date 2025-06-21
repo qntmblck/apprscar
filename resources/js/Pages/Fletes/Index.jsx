@@ -319,24 +319,32 @@ const actualizarFleteEnLista = useCallback(f => {
   }, [setData, setRange, setActiveTab, setSuggestions, setSelectedIds, get])
 
   // ==== handleCreateClick completo ====
-  const handleCreateClick = useCallback(async () => {
-    if (!(hasDest && hasClient) || tooManyMulti) {
-      setErrorMensaje('Seleccione cliente y destino.')
-      setSuccessMensaje(null)
-      return
-    }
-    try {
-      setErrorMensaje(null)
-      await quickCreateFlete(data, destinos, tractos, setSuccessMensaje, setErrorMensaje)
-      // Fuerza volver a página 1 para ver el nuevo arriba
-      get('/fletes', {
-        preserveState: false,
-        data: { ...data, page: 1 },
-      })
-    } catch {
-      // el mensaje de error ya lo pone quickCreateFlete
-    }
-  }, [data, destinos, tractos, hasDest, hasClient, tooManyMulti, get])
+  const handleCreateClick = useCallback(async (payload) => {
+  // payload debe contener:
+  // { destino_id, cliente_principal_id, conductor_id?, colaborador_id?, tracto_id? }
+
+  // validación
+  if (!(payload.destino_id && payload.cliente_principal_id) || tooManyMulti) {
+    setErrorMensaje('Seleccione cliente y destino.')
+    setSuccessMensaje(null)
+    return
+  }
+
+  try {
+    setErrorMensaje(null)
+    // enviamos payload completo a la función de creación
+    await quickCreateFlete(payload, setSuccessMensaje, setErrorMensaje)
+
+    // recargar página 1 con nuevos filtros (incluye ya payload)
+    get('/fletes', {
+      preserveState: false,
+      data: { ...payload, page: 1 },
+    })
+  } catch {
+    // quickCreateFlete ya pone su propio mensaje
+  }
+}, [tooManyMulti, get])
+
 
   // Toggle mostrar todos
   useEffect(() => {
