@@ -218,7 +218,7 @@ function FleteCard({
               onSelectTitular={onSelectTitular}
               onSelectFechaSalida={(id, fecha) => {
                 onSelectFechaSalida(id, fecha)
-                setSelectedLlegada(undefined)
+                onSelectFechaSalida(id, fecha)
               }}
               onSelectFechaLlegada={(id, fecha) => {
                 onSelectFechaLlegada(id, fecha)

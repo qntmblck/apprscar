@@ -145,17 +145,22 @@ export default function Index({
     setSelectedIds([])
   }, [])
 
-  // Actualizar un flete en la lista tras edición (fusionando campos para no perder la llegada)
+  // Actualizar un flete en la lista tras edición
 const actualizarFleteEnLista = useCallback(f => {
   setFletesState(prev =>
     prev.map(x =>
       x.id === f.id
-        // merge: conserva propiedades que no vienen en `f` (p.ej. fecha_llegada)
-        ? { ...x, ...f }
+        ? {
+            ...x,
+            ...f,
+            // si el backend no retorna fecha_llegada, mantenemos la que ya había
+            fecha_llegada: f.fecha_llegada ?? x.fecha_llegada,
+          }
         : x
     )
   )
 }, [])
+
 
 
   // Envío de formularios (diésel, gastos, etc.)

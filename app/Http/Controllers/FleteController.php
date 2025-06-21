@@ -460,6 +460,12 @@ public function updateGuiaRuta(Request $request, Flete $flete)
     ]);
 }
 
+// En App\Http\Controllers\FleteController.php
+
+/**
+ * Actualiza solo la fecha de salida y devuelve el modelo completo
+ * (incluyendo fecha_llegada y campos calculados).
+ */
 public function updateFechaSalida(Request $request, Flete $flete)
 {
     // 1) Validar
@@ -475,23 +481,41 @@ public function updateFechaSalida(Request $request, Flete $flete)
         ],
     ]);
 
-    // 2) Actualizar sólo la salida
-    $flete->fecha_salida = $data['fecha_salida'];
-    $flete->save();
+    // 2) Actualizar solo la salida
+    $flete->update(['fecha_salida' => $data['fecha_salida']]);
 
-    // 3) Cargar **todos** los atributos y relaciones necesarias
-    $fresh = Flete::with([
+    // 3) Recalcular totales si ya existe rendición
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+    }
+
+    // 4) Recargar el flete con todas las relaciones y campos necesarios
+    $fresh = $flete->fresh()->load([
         'clientePrincipal:id,razon_social',
         'conductor:id,name',
         'colaborador:id,name',
         'tracto:id,patente',
         'rampla:id,patente',
         'destino:id,nombre',
-        'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
-    ])
-    ->find($flete->id);
+        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+    ]);
 
-    // 4) Responder JSON con la llegada intacta
+    // 5) Exponer campos calculados
+    $fresh->makeVisible(['retorno']);
+    if ($fresh->rendicion) {
+        $fresh->rendicion->makeVisible([
+            'saldo',
+            'total_gastos',
+            'total_diesel',
+            'viatico_calculado',
+            'comision',
+        ]);
+    }
+
+    // 6) Devolver JSON con el flete completo
     return response()->json([
         'message' => 'Fecha de salida actualizada.',
         'flete'   => $fresh,
@@ -499,38 +523,54 @@ public function updateFechaSalida(Request $request, Flete $flete)
 }
 
 
-
-
+/**
+ * Actualiza solo la fecha de llegada y devuelve el modelo completo.
+ */
 public function updateFechaLlegada(Request $request, Flete $flete)
 {
-    $request->validate([
+    // 1) Validar
+    $data = $request->validate([
         'fecha_llegada' => 'required|date',
     ]);
 
-    $flete->update([
-        'fecha_llegada' => $request->input('fecha_llegada'),
-    ]);
+    // 2) Actualizar solo la llegada
+    $flete->update(['fecha_llegada' => $data['fecha_llegada']]);
 
-    // si hay rendición, recalcular totales
-    if ($flete->rendicion) {
-        $flete->rendicion->recalcularTotales();
-        $flete->rendicion->save();
+    // 3) Recalcular totales si ya existe rendición
+    if ($flete->rendición) {
+        $flete->rendición->recalcularTotales();
+        $flete->rendición->save();
     }
 
+    // 4) Recargar con mismas relaciones
     $fresh = $flete->fresh()->load([
-        'conductor',
-        'clientePrincipal',
-        'destino',
-        'colaborador',
-        'tracto',
-        'rampla',
-        'rendicion',
-        'cliente',
-        'destino',
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'colaborador:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
     ]);
 
-    return response()->json(['flete' => $fresh]);
+    // 5) Exponer campos calculados
+    $fresh->makeVisible(['retorno']);
+    if ($fresh->rendición) {
+        $fresh->rendición->makeVisible([
+            'saldo',
+            'total_gastos',
+            'total_diesel',
+            'viatico_calculado',
+            'comision',
+        ]);
+    }
+
+    // 6) Responder
+    return response()->json(['flete' => $fresh], 200);
 }
+
 
 
 

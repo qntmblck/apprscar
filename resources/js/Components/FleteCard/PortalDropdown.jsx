@@ -14,8 +14,8 @@ export default function PortalDropdown({ isOpen, children, type }) {
         className={
           'pointer-events-auto rounded bg-white shadow-md ' +
           (isCalendar
-            ? 'overflow-visible'            // fuerza que el contenido se expanda
-            : 'max-h-48 overflow-auto')     // scroll tras 4 ítems para los demás
+            ? 'overflow-visible'
+            : 'max-h-48 overflow-auto')
         }
         style={isCalendar ? { overflow: 'visible' } : {}}
       >
