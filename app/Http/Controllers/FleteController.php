@@ -48,6 +48,7 @@ class FleteController extends Controller
         ])
         ->with([
             'clientePrincipal:id,razon_social',
+            'cliente:id,razon_social',              // ← RELACIÓN AGREGADA
             'conductor:id,name','colaborador:id,name',
             'tracto:id,patente','rampla:id,patente',
             'destino:id,nombre',
@@ -80,7 +81,6 @@ class FleteController extends Controller
             $request->filled('periodo'),
             fn($q) => $q->whereMonth('fecha_salida', $meses[$request->periodo] ?? 0)
         )
-        // Filtrado de fecha usando whereDate en todos los casos
         ->when(
             $filters['fecha_desde'] && $filters['fecha_hasta'],
             fn($q) => $q
@@ -101,7 +101,7 @@ class FleteController extends Controller
         )
         ->orderBy('fecha_salida', 'desc');
 
-    // 4) Paginación sin reaplicar la query string previa
+    // 4) Paginación
     $fletes = $query
         ->paginate(48)
         ->appends($filters);
@@ -122,6 +122,7 @@ class FleteController extends Controller
         ],
     ]);
 }
+
 
 
 public function store(Request $request)
@@ -460,12 +461,8 @@ public function updateGuiaRuta(Request $request, Flete $flete)
     ]);
 }
 
-// En App\Http\Controllers\FleteController.php
 
-/**
- * Actualiza solo la fecha de salida y devuelve el modelo completo
- * (incluyendo fecha_llegada y campos calculados).
- */
+
 public function updateFechaSalida(Request $request, Flete $flete)
 {
     // 1) Validar
@@ -490,9 +487,11 @@ public function updateFechaSalida(Request $request, Flete $flete)
         $flete->rendicion->save();
     }
 
-    // 4) Recargar el flete con todas las relaciones y campos necesarios
+    // 4) Recargar el flete con todas las relaciones y campos necesarios,
+    //    incluyendo tanto clientePrincipal como cliente
     $fresh = $flete->fresh()->load([
         'clientePrincipal:id,razon_social',
+        'cliente:id,razon_social',
         'conductor:id,name',
         'colaborador:id,name',
         'tracto:id,patente',
@@ -522,10 +521,6 @@ public function updateFechaSalida(Request $request, Flete $flete)
     ], 200);
 }
 
-
-/**
- * Actualiza solo la fecha de llegada y devuelve el modelo completo.
- */
 public function updateFechaLlegada(Request $request, Flete $flete)
 {
     // 1) Validar
@@ -537,14 +532,15 @@ public function updateFechaLlegada(Request $request, Flete $flete)
     $flete->update(['fecha_llegada' => $data['fecha_llegada']]);
 
     // 3) Recalcular totales si ya existe rendición
-    if ($flete->rendición) {
-        $flete->rendición->recalcularTotales();
-        $flete->rendición->save();
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
     }
 
-    // 4) Recargar con mismas relaciones
+    // 4) Recargar con mismas relaciones, incluyendo cliente
     $fresh = $flete->fresh()->load([
         'clientePrincipal:id,razon_social',
+        'cliente:id,razon_social',
         'conductor:id,name',
         'colaborador:id,name',
         'tracto:id,patente',
@@ -557,8 +553,8 @@ public function updateFechaLlegada(Request $request, Flete $flete)
 
     // 5) Exponer campos calculados
     $fresh->makeVisible(['retorno']);
-    if ($fresh->rendición) {
-        $fresh->rendición->makeVisible([
+    if ($fresh->rendicion) {
+        $fresh->rendicion->makeVisible([
             'saldo',
             'total_gastos',
             'total_diesel',
@@ -567,11 +563,12 @@ public function updateFechaLlegada(Request $request, Flete $flete)
         ]);
     }
 
-    // 6) Responder
-    return response()->json(['flete' => $fresh], 200);
+    // 6) Devolver JSON con el flete completo
+    return response()->json([
+        'message' => 'Fecha de llegada actualizada.',
+        'flete'   => $fresh,
+    ], 200);
 }
-
-
 
 
 
