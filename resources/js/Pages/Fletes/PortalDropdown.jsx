@@ -10,7 +10,10 @@ export default function PortalDropdown({ isOpen, children, type }) {
     >
       <div
         data-dropdown-type={type}
-        className="absolute top-16 left-4 bg-white border rounded shadow-md z-50"
+        className="absolute left-4 bg-white border rounded shadow-md z-50"
+        style={{
+          top: '130px',
+        }}
       >
         {children}
       </div>

@@ -124,7 +124,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='Titular'} type="Titular">
-            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 bg-white shadow-lg rounded divide-y divide-gray-100 p-2">
+            <div className="w-48 max-h-48 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 p-2">
               <input
                 autoFocus
                 type="text"
@@ -168,7 +168,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='GuiaRuta'} type="GuiaRuta">
-            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 bg-white shadow-lg rounded p-2">
+            <div className="w-48 max-h-48 overflow-auto bg-white shadow-lg rounded p-2">
               <div className="flex items-center">
                 <input
                   autoFocus
@@ -207,7 +207,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='Tracto'} type="Tracto">
-            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 bg-white shadow-lg rounded p-2 divide-y divide-gray-100">
+            <div className="w-48 max-h-48 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 p-2">
               <input
                 autoFocus
                 type="text"
@@ -218,7 +218,7 @@ export default function DetailsGrid({
                   setTractoSug(filterOpts(tractos, v))
                 }}
                 placeholder="Escribe tracto..."
-                className="w-full px-2 py-1	border border-gray-300 rounded focus:outline-none mb-2"
+                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
               />
               {tractoSug.map(t => (
                 <div
@@ -251,7 +251,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
-            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border	border-gray-200 shadow-lg p-2 rounded">
+            <div className="bg-white border border-gray-200 shadow-lg p-2 rounded">
               <DayPicker
                 mode="single"
                 selected={selectedSalida}
@@ -278,7 +278,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu==='Rampla'} type="Rampla">
-            <div className="absolute top-0 left-0 mt-2 ml-2 w-48 bg-white shadow-lg rounded p-2 divide-y divide-gray-100">
+            <div className="w-48 max-h-48 overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 p-2">
               <input
                 autoFocus
                 type="text"
@@ -289,7 +289,7 @@ export default function DetailsGrid({
                   setRamplaSug(filterOpts(ramplas, v))
                 }}
                 placeholder="Escribe rampla..."
-                className="w-full px-2 py-1	border border-gray-300 rounded focus:outline-none mb-2"
+                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
               />
               {ramplaSug.map(r => (
                 <div
@@ -322,7 +322,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu === 'Llegada'} type="Llegada">
-            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border	border-gray-200 shadow-lg p-2 rounded">
+            <div className="bg-white border border-gray-200 shadow-lg p-2 rounded">
               <DayPicker
                 mode="single"
                 selected={selectedLlegada}
