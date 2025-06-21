@@ -90,27 +90,24 @@ export default function FiltrosBar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-x-2 overflow-x-auto">
 
         {/* Limpiar filtros */}
-<button
-  onClick={() => {
-    // Navegación limpia sin filtros
-    window.location.href = '/fletes'
-  }}
-  className="inline-flex items-center p-1 bg-white border-b-2 border-transparent rounded hover:border-gray-300"
->
-  <ArrowPathIcon
-    className={classNames(
-      hasFilters ? 'text-red-600' : 'text-gray-300',
-      'h-5 w-5 hover:text-gray-600'
-    )}
-  />
-</button>
-
+        <button
+          onClick={() => window.location.href = '/fletes'}
+          className="inline-flex items-center p-1 bg-white border-b-2 border-transparent rounded hover:border-gray-300"
+        >
+          <ArrowPathIcon
+            className={classNames(
+              hasFilters ? 'text-red-600' : 'text-gray-300',
+              'h-5 w-5 hover:text-gray-600'
+            )}
+          />
+        </button>
 
         {/* Cliente */}
         <FiltroBoton
           icon={BuildingStorefrontIcon}
           label="Cliente"
           isActive={activeTab === 'Cliente'}
+          hasSelection={data.cliente_ids.length > 0}
           onClick={() =>
             setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')
           }
@@ -135,6 +132,7 @@ export default function FiltrosBar({
           icon={MapPinIcon}
           label="Destino"
           isActive={activeTab === 'Destino'}
+          hasSelection={data.destino_ids.length > 0}
           onClick={() =>
             setActiveTab(activeTab === 'Destino' ? '' : 'Destino')
           }
@@ -218,6 +216,7 @@ export default function FiltrosBar({
           icon={CalendarDaysIcon}
           label="Fecha"
           isActive={activeTab === 'Fecha'}
+          hasSelection={!!data.fecha_desde || !!data.fecha_hasta}
           onClick={() =>
             setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')
           }
@@ -266,6 +265,10 @@ export default function FiltrosBar({
           icon={IdentificationIcon}
           label="Titular"
           isActive={activeTab === 'Titular'}
+          hasSelection={
+            data.colaborador_ids.length > 0 ||
+            data.conductor_ids.length > 0
+          }
           onClick={() =>
             setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
           }
@@ -301,6 +304,7 @@ export default function FiltrosBar({
           icon={TruckIcon}
           label="Tracto"
           isActive={activeTab === 'Tracto'}
+          hasSelection={data.tracto_ids.length > 0}
           onClick={() =>
             setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
           }
@@ -319,12 +323,13 @@ export default function FiltrosBar({
             ))}
           </div>
         </FiltroBoton>
+
       </div>
     </div>
   )
 }
 
-function FiltroBoton({ icon: Icon, isActive, onClick, children, label }) {
+function FiltroBoton({ icon: Icon, isActive, hasSelection = false, onClick, children, label }) {
   return (
     <div className="relative flex-shrink-0">
       <button
@@ -332,14 +337,14 @@ function FiltroBoton({ icon: Icon, isActive, onClick, children, label }) {
         onClick={onClick}
         className={classNames(
           isActive
-            ? 'border-indigo-500'
-            : 'border-transparent hover:border-indigo-300',
+            ? 'border-violet-500'
+            : 'border-transparent hover:border-violet-300',
           'inline-flex items-center bg-white p-1 border-b-2 rounded'
         )}
       >
         <Icon
           className={classNames(
-            isActive ? 'text-indigo-600' : 'text-gray-500',
+            isActive || hasSelection ? 'text-violet-600' : 'text-gray-500',
             'h-5 w-5'
           )}
         />

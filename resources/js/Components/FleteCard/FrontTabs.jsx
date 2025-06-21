@@ -20,9 +20,13 @@ export default function FrontTabs({
   submitForm,
   actualizarFleteEnLista,
   setIsSubmitting,
-  // Props para selección
   selectedIds = [],
   toggleSelect,
+
+  // Props levantadas desde FleteCard
+  fechaSalidaISO,
+  fechaLlegadaISO,
+  fletePosteriorEnMismoDia,
 }) {
   const dieselCount    = flete.rendicion?.diesels?.length    ?? 0
   const gastoCount     = flete.rendicion?.gastos?.length     ?? 0
@@ -76,7 +80,6 @@ export default function FrontTabs({
   return (
     <div className="mt-4">
       <nav className="flex items-center border-b border-gray-200 h-10">
-        {/* Pestañas: scroll horizontal en overflow-x-auto */}
         <div className="flex items-center space-x-1 px-1 flex-1 overflow-x-auto">
           {tabs.map(tab => {
             const iconColorClass = tab.forceIconColor
@@ -117,7 +120,6 @@ export default function FrontTabs({
           })}
         </div>
 
-        {/* Checkbox siempre visible al final */}
         <div className="flex-none ml-2 flex items-center pr-2">
           {flete.pagado ? (
             <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-black text-white ring-1 ring-inset ring-black/20">
@@ -134,7 +136,6 @@ export default function FrontTabs({
         </div>
       </nav>
 
-      {/* Formularios desplegables */}
       {formAbierto === 'diesel' && (
         <div className="px-2 pt-2">
           <DieselForm
@@ -155,6 +156,7 @@ export default function FrontTabs({
           />
         </div>
       )}
+
       {formAbierto === 'gasto' && (
         <div className="px-2 pt-2">
           <GastoForm
@@ -175,19 +177,26 @@ export default function FrontTabs({
           />
         </div>
       )}
+
       {formAbierto === 'finalizar' && (
         <div className="px-2 pt-2">
           <FinalizarForm
             fleteId={flete.id}
             rendicionId={flete.rendicion?.id}
-            fechaSalida={flete.fecha_salida}
+            fechaSalida={fechaSalidaISO}
+            fechaLlegada={fechaLlegadaISO}
+            fletePosteriorEnMismoDia={fletePosteriorEnMismoDia}
             onSubmit={async payload => {
               setIsSubmitting(true)
               try {
-                await submitForm(`/fletes/${flete.id}/finalizar`, payload, f => {
-                  actualizarFleteEnLista(f)
-                  handleCloseForm(flete.id)
-                })
+                await submitForm(
+                  `/fletes/${flete.id}/finalizar`,
+                  payload,
+                  f => {
+                    actualizarFleteEnLista(f)
+                    handleCloseForm(flete.id)
+                  }
+                )
               } finally {
                 setIsSubmitting(false)
               }
@@ -196,6 +205,7 @@ export default function FrontTabs({
           />
         </div>
       )}
+
       {formAbierto === 'adicional' && (
         <div className="px-2 pt-2">
           <AdicionalForm

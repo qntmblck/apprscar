@@ -33,6 +33,13 @@ export default function DetailsGrid({
   onSelectFechaSalida,   // recibe (id, Date)
   onSelectFechaLlegada,  // recibe (id, Date)
 }) {
+  // ☑️ Etiqueta destino-cliente para los calendarios
+  const nombreDestino = flete.destino?.nombre ?? '[sin destino]'
+  const cliente = flete.clientePrincipal?.razon_social
+                ?? flete.cliente?.razon_social
+                ?? '[sin cliente]'
+  const destinoClienteLabel = `${nombreDestino}-${cliente}`
+
   // Refs para inputs de sugerencias
   const titularInputRef  = useRef(null)
   const tractoInputRef   = useRef(null)
@@ -183,86 +190,97 @@ export default function DetailsGrid({
 <div className="relative whitespace-nowrap">
   <button
     data-toggle-type="GuiaRuta"
-    onClick={() => {
-      try {
-        // Primero intentamos clientePrincipal, luego cliente, y solo al final el fallback
-        const nombreDestino = flete.destino?.nombre ?? '[sin destino]'
-        const cliente       =
-          flete.clientePrincipal?.razon_social
-          ?? flete.cliente?.razon_social
-          ?? '[sin cliente]'
-
-        const mensaje = `¿Cuál es la guía/ruta de carga de ${nombreDestino}-${cliente}?`
-        console.log('📥 Lanzando prompt con mensaje:', mensaje)
-
-        // prompt nativo
-        const respuesta = window.prompt(mensaje, guiaRutaText)
-
-        // si no canceló
-        if (respuesta !== null) {
-          handleUpdate(
-            `/fletes/${flete.id}/guiaruta`,
-            { guiaruta: respuesta },
-            f => setGuiaRutaText(f.guiaruta)
-          )
-        }
-      } catch (err) {
-        console.error('🛑 Error al abrir prompt de guía/ruta:', err)
-        window.alert('No se pudo abrir el prompt: ' + err.message)
-      }
-    }}
+    onClick={openGuiaRuta}
     className="flex items-center gap-x-2 w-full"
   >
     <ClipboardDocumentListIcon className="h-5 w-5 text-sky-800 flex-shrink-0" />
     <span className="truncate px-1">{guiaRutaText || '—'}</span>
     <ChevronDownIcon className="h-4 w-4 text-gray-500" />
   </button>
+
+  <PortalDropdown isOpen={activeMenu === 'GuiaRuta'} type="GuiaRuta">
+  <div className="w-56 bg-white rounded-lg shadow-md p-4 space-y-2">
+    <div className="font-bold text-sm">
+      Ingresar Nro. Guía Ruta de Carga
+    </div>
+    <input
+      ref={guiaRutaInputRef}
+      type="text"
+      value={guiaRutaText}
+      onChange={e => setGuiaRutaText(e.target.value)}
+      placeholder="Nro. Guía Ruta"
+      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none"
+    />
+
+    {/* Bloque con texto pequeño a la izquierda y botón a la derecha */}
+    <div className="mt-2 flex items-start justify-between">
+      <div className="text-xs text-gray-500 max-w-[60%] leading-snug break-words">
+        {nombreDestino} · {cliente} · {fechaSalidaFormatted}
+      </div>
+      <button
+        onClick={() =>
+          handleUpdate(
+            `/fletes/${flete.id}/guiaruta`,
+            { guiaruta: guiaRutaText },
+            f => setGuiaRutaText(f.guiaruta)
+          )
+        }
+        className="px-3 py-1 bg-sky-800 text-white rounded hover:bg-sky-700"
+      >
+        Guardar
+      </button>
+    </div>
+  </div>
+</PortalDropdown>
+
 </div>
 
 
-        {/* Tracto */}
-        <div className="relative whitespace-nowrap">
-          <button
-            data-toggle-type="Tracto"
-            onClick={openTracto}
-            className="flex items-center gap-x-2 w-full"
-          >
-            <TruckIcon className="h-5 w-5 text-sky-800 flex-shrink-0" />
-            <span className="truncate px-1">{tractoText || '—'}</span>
-            <ChevronDownIcon className="h-4 w-4 text-gray-500" />
-          </button>
-          <PortalDropdown isOpen={activeMenu === 'Tracto'} type="Tracto">
-            <div className="w-48 max-h-48 overflow-auto bg-white rounded-lg shadow-md divide-y divide-gray-100 p-2">
-              <input
-                ref={tractoInputRef}
-                type="text"
-                value={tractoText}
-                onChange={e => {
-                  const v = e.target.value
-                  setTractoText(v)
-                  setTractoSug(filterOpts(tractos, v))
-                }}
-                placeholder="Escribe tracto..."
-                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
-              />
-              {tractoSug.map(t => (
-                <div
-                  key={t.id}
-                  onClick={() =>
-                    handleUpdate(
-                      `/fletes/${flete.id}/tracto`,
-                      { tracto_id: t.id },
-                      () => setTractoText(t.patente)
-                    )
-                  }
-                  className="px-3 py-2 cursor-pointer hover:bg-gray-100 truncate"
-                >
-                  {t.patente}
-                </div>
-              ))}
-            </div>
-          </PortalDropdown>
+
+{/* Tracto */}
+<div className="relative whitespace-nowrap">
+  <button
+    data-toggle-type="Tracto"
+    onClick={openTracto}
+    className="flex items-center gap-x-2 w-full"
+  >
+    <TruckIcon className="h-5 w-5 text-sky-800 flex-shrink-0" />
+    <span className="truncate px-1">{tractoText || '—'}</span>
+    <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+  </button>
+  <PortalDropdown isOpen={activeMenu === 'Tracto'} type="Tracto">
+    <div className="w-48 max-h-48 overflow-auto bg-white rounded-lg shadow-md divide-y divide-gray-100 p-2">
+      <input
+        ref={tractoInputRef}
+        type="text"
+        value={tractoText}
+        onChange={e => {
+          const v = e.target.value
+          setTractoText(v)
+          setTractoSug(filterOpts(tractos, v))
+        }}
+        placeholder="Escribe tracto..."
+        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
+      />
+      {tractoSug.map(t => (
+        <div
+          key={t.id}
+          onClick={() =>
+            handleUpdate(
+              `/fletes/${flete.id}/tracto`,
+              { tracto_id: t.id },
+              () => setTractoText(t.patente)
+            )
+          }
+          className="px-3 py-2 cursor-pointer hover:bg-gray-100 truncate"
+        >
+          {t.patente}
         </div>
+      ))}
+    </div>
+  </PortalDropdown>
+</div>
+
 
         {/* Fecha de Salida */}
         <div className="relative whitespace-nowrap">
@@ -278,7 +296,7 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500" />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
-            <div className="bg-white border border-gray-200 shadow-lg p-2 rounded">
+            <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded">
               <DayPicker
                 mode="single"
                 selected={selectedSalida}
@@ -288,6 +306,9 @@ export default function DetailsGrid({
                   onSelectFechaSalida(flete.id, d)
                 }}
               />
+              <span className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
+                {destinoClienteLabel}
+              </span>
             </div>
           </PortalDropdown>
         </div>
@@ -350,7 +371,12 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500" />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Llegada'} type="Llegada">
-            <div className="bg-white border border-gray-200 shadow-lg p-2 rounded">
+            <div
+              className="
+                relative bg-white border border-gray-200 shadow-lg p-2 rounded
+                [--rdp-color-accent:#d97706] [--rdp-color-accent-hover:#fbbf24]
+              "
+            >
               <DayPicker
                 mode="single"
                 selected={selectedLlegada}
@@ -360,7 +386,17 @@ export default function DetailsGrid({
                   setSelectedLlegada(d)
                   onSelectFechaLlegada(flete.id, d)
                 }}
+                classNames={{
+                  nav_button:          'text-[var(--rdp-color-accent)] hover:text-[var(--rdp-color-accent-hover)]',
+                  nav_button_previous: 'mr-2',
+                  nav_button_next:     'ml-2',
+                  day_selected:        'bg-[var(--rdp-color-accent)] text-white',
+                  day_today:           'font-semibold text-[var(--rdp-color-accent)]',
+                }}
               />
+              <span className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
+                {destinoClienteLabel}
+              </span>
             </div>
           </PortalDropdown>
         </div>

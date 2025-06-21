@@ -37,7 +37,7 @@ function FleteCard({
   onSelectRampla,
   onSelectGuiaRuta,
 
-  // **NUEVOS** props para selección
+  // Props para selección
   selectedIds = [],
   toggleSelect,
 }) {
@@ -46,8 +46,6 @@ function FleteCard({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeMenu, setActiveMenu] = useState(null)
   const formAbierto = openForm[flete.id]
-
-  // Determino si está cerrado (estado distinto de 'Activo')
   const isClosed = flete.rendicion?.estado !== 'Activo'
 
   // estado local para la fecha de llegada seleccionada
@@ -192,7 +190,7 @@ function FleteCard({
             isClosed && 'opacity-70'
           )}
         >
-          {/* Header siempre activo (incluye ojo + cierre/reapertura) */}
+          {/* Header siempre activo */}
           <Header
             flete={flete}
             flipped={flipped}
@@ -203,7 +201,7 @@ function FleteCard({
             actualizarFleteEnLista={actualizarFleteEnLista}
           />
 
-          {/* TODO lo demás bloqueable si isClosed */}
+          {/* Detalles y form */}
           <div className={isClosed ? 'pointer-events-none' : ''}>
             <DetailsGrid
               flete={flete}
@@ -242,16 +240,29 @@ function FleteCard({
             </div>
 
             <FrontTabs
-              flete={flete}
-              formAbierto={formAbierto}
-              handleToggleForm={handleToggleForm}
-              handleCloseForm={handleCloseForm}
-              submitForm={submitForm}
-              actualizarFleteEnLista={actualizarFleteEnLista}
-              setIsSubmitting={setIsSubmitting}
-              selectedIds={selectedIds}
-              toggleSelect={toggleSelect}
-            />
+  flete={flete}
+  formAbierto={formAbierto}
+  handleToggleForm={handleToggleForm}
+  handleCloseForm={handleCloseForm}
+  submitForm={submitForm}
+  actualizarFleteEnLista={actualizarFleteEnLista}
+  setIsSubmitting={setIsSubmitting}
+  selectedIds={selectedIds}
+  toggleSelect={toggleSelect}
+
+  // Props para el cálculo de viático en FinalizarForm
+  fechaSalidaISO={flete.fecha_salida}
+  fechaLlegadaISO={
+    selectedLlegada
+      ? selectedLlegada.toISOString().slice(0, 10)
+      : undefined
+  }
+  fletePosteriorEnMismoDia={
+    // true si este flete arranca el mismo día que terminó el anterior
+    flete.fecha_salida === flete.flete_anterior_fecha_llegada
+  }
+/>
+
           </div>
         </div>
 
@@ -263,14 +274,13 @@ function FleteCard({
             isClosed && 'opacity-70'
           )}
         >
-          {/* Botón de cerrar trasera siempre activo */}
+          {/* Botón de cerrar trasera */}
           <div className="flex justify-end">
             <button onClick={handleFlip} className="text-gray-400 hover:text-gray-600">
               <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
 
-          {/* TODO lo demás bloqueable si isClosed */}
           <div className={isClosed ? 'pointer-events-none' : ''}>
             <BackDetails
               registros={detallesBack}
