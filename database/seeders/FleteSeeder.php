@@ -123,26 +123,20 @@ class FleteSeeder extends Seeder
                 $llegada = $finPeriodo->copy();
             }
 
-            // Determinar pagado y cerrado
-            $pagado = $llegada->month <= 3;
-            $cerrado = $pagado
-                ? rand(1,100) <= 70
-                : rand(1,100) <= 20;
-
-            // Crear flete
+            // Crear flete con estado "Sin Notificar" siempre
             $flete = Flete::create([
                 'cliente_principal_id' => $cli->id,
                 'destino_id'           => $des->id,
                 'tarifa_id'            => $tarifa->id,
                 'tipo'                 => $tp,
-                'estado'               => $faker->randomElement(['Sin Notificar','Notificado']),
+                'estado'               => 'Sin Notificar',
                 'fecha_salida'         => $salida,
                 'fecha_llegada'        => $llegada,
                 'kilometraje'          => $km,
                 'rendimiento'          => $faker->randomFloat(1,3.0,7.0),
                 'comision'             => $tarifa->valor_comision,
                 'retorno'              => rand(0,1) ? $faker->numberBetween(10000,50000) : 0,
-                'pagado'               => $pagado,
+                'pagado'               => $llegada->month <= 3,
                 'guiaruta'             => $faker->bothify('GR-??-####'),
                 'tracto_id'            => $tra->id,
                 'rampla_id'            => $ram->id,
@@ -154,11 +148,11 @@ class FleteSeeder extends Seeder
             $tra->increment('kilometraje', $km);
             $ram->increment('kilometraje', $km);
 
-            // Crear rendición
+            // Crear rendición siempre con estado "Activo"
             $rend = Rendicion::create([
                 'flete_id'         => $flete->id,
                 'user_id'          => $actor->id,
-                'estado'           => $cerrado ? 'Cerrado' : 'Activo',
+                'estado'           => 'Activo',
                 'caja_flete'       => 0,
                 'viatico_efectivo' => 15000 * max(1, $salida->diffInDays($llegada)),
                 'viatico_calculado'=> 0,

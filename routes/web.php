@@ -145,11 +145,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/fletes/{flete}/guiaruta',      [FleteController::class, 'updateGuiaRuta'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.guiaruta');
-    Route::post('/fletes/{flete}/fecha-salida',  [FleteController::class, 'updateFechaSalida'])
-        ->middleware('role:superadmin|admin|colaborador|cliente')
-        ->name('fletes.fecha-salida');
-    Route::post('/fletes/{flete}/fecha_llegada', [FleteController::class, 'updateFechaLlegada'])
-        ->name('fletes.updateFechaLlegada');
+    // AJAX DetailsGrid — fechas
+Route::post('/fletes/{flete}/fecha-salida',  [FleteController::class, 'updateFechaSalida'])
+    ->middleware('role:superadmin|admin|colaborador|cliente')
+    ->name('fletes.fecha-salida');
+
+Route::post('/fletes/{flete}/fecha-llegada', [FleteController::class, 'updateFechaLlegada'])
+    ->middleware('role:superadmin|admin|colaborador|cliente')
+    ->name('fletes.fecha-llegada');
+
     Route::get('/fletes/suggest-titulares',      [FleteController::class, 'suggestTitulares'])
         ->middleware('auth')
         ->name('fletes.suggestTitulares');

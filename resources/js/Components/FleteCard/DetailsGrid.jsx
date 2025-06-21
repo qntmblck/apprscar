@@ -47,7 +47,7 @@ export default function DetailsGrid({
   // Error
   const [errorMsg, setErrorMsg] = useState('')
 
-  // Fechas en UI (mostramos +1 para usuario)
+  // Fechas en UI (exactas)
   const [selectedSalida, setSelectedSalida]   = useState(
     flete.fecha_salida ? parseLocalDate(flete.fecha_salida) : undefined
   )
@@ -218,7 +218,7 @@ export default function DetailsGrid({
                   setTractoSug(filterOpts(tractos, v))
                 }}
                 placeholder="Escribe tracto..."
-                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
+                className="w-full px-2 py-1	border border-gray-300 rounded focus:outline-none mb-2"
               />
               {tractoSug.map(t => (
                 <div
@@ -240,39 +240,31 @@ export default function DetailsGrid({
         </div>
 
         {/* Fecha de Salida */}
-<div className="relative whitespace-nowrap">
-  <button
-    data-toggle-type="Salida"
-    onClick={() => setActiveMenu(activeMenu === 'Salida' ? null : 'Salida')}
-    className="flex items-center gap-x-2 w-full"
-  >
-    <CalendarDaysIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
-    <span className="px-1">{fechaSalidaFormatted}</span>
-    <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
-  </button>
-  <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
-    <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border border-gray-200 shadow-lg p-2 rounded">
-      <DayPicker
-        mode="single"
-        selected={selectedSalida}
-        onSelect={d => {
-          if (!d) return
-          // 1) UI: mostrar d+1 en salida
-          const uiDate = new Date(d)
-          uiDate.setDate(uiDate.getDate() + 1)
-          setSelectedSalida(uiDate)
-          // 2) Backend: guardar d+1 en salida
-          const payload = new Date(d)
-          payload.setDate(payload.getDate() + 1)
-          onSelectFechaSalida(flete.id, payload)
-          // 3) cerrar dropdown
-          setActiveMenu(null)
-        }}
-      />
-    </div>
-  </PortalDropdown>
-</div>
-
+        <div className="relative whitespace-nowrap">
+          <button
+            data-toggle-type="Salida"
+            onClick={() => setActiveMenu(activeMenu === 'Salida' ? null : 'Salida')}
+            className="flex items-center gap-x-2 w-full"
+          >
+            <CalendarDaysIcon className="h-5 w-5 text-sky-800 flex-shrink-0"/>
+            <span className="px-1">{fechaSalidaFormatted}</span>
+            <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
+          </button>
+          <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
+            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border	border-gray-200 shadow-lg p-2 rounded">
+              <DayPicker
+                mode="single"
+                selected={selectedSalida}
+                onSelect={d => {
+                  if (!d) return
+                  setSelectedSalida(d)
+                  onSelectFechaSalida(flete.id, d)
+                  setActiveMenu(null)
+                }}
+              />
+            </div>
+          </PortalDropdown>
+        </div>
 
         {/* Rampla */}
         <div className="relative whitespace-nowrap">
@@ -297,7 +289,7 @@ export default function DetailsGrid({
                   setRamplaSug(filterOpts(ramplas, v))
                 }}
                 placeholder="Escribe rampla..."
-                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
+                className="w-full px-2 py-1	border border-gray-300 rounded focus:outline-none mb-2"
               />
               {ramplaSug.map(r => (
                 <div
@@ -330,20 +322,15 @@ export default function DetailsGrid({
             <ChevronDownIcon className="h-4 w-4 text-gray-500"/>
           </button>
           <PortalDropdown isOpen={activeMenu === 'Llegada'} type="Llegada">
-            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border border-gray-200 shadow-lg p-2 rounded">
+            <div className="absolute top-0 left-0 mt-2 ml-2 bg-white border	border-gray-200 shadow-lg p-2 rounded">
               <DayPicker
                 mode="single"
                 selected={selectedLlegada}
                 disabled={{ before: selectedSalida }}
-                selectedDays={[{ from: selectedSalida, to: selectedLlegada }]}
                 onSelect={d => {
                   if (!d) return
-                  // UI: mostrar d+1
-                  const uiDate = new Date(d); uiDate.setDate(uiDate.getDate() )
-                  setSelectedLlegada(uiDate)
-                  // Backend: guardar d+1
-                  const payload = new Date(d); payload.setDate(payload.getDate()+1)
-                  onSelectFechaLlegada(flete.id, payload)
+                  setSelectedLlegada(d)
+                  onSelectFechaLlegada(flete.id, d)
                   setActiveMenu(null)
                 }}
               />

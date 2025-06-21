@@ -50,9 +50,8 @@ return new class extends Migration
                   ->nullOnDelete();
 
             // ─── Atributos del flete ────────────────────────────────────
-            $table->enum('tipo', ['Directo', 'Reparto'])->default('Directo');
-            $table->enum('estado', ['Sin Notificar', 'Notificado', 'Activo', 'Cerrado'])
-                  ->default('Sin Notificar');
+            $table->enum('tipo', ['Directo','Reparto'])->default('Directo');
+            $table->enum('estado', ['Sin Notificar','Notificado','Activo','Cerrado'])->default('Sin Notificar');
 
             $table->integer('kilometraje')->nullable();
             $table->float('rendimiento', 8, 2)->nullable();
@@ -63,7 +62,7 @@ return new class extends Migration
             $table->integer('comision')->default(0);
             $table->integer('valor_factura')->default(0);
             $table->integer('utilidad')->default(0);
-            $table->string('retorno')->nullable(); // antes era boolean
+            $table->string('retorno')->nullable(); // ← antes era boolean
             $table->string('guiaruta')->nullable();
 
             $table->boolean('pagado')->default(false);

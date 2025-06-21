@@ -9,6 +9,7 @@ import {
   TruckIcon,
   IdentificationIcon,
   BuildingStorefrontIcon,
+  XMarkIcon as XIcon,
 } from '@heroicons/react/20/solid'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
@@ -42,48 +43,68 @@ export default function FiltrosBar({
 }) {
   const { props } = usePage()
   const [clientesList, setClientesList] = useState(clientes)
+  const [destInput, setDestInput] = useState('')
 
-  // Mantener lista de clientes al recargar vía Inertia
+  // Cuando destino_ids queda vacío, restablece input y sugerencias
+  useEffect(() => {
+    if (data.destino_ids.length === 0) {
+      setDestInput('')
+      setSuggestions(topDestinos)
+    }
+  }, [data.destino_ids, setSuggestions, topDestinos])
+
+  // Sincronizar lista de clientes si cambia
   useEffect(() => {
     setClientesList(props.clientes)
   }, [props.clientes])
 
-  // Al abrir “Cliente”, recarga solo esa prop
+  // Al abrir el dropdown de Destino, restablece
   useEffect(() => {
-    if (activeTab === 'Cliente') {
-      get('/fletes', {
-        only: ['clientes'],
-        preserveState: true,
-        replace: true,
-      })
+    if (activeTab === 'Destino') {
+      setSuggestions(topDestinos)
+      setDestInput('')
     }
-  }, [activeTab, get])
+  }, [activeTab, topDestinos, setSuggestions])
 
-  // Construye payload y dispara creación
-const onCrear = () => {
-  if (!hasDest || !hasClient || tooManyMulti || data.cliente_ids.length === 0) {
-    return
+  const handleDestSearch = e => {
+    const v = e.target.value
+    setDestInput(v)
+    if (!v.trim()) {
+      setSuggestions(topDestinos)
+    } else {
+      setSuggestions(
+        destinos
+          .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
+          .slice(0, 10)
+      )
+    }
   }
-  handleCreateClick()
-}
 
+  const onCrear = () => {
+    if (!hasDest || !hasClient || tooManyMulti) return
+    handleCreateClick()
+  }
 
   return (
     <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-x-2 overflow-x-auto">
 
         {/* Limpiar filtros */}
-        <button
-          onClick={handleClear}
-          className="inline-flex items-center p-1 bg-white border-b-2 border-transparent rounded hover:border-gray-300"
-        >
-          <ArrowPathIcon
-            className={classNames(
-              hasFilters ? 'text-red-600' : 'text-gray-300',
-              'h-5 w-5 hover:text-gray-600'
-            )}
-          />
-        </button>
+<button
+  onClick={() => {
+    // Navegación limpia sin filtros
+    window.location.href = '/fletes'
+  }}
+  className="inline-flex items-center p-1 bg-white border-b-2 border-transparent rounded hover:border-gray-300"
+>
+  <ArrowPathIcon
+    className={classNames(
+      hasFilters ? 'text-red-600' : 'text-gray-300',
+      'h-5 w-5 hover:text-gray-600'
+    )}
+  />
+</button>
+
 
         {/* Cliente */}
         <FiltroBoton
@@ -114,51 +135,66 @@ const onCrear = () => {
           icon={MapPinIcon}
           label="Destino"
           isActive={activeTab === 'Destino'}
-          onClick={() => {
-            const opening = activeTab !== 'Destino'
-            setActiveTab(opening ? 'Destino' : '')
-            if (opening) setSuggestions(topDestinos)
-          }}
+          onClick={() =>
+            setActiveTab(activeTab === 'Destino' ? '' : 'Destino')
+          }
         >
           <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+            {/* Input de búsqueda */}
             <div className="p-2">
               <input
                 type="text"
-                placeholder="Destino..."
-                value={data.destino}
-                onFocus={() => setSuggestions(topDestinos)}
-                onChange={e => {
-                  const v = e.target.value
-                  setData('destino', v)
-                  setData('destino_id', '')
-                  setSuggestions(
-                    v.trim() === ''
-                      ? topDestinos
-                      : destinos
-                          .filter(d =>
-                            d.nombre.toLowerCase().includes(v.toLowerCase())
-                          )
-                          .slice(0, 10)
-                  )
-                }}
+                placeholder="Buscar destino..."
+                value={destInput}
+                onChange={handleDestSearch}
                 className="w-full px-2 py-1 text-base border rounded focus:outline-none"
               />
             </div>
-            {suggestions.map(d => (
-              <div
-                key={d.id}
-                onClick={() => {
-                  setData('destino', d.nombre)
-                  setData('destino_id', d.id)
-                  setSuggestions([])
-                  setActiveTab('')
-                  get('/fletes', { preserveState: true, data })
-                }}
-                className="px-3 py-2 text-base text-gray-700 cursor-pointer hover:bg-gray-100"
-              >
-                {d.nombre}
+
+            {/* Seleccionados */}
+            {data.destino_ids.length > 0 && (
+              <div className="divide-y divide-gray-100">
+                {data.destino_ids.map(selId => {
+                  const d = destinos.find(x => String(x.id) === String(selId))
+                  return (
+                    <div
+                      key={d.id}
+                      className="flex items-center justify-between px-3 py-2 text-base cursor-pointer hover:bg-gray-100"
+                    >
+                      <span>{d.nombre}</span>
+                      <button
+                        onClick={() => {
+                          handleToggleMultiSelect('destino_ids', d.id)
+                          get('/fletes', { preserveState: true, data })
+                        }}
+                        className="p-1 hover:bg-gray-200 rounded"
+                      >
+                        <XIcon className="h-4 w-4 text-red-500" />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
-            ))}
+            )}
+
+            {/* Sugerencias */}
+            {suggestions
+              .filter(d => !data.destino_ids.includes(String(d.id)))
+              .map(d => (
+                <div
+                  key={d.id}
+                  onClick={() => {
+                    handleToggleMultiSelect('destino_ids', d.id)
+                    setDestInput('')
+                    setSuggestions([])
+                    setActiveTab('')
+                    get('/fletes', { preserveState: true, data })
+                  }}
+                  className="px-3 py-2 text-base text-gray-700 cursor-pointer hover:bg-gray-100"
+                >
+                  {d.nombre}
+                </div>
+              ))}
           </div>
         </FiltroBoton>
 
@@ -226,52 +262,39 @@ const onCrear = () => {
         </FiltroBoton>
 
         {/* Titular */}
-<FiltroBoton
-  icon={IdentificationIcon}
-  label="Titular"
-  isActive={activeTab === 'Titular'}
-  onClick={() =>
-    setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
-  }
->
-  <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
-    {colaboradores.map(colaborador => (
-      <CheckboxItem
-        key={`colaborador-${colaborador.id}`}
-        label={colaborador.name}
-        checked={data.colaborador_ids.includes(String(colaborador.id))}
-        onClick={() => {
-          handleToggleMultiSelect('colaborador_ids', colaborador.id)
-          setActiveTab('')
-        }}
-        className={classNames(
-          data.colaborador_ids.includes(String(colaborador.id))
-            ? 'bg-indigo-50'
-            : '',
-          'hover:bg-indigo-100'
-        )}
-      />
-    ))}
-    {conductores.map(conductor => (
-      <CheckboxItem
-        key={`conductor-${conductor.id}`}
-        label={conductor.name}
-        checked={data.conductor_ids.includes(String(conductor.id))}
-        onClick={() => {
-          handleToggleMultiSelect('conductor_ids', conductor.id)
-          setActiveTab('')
-        }}
-        className={classNames(
-          data.conductor_ids.includes(String(conductor.id))
-            ? 'bg-indigo-50'
-            : '',
-          'hover:bg-indigo-100'
-        )}
-      />
-    ))}
-  </div>
-</FiltroBoton>
-
+        <FiltroBoton
+          icon={IdentificationIcon}
+          label="Titular"
+          isActive={activeTab === 'Titular'}
+          onClick={() =>
+            setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
+          }
+        >
+          <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+            {colaboradores.map(colaborador => (
+              <CheckboxItem
+                key={`colaborador-${colaborador.id}`}
+                label={colaborador.name}
+                checked={data.colaborador_ids.includes(String(colaborador.id))}
+                onClick={() => {
+                  handleToggleMultiSelect('colaborador_ids', colaborador.id)
+                  setActiveTab('')
+                }}
+              />
+            ))}
+            {conductores.map(conductor => (
+              <CheckboxItem
+                key={`conductor-${conductor.id}`}
+                label={conductor.name}
+                checked={data.conductor_ids.includes(String(conductor.id))}
+                onClick={() => {
+                  handleToggleMultiSelect('conductor_ids', conductor.id)
+                  setActiveTab('')
+                }}
+              />
+            ))}
+          </div>
+        </FiltroBoton>
 
         {/* Tracto */}
         <FiltroBoton

@@ -1,4 +1,4 @@
-// QuickCreate.js
+// resources/js/Pages/Fletes/QuickCreate.js
 
 import axios from 'axios'
 import { router } from '@inertiajs/react'
@@ -15,53 +15,57 @@ export async function quickCreateFlete(
   setSuccessMensaje,
   setErrorMensaje
 ) {
-  // 1) Obtener el cliente
-  const clienteId = Array.isArray(data.cliente_ids)
+  // 1) Extraemos el cliente y el destino (exactamente uno de cada uno)
+  const cliente_principal_id = Array.isArray(data.cliente_ids)
     ? data.cliente_ids[0]
     : data.cliente_ids
 
-  // 2) Buscar el destino
-  const destinoObj = destinos.find(d => d.nombre === data.destino)
-  if (!destinoObj) {
+  const destino_id = Array.isArray(data.destino_ids)
+    ? data.destino_ids[0]
+    : data.destino_ids
+
+  // 2) Validamos que ambos existan
+  if (!destino_id) {
     setErrorMensaje('Destino no válido. Selecciona uno de la lista.')
     setSuccessMensaje(null)
     return
   }
-  const destinoId = destinoObj.id
+  if (!cliente_principal_id) {
+    setErrorMensaje('Cliente no válido. Selecciona uno de la lista.')
+    setSuccessMensaje(null)
+    return
+  }
 
   // 3) Fecha de hoy
   const today = new Date().toISOString().split('T')[0]
 
   // 4) Seleccionar un tracto aleatorio
   const tractoObj = tractos[Math.floor(Math.random() * tractos.length)]
-  const tractoId = tractoObj.id
+  const tracto_id = tractoObj.id
 
   // 5) Seleccionar una rampla del tracto (si existe)
-  const ramplaId = tractoObj.ramplas?.[0]?.id || null
+  const rampla_id = tractoObj.ramplas?.[0]?.id || null
 
   try {
     // 6) POST al backend con todos los campos necesarios
     const res = await axios.post(route('fletes.store'), {
-      destino_id:           destinoId,
-      tracto_id:            tractoId,
-      rampla_id:            ramplaId,
-      cliente_principal_id: clienteId,
-      fecha_salida:         today,
-      estado:               'Activo',
-      notificar:            false,
+      destino_id,
+      tracto_id,
+      rampla_id,
+      cliente_principal_id,
+      fecha_salida: today,
+      estado:       'Activo',
+      notificar:    false,
     })
 
     setSuccessMensaje('Flete creado correctamente.')
     setErrorMensaje(null)
 
-    // Devolver la respuesta completa para que el frontend reciba todos los datos
-    return res
-
     // Si prefieres recargar Inertia (Opción A), descomenta:
     // router.reload({ only: ['fletes'] })
 
-    // Opción B original: devolver solo el flete para insertarlo en el estado
-    // return res.data.flete
+    // Opción B: devolver el flete para insertarlo en el estado
+    return res.data.flete
 
   } catch (err) {
     const detalle =

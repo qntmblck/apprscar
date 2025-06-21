@@ -22,6 +22,7 @@ export default function Index({
   ramplas = [],
   guias = [],
 }) {
+  // CSRF token
   const { csrf_token } = usePage().props
   useEffect(() => {
     if (csrf_token) {
@@ -35,8 +36,7 @@ export default function Index({
     colaborador_ids: filters.colaborador_ids || [],
     cliente_ids:     filters.cliente_ids     || [],
     tracto_ids:      filters.tracto_ids      || [],
-    destino:         filters.destino         || '',
-    destino_id:      filters.destino_id      || '',
+    destino_ids:     filters.destino_ids     || [],
     fecha_desde:     filters.fecha_desde     || '',
     fecha_hasta:     filters.fecha_hasta     || '',
   })
@@ -60,29 +60,31 @@ export default function Index({
   const [isLoadingLiquidar, setIsLoadingLiquidar] = useState(false)
 
   // Flags para UI
-  const hasDest    = data.destino.trim() !== ''
+  const hasDest    = data.destino_ids.length === 1
   const hasClient  = data.cliente_ids.length === 1
   const tooManyMulti =
-    data.cliente_ids.length > 1 ||
-    data.tracto_ids.length  > 1 ||
-    data.conductor_ids.length > 1 ||
-    data.colaborador_ids.length > 1
+    data.cliente_ids.length     > 1 ||
+    data.tracto_ids.length      > 1 ||
+    data.conductor_ids.length   > 1 ||
+    data.colaborador_ids.length > 1 ||
+    data.destino_ids.length     > 1
   const hasFilters =
-    hasDest ||
+    data.destino_ids.length > 0 ||
     data.cliente_ids.length > 0 ||
     data.tracto_ids.length > 0 ||
     data.conductor_ids.length > 0 ||
     data.colaborador_ids.length > 0 ||
-    data.fecha_desde !== ''
+    data.fecha_desde !== '' ||
+    data.fecha_hasta !== ''
 
-  // Sincronizar lista de fletes
+  // 1) Sincronizar lista de fletes al montarse y cuando cambien paginatedFletes
   useEffect(() => {
     const lista = paginatedFletes.data || []
     lista.sort((a, b) => new Date(b.fecha_salida) - new Date(a.fecha_salida))
     setFletesState(lista)
   }, [paginatedFletes])
 
-  // Refetch al cambiar filtros
+  // 2) Refetch al cambiar filtros (debounce 300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
       get('/fletes', { preserveState: true, data })
@@ -90,7 +92,7 @@ export default function Index({
     return () => clearTimeout(timer)
   }, [data, get])
 
-  // Cerrar dropdowns al click fuera
+  // 3) Cerrar dropdowns al click fuera
   useEffect(() => {
     function handleClickOutside(e) {
       if (!activeTab) return
@@ -127,7 +129,7 @@ export default function Index({
     setData(name, arr)
   }, [data, setData])
 
-  // Toggle selección individual
+  // Toggle selección individual en lista de fletes
   const toggleSelect = useCallback(id => {
     setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -143,10 +145,18 @@ export default function Index({
     setSelectedIds([])
   }, [])
 
-  // Actualizar flete en lista
-  const actualizarFleteEnLista = useCallback(f => {
-    setFletesState(prev => prev.map(x => (x.id === f.id ? f : x)))
-  }, [])
+  // Actualizar un flete en la lista tras edición (fusionando campos para no perder la llegada)
+const actualizarFleteEnLista = useCallback(f => {
+  setFletesState(prev =>
+    prev.map(x =>
+      x.id === f.id
+        // merge: conserva propiedades que no vienen en `f` (p.ej. fecha_llegada)
+        ? { ...x, ...f }
+        : x
+    )
+  )
+}, [])
+
 
   // Envío de formularios (diésel, gastos, etc.)
   const submitForm = useCallback(
@@ -170,7 +180,7 @@ export default function Index({
     []
   )
 
-  // Acciones batch
+  // Acciones batch...
   const handleDownloadSpreadsheet = useCallback(async () => {
     try {
       setErrorMensaje(null)
@@ -185,9 +195,7 @@ export default function Index({
       const status = e.response?.status
       const data   = e.response?.data
       const msg = status
-        ? `Error ${status}: ${typeof data === 'object'
-            ? JSON.stringify(data, null, 2)
-            : data}`
+        ? `Error ${status}: ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}`
         : e.message
       setErrorMensaje(msg)
     }
@@ -200,10 +208,7 @@ export default function Index({
       const res = await axios.post(
         '/pagos/resumen',
         { flete_ids: selectedIds },
-        {
-          responseType: 'blob',
-          headers: { Accept: 'application/json' },
-        }
+        { responseType: 'blob', headers: { Accept: 'application/json' } }
       )
       saveAs(res.data, 'resumen_fletes.pdf')
     } catch (e) {
@@ -236,10 +241,7 @@ export default function Index({
       const res = await axios.post(
         '/pagos/liquidar',
         { flete_ids: selectedIds },
-        {
-          responseType: 'blob',
-          headers: { Accept: 'application/json' },
-        }
+        { responseType: 'blob', headers: { Accept: 'application/json' } }
       )
       saveAs(res.data, 'liquidacion_fletes.pdf')
       handleClearSelection()
@@ -273,7 +275,7 @@ export default function Index({
         const res = await axios.delete(`/registro/${id}`)
         if (res.data.flete) actualizarFleteEnLista(res.data.flete)
       } catch (e) {
-        console.error('Error al eliminar registro:', e.response || e)
+        console.error('Error al eliminar registro:', e)
         const msg = e.response?.data?.message
           || JSON.stringify(e.response?.data)
           || 'No se pudo eliminar el registro.'
@@ -283,81 +285,53 @@ export default function Index({
     [actualizarFleteEnLista]
   )
 
-  // Limpiar filtros, cerrar dropdowns y sugerencias
-
+  // ==== handleClear completo ====
   const handleClear = useCallback(() => {
-  // 1) Vaciar formulario
-  setData('conductor_ids', []);
-  setData('colaborador_ids', []);
-  setData('cliente_ids', []);
-  setData('tracto_ids', []);
-  setData('destino', '');
-  setData('destino_id', '');
-  setData('fecha_desde', '');
-  setData('fecha_hasta', '');
+    setData('conductor_ids',   [])
+    setData('colaborador_ids', [])
+    setData('cliente_ids',     [])
+    setData('tracto_ids',      [])
+    setData('destino_ids',     [])
+    setData('fecha_desde',     '')
+    setData('fecha_hasta',     '')
+    setRange({ from: undefined, to: undefined })
+    setActiveTab('')
+    setSuggestions([])
+    setSelectedIds([])
+    get('/fletes', {
+      preserveState: false,
+      replace: true,
+      data: {
+        conductor_ids:   [],
+        colaborador_ids: [],
+        cliente_ids:     [],
+        tracto_ids:      [],
+        destino_ids:     [],
+        fecha_desde:     '',
+        fecha_hasta:     '',
+      },
+    })
+  }, [setData, setRange, setActiveTab, setSuggestions, setSelectedIds, get])
 
-  // 2) Reset de estado local
-  setRange({ from: undefined, to: undefined });
-  setShowAll(false);
-  setActiveTab('');
-  setSuggestions([]);
-
-  // 3) Disparo inmediato SIN preserveState
-  get('/fletes', {
-    preserveState: false,
-    replace: true,
-    data: {
-      conductor_ids:   [],
-      colaborador_ids: [],
-      cliente_ids:     [],
-      tracto_ids:      [],
-      destino:         '',
-      destino_id:      '',
-      fecha_desde:     '',
-      fecha_hasta:     '',
-    },
-  });
-}, [get, setData, setRange, setShowAll, setActiveTab, setSuggestions]);
-
-
-
-  // ... (todo lo anterior permanece igual)
-
-// Crear flete rápido y forzar volver a la página 1
-const handleCreateClick = useCallback(async () => {
-  if (!(hasDest && hasClient) || tooManyMulti) {
-    setErrorMensaje('Seleccione cliente y destino.')
-    setSuccessMensaje(null)
-    return
-  }
-  try {
-    setErrorMensaje(null)
-    // quickCreateFlete ahora devuelve la respuesta completa (res)
-    const res = await quickCreateFlete(
-      data,
-      destinos,
-      tractos,
-      setSuccessMensaje,
-      setErrorMensaje
-    )
-
-    // Extraer el flete recién creado
-    const nuevoFlete = res.data.flete
-
-    // Insertarlo al inicio de la lista local
-    setFletesState(prev => [nuevoFlete, ...prev])
-
-    // Opcional: abrir el formulario de ese flete para que esté "listo para completar"
-    setOpenForm(prev => ({ ...prev, [nuevoFlete.id]: 'diesel' }))
-
-  } catch {
-    // errorMensaje ya seteado
-  }
-}, [
-  data, destinos, tractos, hasDest, hasClient,
-  tooManyMulti, /* ya no necesitas get aquí */
-])
-
+  // ==== handleCreateClick completo ====
+  const handleCreateClick = useCallback(async () => {
+    if (!(hasDest && hasClient) || tooManyMulti) {
+      setErrorMensaje('Seleccione cliente y destino.')
+      setSuccessMensaje(null)
+      return
+    }
+    try {
+      setErrorMensaje(null)
+      await quickCreateFlete(data, destinos, tractos, setSuccessMensaje, setErrorMensaje)
+      // Fuerza volver a página 1 para ver el nuevo arriba
+      get('/fletes', {
+        preserveState: false,
+        data: { ...data, page: 1 },
+      })
+    } catch {
+      // el mensaje de error ya lo pone quickCreateFlete
+    }
+  }, [data, destinos, tractos, hasDest, hasClient, tooManyMulti, get])
 
   // Toggle mostrar todos
   useEffect(() => {
@@ -366,13 +340,45 @@ const handleCreateClick = useCallback(async () => {
     return () => window.removeEventListener('toggleShowAll', toggle)
   }, [])
 
-  // Handlers DetailsGrid (sin cambios)…
-  const onSelectTitular = useCallback(async (id, opt) => { /* … */ }, [actualizarFleteEnLista])
-  const onSelectTracto  = useCallback(async (id, opt) => { /* … */ }, [actualizarFleteEnLista])
-  const onSelectRampla  = useCallback(async (id, opt) => { /* … */ }, [actualizarFleteEnLista])
-  const onSelectGuiaRuta = useCallback(async (id, text) => { /* … */ }, [actualizarFleteEnLista])
-  const onSelectFechaSalida  = useCallback(async (id, date) => { /* … */ }, [actualizarFleteEnLista])
-  const onSelectFechaLlegada = useCallback(async (id, date) => { /* … */ }, [actualizarFleteEnLista])
+  // Handlers DetailsGrid
+  const onSelectTitular   = useCallback(async (id, opt) => { /* … */ }, [actualizarFleteEnLista])
+  const onSelectTracto    = useCallback(async (id, opt) => { /* … */ }, [actualizarFleteEnLista])
+  const onSelectRampla    = useCallback(async (id, opt) => { /* … */ }, [actualizarFleteEnLista])
+  const onSelectGuiaRuta  = useCallback(async (id, text) => { /* … */ }, [actualizarFleteEnLista])
+
+  // Homegrown date handlers (con corrección de +1 día)
+const onSelectFechaSalida = useCallback(async (id, date) => {
+  try {
+    // corregimos sumando un día
+    const corrected = new Date(date)
+    corrected.setDate(corrected.getDate() + 1)
+
+    const iso = corrected.toISOString().slice(0, 10)
+    const url = `/fletes/${id}/fecha-salida`
+    const res = await axios.post(url, { fecha_salida: iso })
+    actualizarFleteEnLista(res.data.flete)
+  } catch (err) {
+    console.error('Error actualizando fecha de salida:', err)
+    setErrorMensaje(err.response?.data?.message || err.message)
+  }
+}, [actualizarFleteEnLista])
+
+const onSelectFechaLlegada = useCallback(async (id, date) => {
+  try {
+    // corregimos sumando un día
+    const corrected = new Date(date)
+    corrected.setDate(corrected.getDate() + 1)
+
+    const iso = corrected.toISOString().slice(0, 10)
+    const url = `/fletes/${id}/fecha-llegada`
+    const res = await axios.post(url, { fecha_llegada: iso })
+    actualizarFleteEnLista(res.data.flete)
+  } catch (err) {
+    console.error('Error actualizando fecha de llegada:', err)
+    setErrorMensaje(err.response?.data?.message || err.message)
+  }
+}, [actualizarFleteEnLista])
+
 
   // Paginación
   const { current_page, last_page, prev_page_url, next_page_url } = paginatedFletes
@@ -397,7 +403,6 @@ const handleCreateClick = useCallback(async () => {
       {selectedIds.length > 0 && (
         <div className="fixed top-0 inset-x-0 z-50 flex justify-end py-2 pr-20">
           <div className="bg-white bg-opacity-50 shadow-md rounded px-2 py-1 flex items-center space-x-1">
-            {/* Limpiar selección */}
             <button
               onClick={handleClearSelection}
               className="p-2 hover:bg-gray-100 rounded"
@@ -405,8 +410,6 @@ const handleCreateClick = useCallback(async () => {
             >
               <ArrowPathIcon className="h-5 w-5 text-red-600" />
             </button>
-
-            {/* Seleccionar todos */}
             <button
               onClick={handleSelectAll}
               className="p-2 hover:bg-gray-100 rounded"
@@ -414,8 +417,6 @@ const handleCreateClick = useCallback(async () => {
             >
               <CheckCircleIcon className="h-5 w-5 text-blue-600" />
             </button>
-
-            {/* Descargar planilla */}
             <button
               onClick={handleDownloadSpreadsheet}
               className="p-2 hover:bg-gray-100 rounded"
@@ -423,8 +424,6 @@ const handleCreateClick = useCallback(async () => {
             >
               <DocumentArrowDownIcon className="h-5 w-5 text-green-600" />
             </button>
-
-            {/* Resumir PDF */}
             <button
               onClick={handleResumenPdf}
               disabled={isLoadingResumen}
@@ -437,8 +436,6 @@ const handleCreateClick = useCallback(async () => {
             >
               {isLoadingResumen ? 'Resumiendo...' : 'Resumir'}
             </button>
-
-            {/* Liquidar */}
             <button
               onClick={handleLiquidar}
               disabled={isLoadingLiquidar}
@@ -503,10 +500,10 @@ const handleCreateClick = useCallback(async () => {
       />
 
       <Pagination
-        current_page={paginatedFletes.current_page}
-        last_page={paginatedFletes.last_page}
-        prev_page_url={paginatedFletes.prev_page_url}
-        next_page_url={paginatedFletes.next_page_url}
+        current_page={current_page}
+        last_page={last_page}
+        prev_page_url={prev_page_url}
+        next_page_url={next_page_url}
         get={get}
         data={data}
       />

@@ -23,20 +23,20 @@ class FleteController extends Controller
 
     // 1) Recogemos filtros para enviarlos de vuelta a la vista
     $filters = [
-        'conductor_ids'    => array_filter((array) $request->input('conductor_ids')),
-        'colaborador_ids'  => array_filter((array) $request->input('colaborador_ids')),
-        'cliente_ids'      => array_filter((array) $request->input('cliente_ids')),
-        'tracto_ids'       => array_filter((array) $request->input('tracto_ids')),
-        'destino'          => $request->input('destino', ''),
-        'fecha_desde'      => $request->input('fecha_desde', ''),
-        'fecha_hasta'      => $request->input('fecha_hasta', ''),
+        'conductor_ids'   => array_filter((array) $request->input('conductor_ids')),
+        'colaborador_ids' => array_filter((array) $request->input('colaborador_ids')),
+        'cliente_ids'     => array_filter((array) $request->input('cliente_ids')),
+        'tracto_ids'      => array_filter((array) $request->input('tracto_ids')),
+        'destino_ids'     => array_filter((array) $request->input('destino_ids')),
+        'fecha_desde'     => $request->input('fecha_desde'),
+        'fecha_hasta'     => $request->input('fecha_hasta'),
     ];
 
     // 2) Meses para el filtro por periodo
     $meses = [
-        'Enero'      => 1,  'Febrero'   => 2,  'Marzo'   => 3,  'Abril'   => 4,
-        'Mayo'       => 5,  'Junio'     => 6,  'Julio'   => 7,  'Agosto'  => 8,
-        'Septiembre' => 9,  'Octubre'   => 10, 'Noviembre'=>11, 'Diciembre'=>12,
+        'Enero'      => 1,  'Febrero'   => 2,  'Marzo'      => 3,  'Abril'   => 4,
+        'Mayo'       => 5,  'Junio'     => 6,  'Julio'      => 7,  'Agosto'  => 8,
+        'Septiembre' => 9,  'Octubre'   => 10, 'Noviembre'  => 11, 'Diciembre'=> 12,
     ];
 
     // 3) Construcción de la consulta principal
@@ -58,50 +58,55 @@ class FleteController extends Controller
             'rendicion.adicionales' => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderByDesc('created_at'),
         ])
         ->when(
-            (!empty($filters['conductor_ids']) || !empty($filters['colaborador_ids'])),
+            (! empty($filters['conductor_ids']) || ! empty($filters['colaborador_ids'])),
             fn($q) => $q->where(function($sub) use ($filters) {
-                if (!empty($filters['conductor_ids'])) {
+                if (! empty($filters['conductor_ids'])) {
                     $sub->whereIn('conductor_id', $filters['conductor_ids']);
                 }
-                if (!empty($filters['colaborador_ids'])) {
+                if (! empty($filters['colaborador_ids'])) {
                     $sub->orWhereIn('colaborador_id', $filters['colaborador_ids']);
                 }
             })
         )
         ->when(
-            !empty($filters['cliente_ids']),
+            ! empty($filters['cliente_ids']),
             fn($q) => $q->whereIn('cliente_principal_id', $filters['cliente_ids'])
         )
         ->when(
-            !empty($filters['tracto_ids']),
+            ! empty($filters['tracto_ids']),
             fn($q) => $q->whereIn('tracto_id', $filters['tracto_ids'])
         )
         ->when(
             $request->filled('periodo'),
             fn($q) => $q->whereMonth('fecha_salida', $meses[$request->periodo] ?? 0)
         )
+        // Filtrado de fecha usando whereDate en todos los casos
         ->when(
             $filters['fecha_desde'] && $filters['fecha_hasta'],
-            fn($q) => $q->whereBetween('fecha_salida', [$filters['fecha_desde'], $filters['fecha_hasta']])
+            fn($q) => $q
+                ->whereDate('fecha_salida', '>=', $filters['fecha_desde'])
+                ->whereDate('fecha_salida', '<=', $filters['fecha_hasta'])
         )
         ->when(
-            $filters['fecha_desde'] && !$filters['fecha_hasta'],
+            $filters['fecha_desde'] && ! $filters['fecha_hasta'],
             fn($q) => $q->whereDate('fecha_salida', '>=', $filters['fecha_desde'])
         )
         ->when(
-            !$filters['fecha_desde'] && $filters['fecha_hasta'],
+            ! $filters['fecha_desde'] && $filters['fecha_hasta'],
             fn($q) => $q->whereDate('fecha_salida', '<=', $filters['fecha_hasta'])
         )
         ->when(
-            $filters['destino'],
-            fn($q) => $q->whereHas('destino', fn($q2) =>
-                $q2->whereRaw('UPPER(nombre) LIKE ?', ["%".strtoupper($filters['destino'])."%"])
-            )
+            ! empty($filters['destino_ids']),
+            fn($q) => $q->whereIn('destino_id', $filters['destino_ids'])
         )
         ->orderBy('fecha_salida', 'desc');
 
-    $fletes = $query->paginate(48)->withQueryString();
+    // 4) Paginación sin reaplicar la query string previa
+    $fletes = $query
+        ->paginate(48)
+        ->appends($filters);
 
+    // 5) Renderizado Inertia
     return Inertia::render('Fletes/Index', [
         'fletes'        => $fletes,
         'filters'       => $filters,
@@ -109,7 +114,7 @@ class FleteController extends Controller
         'colaboradores' => User::role('colaborador')->orderBy('name')->get(['id','name']),
         'clientes'      => Cliente::orderBy('razon_social')->get(['id','razon_social']),
         'tractos'       => Tracto::select('id','patente')->get(),
-        'destinos'      => Destino::select('id','nombre')->get(),
+        'destinos'      => Destino::orderBy('nombre')->select('id','nombre')->get(),
         'ramplas'       => Rampla::select('id','patente')->get(),
         'auth'          => [
             'user'  => $user,
@@ -119,50 +124,37 @@ class FleteController extends Controller
 }
 
 
-
-
-    public function store(Request $request)
+public function store(Request $request)
 {
-    // 1) Validación básica
+    // 1) Validar destino y cliente (ahora cliente_principal_id = clientes.id)
     $validated = $request->validate([
         'destino_id'           => 'required|exists:destinos,id',
-        'cliente_principal_id' => 'required|exists:users,id',
+        'cliente_principal_id' => 'required|exists:clientes,id',
     ]);
 
-    // 2) Normalizar y asegurar FK en clientes
-    $user = User::findOrFail($validated['cliente_principal_id']);
-    // convertir rut vacío en NULL
-    $rut = trim($user->rut ?? '') ?: null;
+    // 2) A partir del cliente existente extraemos el user_id
+    $clienteModel = Cliente::findOrFail($validated['cliente_principal_id']);
+    $userId       = $clienteModel->user_id;
 
-    $cliente = Cliente::firstOrCreate(
-        ['user_id' => $user->id],
-        [
-            'razon_social' => $user->name,
-            'rut'          => $rut,
-            'giro'         => $user->giro      ?? '',
-            'direccion'    => $user->direccion ?? '',
-            'telefono'     => $user->telefono  ?? '',
-        ]
-    );
-
-    // 3) Elegir tracto por último usado o aleatorio
-    $userId    = $request->user()->id;
-    $lastFlete = Flete::where(fn($q) => $q->where('conductor_id', $userId)
-                                         ->orWhere('colaborador_id', $userId))
-                      ->whereNotNull('tracto_id')
-                      ->orderByDesc('created_at')
-                      ->first();
+    // 3) Determinar tracto_id: último usado o aleatorio
+    $lastFlete = Flete::where(function($q) use ($userId) {
+            $q->where('conductor_id', $userId)
+              ->orWhere('colaborador_id', $userId);
+        })
+        ->whereNotNull('tracto_id')
+        ->orderByDesc('created_at')
+        ->first();
     $tractoId = $lastFlete
         ? $lastFlete->tracto_id
         : Tracto::inRandomOrder()->value('id');
 
-    // 4) Crear flete “borrador”
+    // 4) Crear flete usando cliente_principal_id y con estado "Sin Notificar"
     $flete = Flete::create([
         'destino_id'           => $validated['destino_id'],
-        'cliente_principal_id' => $cliente->id,
+        'cliente_principal_id' => $validated['cliente_principal_id'],
         'tracto_id'            => $tractoId,
         'fecha_salida'         => now()->toDateString(),
-        'estado'               => 'Activo',
+        'estado'               => 'Sin Notificar',
         'notificar'            => false,
         'tipo'                 => 'Directo',
     ]);
@@ -175,7 +167,7 @@ class FleteController extends Controller
         $flete->save();
     }
 
-    // 5) Crear rendición inicial
+    // 5) Crear rendición inicial con estado "Activo"
     $rendicion = $flete->rendicion()->create([
         'user_id'           => $userId,
         'estado'            => 'Activo',
@@ -183,54 +175,37 @@ class FleteController extends Controller
         'viatico_calculado' => 0,
     ]);
 
-    // 6) Recalcular totales y capturar mensaje
-    if ($mensaje = $rendicion->recalcularTotales()) {
-        session()->flash('info', $mensaje);
+    // 6) Recalcular totales y capturar mensaje de descuento si aplica
+    $mensajeDescuento = $rendicion->recalcularTotales();
+    if ($mensajeDescuento) {
+        session()->flash('info', $mensajeDescuento);
     }
     $rendicion->save();
 
-    // 7) Refrescar modelo con todas sus relaciones y sub-colecciones
-    $fresh = $flete
-        ->fresh()
-        ->load([
-            'clientePrincipal:id,razon_social',
-            'conductor:id,name',
-            'colaborador:id,name',
-            'tracto:id,patente',
-            'rampla:id,patente',
-            'destino:id,nombre',
-            'tarifa:id,valor_comision',
-            'rendicion',
-            'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
-        ]);
-
-    // 8) Exponer los campos calculados que usa la UI
-    $fresh->makeVisible(['retorno']);
-    $fresh->rendicion->makeVisible([
-        'saldo',
-        'total_gastos',
-        'total_diesel',
-        'viatico_calculado',
-        'comision',
+    // 7) Recargar relaciones para la respuesta
+    $flete->load([
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'colaborador:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'tarifa:id,valor_comision',
+        'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
     ]);
 
-    // 9) Responder en JSON si es AJAX
+    // 8) Responder JSON o redirect
     if ($request->expectsJson()) {
         return response()->json([
             'message' => 'Flete “borrador” creado correctamente.',
-            'flete'   => $fresh,
+            'flete'   => $flete,
         ], 201);
     }
 
-    // 10) Fallback para petición web normal
     return redirect()
         ->route('fletes.index')
         ->with('success', 'Flete “borrador” creado correctamente.');
 }
-
 
 
     public function finalizar(Request $request)
@@ -312,7 +287,6 @@ class FleteController extends Controller
     ], 200);
 }
 
-
     public function registrarViatico(Request $request)
     {
         $validated = $request->validate([
@@ -381,9 +355,6 @@ class FleteController extends Controller
         'flete' => $flete,
     ], 200);
 }
-
-
-
 
 public function updateTitular(Request $request, Flete $flete)
 {
@@ -489,6 +460,45 @@ public function updateGuiaRuta(Request $request, Flete $flete)
     ]);
 }
 
+public function updateFechaSalida(Request $request, Flete $flete)
+{
+    // 1) Validar
+    $data = $request->validate([
+        'fecha_salida' => [
+            'required',
+            'date',
+            function($attribute, $value, $fail) use ($flete) {
+                if ($flete->fecha_llegada && $value > $flete->fecha_llegada) {
+                    $fail('La fecha de salida no puede ser posterior a la fecha de llegada.');
+                }
+            },
+        ],
+    ]);
+
+    // 2) Actualizar sólo la salida
+    $flete->fecha_salida = $data['fecha_salida'];
+    $flete->save();
+
+    // 3) Cargar **todos** los atributos y relaciones necesarias
+    $fresh = Flete::with([
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'colaborador:id,name',
+        'tracto:id,patente',
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
+    ])
+    ->find($flete->id);
+
+    // 4) Responder JSON con la llegada intacta
+    return response()->json([
+        'message' => 'Fecha de salida actualizada.',
+        'flete'   => $fresh,
+    ], 200);
+}
+
+
 
 
 public function updateFechaLlegada(Request $request, Flete $flete)
@@ -521,6 +531,9 @@ public function updateFechaLlegada(Request $request, Flete $flete)
 
     return response()->json(['flete' => $fresh]);
 }
+
+
+
 
 public function update(Request $request, Flete $flete)
 {
@@ -574,9 +587,8 @@ public function update(Request $request, Flete $flete)
 }
 
 
-
-    public function suggestTitulares()
-    {
+public function suggestTitulares()
+{
         $since = now()->subDays(45);
 
         // Conteo por conductor
