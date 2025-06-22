@@ -388,6 +388,7 @@ export default function DetailsGrid({
                   if (!d) return
                   setSelectedSalida(d)
                   onSelectFechaSalida(flete.id, d)
+                  setActiveMenu(null)
                 }}
               />
               <span className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
@@ -514,6 +515,7 @@ export default function DetailsGrid({
                   if (!d) return
                   setSelectedLlegada(d)
                   onSelectFechaLlegada(flete.id, d)
+                  setActiveMenu(null)
                 }}
                 classNames={{
                   nav_button:          'text-[var(--rdp-color-accent)] hover:text-[var(--rdp-color-accent-hover)]',
@@ -532,5 +534,5 @@ export default function DetailsGrid({
 
       </div>
     </div>
-  )
+)
 }
