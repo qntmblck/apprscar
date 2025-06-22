@@ -39,6 +39,10 @@ export default function DetailsGrid({
                 ?? '[sin cliente]'
   const destinoClienteLabel = `${nombreDestino}-${cliente}`
 
+  // Labels con fallback
+  const fechaSalidaLabel  = fechaSalidaFormatted  || 'Fecha Inicio'
+  const fechaLlegadaLabel = fechaLlegadaFormatted || 'Fecha Término'
+
   const titularInputRef  = useRef(null)
   const tractoInputRef   = useRef(null)
   const ramplaInputRef   = useRef(null)
@@ -128,12 +132,12 @@ export default function DetailsGrid({
   }
 
   return (
-    <div className="overflow-x-auto scrollbar-thin mb-4">
+    <div className="mb-4">
       {errorMsg && <div className="mb-2 text-sm text-red-600 px-2">{errorMsg}</div>}
-      <div className="grid min-w-0 grid-cols-[1fr_1fr] gap-x-4 gap-y-2 text-sm text-gray-700">
+      <div className="grid w-full grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
 
         {/* Titular */}
-        <div className="relative whitespace-nowrap">
+        <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Titular"
             onClick={openTitular}
@@ -156,7 +160,7 @@ export default function DetailsGrid({
                 activeMenu === 'Titular' ? 'text-violet-600' : ''
               )}
             >
-              {titularText || '—'}
+              {titularText || 'Titular'}
             </span>
             <ChevronDownIcon
               className={classNames(
@@ -199,7 +203,7 @@ export default function DetailsGrid({
         </div>
 
         {/* Guía/Ruta */}
-        <div className="relative whitespace-nowrap">
+        <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="GuiaRuta"
             onClick={openGuiaRuta}
@@ -222,7 +226,7 @@ export default function DetailsGrid({
                 activeMenu === 'GuiaRuta' ? 'text-violet-600' : ''
               )}
             >
-              {guiaRutaText || '—'}
+              {guiaRutaText || 'Guía Ruta'}
             </span>
             <ChevronDownIcon
               className={classNames(
@@ -266,7 +270,7 @@ export default function DetailsGrid({
         </div>
 
         {/* Tracto */}
-        <div className="relative whitespace-nowrap">
+        <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Tracto"
             onClick={openTracto}
@@ -289,7 +293,7 @@ export default function DetailsGrid({
                 activeMenu === 'Tracto' ? 'text-violet-600' : ''
               )}
             >
-              {tractoText || '—'}
+              {tractoText || 'Tracto'}
             </span>
             <ChevronDownIcon
               className={classNames(
@@ -332,7 +336,7 @@ export default function DetailsGrid({
         </div>
 
         {/* Fecha de Salida */}
-        <div className="relative whitespace-nowrap">
+        <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Salida"
             onClick={() =>
@@ -353,11 +357,11 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'px-1',
+                'truncate px-1',
                 activeMenu === 'Salida' ? 'text-violet-600' : ''
               )}
             >
-              {fechaSalidaFormatted}
+              {fechaSalidaLabel}
             </span>
             <ChevronDownIcon
               className={classNames(
@@ -385,7 +389,7 @@ export default function DetailsGrid({
         </div>
 
         {/* Rampla */}
-        <div className="relative whitespace-nowrap">
+        <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Rampla"
             onClick={openRampla}
@@ -408,7 +412,7 @@ export default function DetailsGrid({
                 activeMenu === 'Rampla' ? 'text-violet-600' : ''
               )}
             >
-              {ramplaText || '—'}
+              {ramplaText || 'Rampla'}
             </span>
             <ChevronDownIcon
               className={classNames(
@@ -451,7 +455,7 @@ export default function DetailsGrid({
         </div>
 
         {/* Fecha de Llegada */}
-        <div className="relative whitespace-nowrap">
+        <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Llegada"
             onClick={() =>
@@ -472,11 +476,11 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'px-1',
+                'truncate px-1',
                 activeMenu === 'Llegada' ? 'text-violet-600' : ''
               )}
             >
-              {fechaLlegadaFormatted}
+              {fechaLlegadaLabel}
             </span>
             <ChevronDownIcon
               className={classNames(
