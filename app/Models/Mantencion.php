@@ -13,6 +13,8 @@ class Mantencion extends Model
 {
     use HasFactory;
 
+    protected $table = 'mantenciones';
+
     protected $fillable = [
         'user_id',     // quien registra
         'flete_id',    // opcional: asociada a un servicio

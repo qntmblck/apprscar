@@ -19,10 +19,19 @@ return new class extends Migration
             $table->text('detalle')->nullable();  // descripción o comentarios
             $table->decimal('costo', 10, 2)->nullable();
 
+            // Estado de la mantención: pendiente o completada
+            $table
+                ->enum('estado', ['pendiente', 'completada'])
+                ->default('pendiente')
+                ->after('costo');
+
             $table->timestamps();
 
             // Índices compuestos para acelerar búsquedas por el morph
-            $table->index(['mantencionable_type', 'mantencionable_id'], 'mantencionable_index');
+            $table->index(
+                ['mantencionable_type', 'mantencionable_id'],
+                'mantencionable_index'
+            );
         });
     }
 

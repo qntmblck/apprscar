@@ -380,22 +380,24 @@ export default function DetailsGrid({
             />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
-            <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded">
-              <DayPicker
-                mode="single"
-                selected={selectedSalida}
-                onSelect={d => {
-                  if (!d) return
-                  setSelectedSalida(d)
-                  onSelectFechaSalida(flete.id, d)
-                  setActiveMenu(null)
-                }}
-              />
-              <span className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
-                {destinoClienteLabel}
-              </span>
-            </div>
-          </PortalDropdown>
+  <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded">
+    <DayPicker
+      mode="single"
+      selected={selectedSalida}
+      onSelect={d => {
+        if (!d) return
+        setSelectedSalida(d)
+        onSelectFechaSalida(flete.id, d)
+        setActiveMenu(null)
+      }}
+    />
+    <div className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
+      Inicio · {destinoClienteLabel}
+    </div>
+  </div>
+</PortalDropdown>
+
+
         </div>
 
         {/* Rampla */}
@@ -501,35 +503,32 @@ export default function DetailsGrid({
             />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Llegada'} type="Llegada">
-            <div
-              className="
-                relative bg-white border border-gray-200 shadow-lg p-2 rounded
-                [--rdp-color-accent:#d97706] [--rdp-color-accent-hover:#fbbf24]
-              "
-            >
-              <DayPicker
-                mode="single"
-                selected={selectedLlegada}
-                disabled={{ before: selectedSalida }}
-                onSelect={d => {
-                  if (!d) return
-                  setSelectedLlegada(d)
-                  onSelectFechaLlegada(flete.id, d)
-                  setActiveMenu(null)
-                }}
-                classNames={{
-                  nav_button:          'text-[var(--rdp-color-accent)] hover:text-[var(--rdp-color-accent-hover)]',
-                  nav_button_previous: 'mr-2',
-                  nav_button_next:     'ml-2',
-                  day_selected:        'bg-[var(--rdp-color-accent)] text-white',
-                  day_today:           'font-semibold text-[var(--rdp-color-accent)]',
-                }}
-              />
-              <span className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
-                {destinoClienteLabel}
-              </span>
-            </div>
-          </PortalDropdown>
+  <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded
+                  [--rdp-color-accent:#d97706] [--rdp-color-accent-hover:#fbbf24]">
+    <DayPicker
+      mode="single"
+      selected={selectedLlegada}
+      disabled={{ before: selectedSalida }}
+      onSelect={d => {
+        if (!d) return
+        setSelectedLlegada(d)
+        onSelectFechaLlegada(flete.id, d)
+        setActiveMenu(null)
+      }}
+      classNames={{
+        nav_button:          'text-[var(--rdp-color-accent)] hover:text-[var(--rdp-color-accent-hover)]',
+        nav_button_previous: 'mr-2',
+        nav_button_next:     'ml-2',
+        day_selected:        'bg-[var(--rdp-color-accent)] text-white',
+        day_today:           'font-semibold text-[var(--rdp-color-accent)]',
+      }}
+    />
+    <div className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
+      Termino · {destinoClienteLabel}
+    </div>
+  </div>
+</PortalDropdown>
+
         </div>
 
       </div>

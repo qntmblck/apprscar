@@ -23,34 +23,48 @@ class FleteController extends Controller
 
     // 1) Recogemos filtros para enviarlos de vuelta a la vista
     $filters = [
-        'conductor_ids'   => array_filter((array) $request->input('conductor_ids')),
-        'colaborador_ids' => array_filter((array) $request->input('colaborador_ids')),
-        'cliente_ids'     => array_filter((array) $request->input('cliente_ids')),
-        'tracto_ids'      => array_filter((array) $request->input('tracto_ids')),
-        'destino_ids'     => array_filter((array) $request->input('destino_ids')),
-        'fecha_desde'     => $request->input('fecha_desde'),
-        'fecha_hasta'     => $request->input('fecha_hasta'),
+        'conductor_ids'       => array_filter((array) $request->input('conductor_ids')),
+        'colaborador_ids'     => array_filter((array) $request->input('colaborador_ids')),
+        'cliente_ids'         => array_filter((array) $request->input('cliente_ids')),
+        'tracto_ids'          => array_filter((array) $request->input('tracto_ids')),
+        'destino_ids'         => array_filter((array) $request->input('destino_ids')),
+        'fecha_desde'         => $request->input('fecha_desde'),
+        'fecha_hasta'         => $request->input('fecha_hasta'),
+        'rendicion_estado'    => $request->input('rendicion_estado'),
+        'notificar_estado'    => $request->input('notificar_estado'),
     ];
 
     // 2) Meses para el filtro por periodo
     $meses = [
-        'Enero'      => 1,  'Febrero'   => 2,  'Marzo'      => 3,  'Abril'   => 4,
-        'Mayo'       => 5,  'Junio'     => 6,  'Julio'      => 7,  'Agosto'  => 8,
+        'Enero'      => 1,  'Febrero'   => 2,  'Marzo'      => 3,  'Abril'    => 4,
+        'Mayo'       => 5,  'Junio'     => 6,  'Julio'      => 7,  'Agosto'   => 8,
         'Septiembre' => 9,  'Octubre'   => 10, 'Noviembre'  => 11, 'Diciembre'=> 12,
     ];
 
     // 3) Construcción de la consulta principal
     $query = Flete::query()
         ->select([
-            'id','destino_id','cliente_principal_id','conductor_id',
-            'colaborador_id','tracto_id','rampla_id',
-            'fecha_salida','fecha_llegada','estado','pagado','retorno','guiaruta',
+            'id',
+            'destino_id',
+            'cliente_principal_id',
+            'conductor_id',
+            'colaborador_id',
+            'tracto_id',
+            'rampla_id',
+            'fecha_salida',
+            'fecha_llegada',
+            'estado',
+            'pagado',
+            'retorno',
+            'guiaruta',
         ])
         ->with([
             'clientePrincipal:id,razon_social',
-            'cliente:id,razon_social',              // ← RELACIÓN AGREGADA
-            'conductor:id,name','colaborador:id,name',
-            'tracto:id,patente','rampla:id,patente',
+            'cliente:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
             'destino:id,nombre',
             'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
             'rendicion.gastos'      => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderByDesc('created_at'),
@@ -99,6 +113,18 @@ class FleteController extends Controller
             ! empty($filters['destino_ids']),
             fn($q) => $q->whereIn('destino_id', $filters['destino_ids'])
         )
+        // FILTRO POR RENDICIÓN (Activo / Cerrado)
+        ->when(
+            $filters['rendicion_estado'],
+            fn($q) => $q->whereHas('rendicion', function($q2) use ($filters) {
+                $q2->where('estado', $filters['rendicion_estado']);
+            })
+        )
+        // FILTRO POR NOTIFICACIÓN (Sin Notificar / Notificado)
+        ->when(
+            $filters['notificar_estado'],
+            fn($q) => $q->where('estado', $filters['notificar_estado'])
+        )
         ->orderBy('fecha_salida', 'desc');
 
     // 4) Paginación
@@ -122,6 +148,7 @@ class FleteController extends Controller
         ],
     ]);
 }
+
 
 
 

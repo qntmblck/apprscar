@@ -18,6 +18,7 @@ use App\Models\Diesel;
 use App\Models\Gasto;
 use App\Models\AbonoCaja;
 use App\Models\Adicional;
+use App\Models\Mantencion;
 use Database\Factories\ClienteFactory;
 use Database\Factories\DestinoFactory;
 use Database\Factories\TractoFactory;
@@ -82,7 +83,7 @@ class FleteSeeder extends Seeder
             }
         }
 
-        // 5) Generar 1000 fletes + expendables + adicionales (Ene–Jun 2025)
+        // 5) Generar 1000 fletes + expendables + adicionales (Jul–Dic 2025)
         $inicioPeriodo = Carbon::create(2025, 7, 1);
         $finPeriodo    = Carbon::create(2025, 12, 30);
         $diasPeriodo   = $finPeriodo->diffInDays($inicioPeriodo);
@@ -117,7 +118,6 @@ class FleteSeeder extends Seeder
 
             // Fechas: salida aleatoria entre inicio y fin
             $salida  = (clone $inicioPeriodo)->addDays(rand(0, $diasPeriodo));
-            // Llegada a 0–5 días después de la salida
             $llegada = (clone $salida)->addDays(rand(0, 5));
             if ($llegada->gt($finPeriodo)) {
                 $llegada = $finPeriodo->copy();
@@ -144,9 +144,50 @@ class FleteSeeder extends Seeder
                 'colaborador_id'       => $actorKey === 'colaborador_id' ? $actor->id : null,
             ]);
 
-            // Actualizar kms
+            // — Actualizar kms y crear mantenciones cada 5000 km —
+            $prevTractoKm = $tra->kilometraje;
+            $prevRamplaKm = $ram->kilometraje;
+
             $tra->increment('kilometraje', $km);
             $ram->increment('kilometraje', $km);
+
+            $newTractoKm = $prevTractoKm + $km;
+            $newRamplaKm = $prevRamplaKm + $km;
+
+            $prevTractoIntervals = intdiv($prevTractoKm, 5000);
+            $newTractoIntervals  = intdiv($newTractoKm, 5000);
+            $toCreateTracto      = $newTractoIntervals - $prevTractoIntervals;
+
+            $prevRamplaIntervals = intdiv($prevRamplaKm, 5000);
+            $newRamplaIntervals  = intdiv($newRamplaKm, 5000);
+            $toCreateRampla      = $newRamplaIntervals - $prevRamplaIntervals;
+
+            for ($j = 1; $j <= $toCreateTracto; $j++) {
+                Mantencion::create([
+                    'user_id'   => $actor->id,
+                    'flete_id'  => $flete->id,
+                    'tracto_id' => $tra->id,
+                    'rampla_id' => null,
+                    'fecha'     => $faker->dateTimeBetween($salida, $llegada),
+                    'tipo'      => $faker->randomElement(['Cambio de aceite','Revisión de frenos','Inspección general']),
+                    'detalle'   => $faker->sentence(5),
+                    'costo'     => $faker->numberBetween(50000,150000),
+                    'estado'    => 'pendiente',
+                ]);
+            }
+            for ($j = 1; $j <= $toCreateRampla; $j++) {
+                Mantencion::create([
+                    'user_id'   => $actor->id,
+                    'flete_id'  => $flete->id,
+                    'tracto_id' => null,
+                    'rampla_id' => $ram->id,
+                    'fecha'     => $faker->dateTimeBetween($salida, $llegada),
+                    'tipo'      => $faker->randomElement(['Cambio de aceite','Revisión de frenos','Inspección general']),
+                    'detalle'   => $faker->sentence(5),
+                    'costo'     => $faker->numberBetween(50000,150000),
+                    'estado'    => 'pendiente',
+                ]);
+            }
 
             // Crear rendición siempre con estado "Activo"
             $rend = Rendicion::create([
@@ -201,6 +242,6 @@ class FleteSeeder extends Seeder
             }
         }
 
-        $this->command->info("✅ Seed completo con 1000 fletes (Ene–Jun 2025), expendables y adicionales.");
+        $this->command->info("✅ Seed completo con 1000 fletes (Jul–Dic 2025), expendables, adicionales y mantenciones cada 5000 km.");
     }
 }
