@@ -30,42 +30,45 @@ export default function DetailsGrid({
   colaboradores = [],
   tractos = [],
   ramplas = [],
-  onSelectFechaSalida,   // recibe (id, Date)
-  onSelectFechaLlegada,  // recibe (id, Date)
+  onSelectFechaSalida,
+  onSelectFechaLlegada,
 }) {
   const nombreDestino = flete.destino?.nombre ?? '[sin destino]'
-  const cliente = flete.clientePrincipal?.razon_social
-                ?? flete.cliente?.razon_social
-                ?? '[sin cliente]'
+  const cliente =
+    flete.clientePrincipal?.razon_social ||
+    flete.cliente?.razon_social ||
+    '[sin cliente]'
   const destinoClienteLabel = `${nombreDestino}-${cliente}`
 
   // Labels con fallback
-  const fechaSalidaLabel  = fechaSalidaFormatted  || 'Fecha Inicio'
+  const fechaSalidaLabel = fechaSalidaFormatted || 'Fecha Inicio'
   const fechaLlegadaLabel = fechaLlegadaFormatted || 'Fecha Término'
 
-  const titularInputRef  = useRef(null)
-  const tractoInputRef   = useRef(null)
-  const ramplaInputRef   = useRef(null)
+  // Refs para inputs
+  const titularInputRef = useRef(null)
+  const tractoInputRef  = useRef(null)
+  const ramplaInputRef  = useRef(null)
   const guiaRutaInputRef = useRef(null)
 
+  // Estados de texto
   const [titularText,  setTitularText]  = useState(flete.conductor?.name || flete.colaborador?.name || '')
   const [tractoText,   setTractoText]   = useState(flete.tracto?.patente || '')
   const [ramplaText,   setRamplaText]   = useState(flete.rampla?.patente || '')
   const [guiaRutaText, setGuiaRutaText] = useState(flete.guiaruta || '')
 
+  // Sugerencias
   const [titularSug, setTitularSug] = useState([])
   const [tractoSug,  setTractoSug]  = useState([])
   const [ramplaSug,  setRamplaSug]  = useState([])
 
+  // Mensaje de error
   const [errorMsg, setErrorMsg] = useState('')
 
-  const [selectedSalida,  setSelectedSalida]  = useState(
-    flete.fecha_salida ? parseLocalDate(flete.fecha_salida) : undefined
-  )
-  const [selectedLlegada, setSelectedLlegada] = useState(
-    flete.fecha_llegada ? parseLocalDate(flete.fecha_llegada) : undefined
-  )
+  // Fechas seleccionadas
+  const [selectedSalida,   setSelectedSalida]   = useState(flete.fecha_salida   ? parseLocalDate(flete.fecha_salida)   : undefined)
+  const [selectedLlegada,  setSelectedLlegada]  = useState(flete.fecha_llegada  ? parseLocalDate(flete.fecha_llegada)  : undefined)
 
+  // Focus al abrir cada menú
   useEffect(() => {
     if (activeMenu === 'Titular')  titularInputRef.current?.focus({ preventScroll: true })
     if (activeMenu === 'Tracto')   tractoInputRef.current?.focus({ preventScroll: true })
@@ -73,6 +76,7 @@ export default function DetailsGrid({
     if (activeMenu === 'GuiaRuta') guiaRutaInputRef.current?.focus({ preventScroll: true })
   }, [activeMenu])
 
+  // Sincronizar cuando cambia flete
   useEffect(() => {
     setTitularText(flete.conductor?.name || flete.colaborador?.name || '')
     setTractoText(flete.tracto?.patente || '')
@@ -83,6 +87,7 @@ export default function DetailsGrid({
     setErrorMsg('')
   }, [flete])
 
+  // Funciones helper
   const filterOpts = (list, text) =>
     list.filter(x => (x.name || x.patente).toLowerCase().includes(text.toLowerCase())).slice(0, 10)
 
@@ -93,14 +98,16 @@ export default function DetailsGrid({
       applyText(res.data.flete)
       setActiveMenu(null)
     } catch (err) {
-      const msg = err.response?.data?.message
-        || Object.values(err.response?.data?.errors || {}).flat().join(' ')
-        || err.message
-        || 'Error al guardar'
+      const msg =
+        err.response?.data?.message ||
+        Object.values(err.response?.data?.errors || {}).flat().join(' ') ||
+        err.message ||
+        'Error al guardar'
       setErrorMsg(msg)
     }
   }
 
+  // Abrir cada dropdown
   const openTitular = async () => {
     const opening = activeMenu !== 'Titular'
     setActiveMenu(opening ? 'Titular' : null)
@@ -113,23 +120,23 @@ export default function DetailsGrid({
       setTitularSug([...conductores, ...colaboradores].slice(0, 10))
     }
   }
-
   const openTracto = () => {
     const opening = activeMenu !== 'Tracto'
     setActiveMenu(opening ? 'Tracto' : null)
     if (opening) setTractoSug(tractos.slice(0, 10))
   }
-
   const openRampla = () => {
     const opening = activeMenu !== 'Rampla'
     setActiveMenu(opening ? 'Rampla' : null)
     if (opening) setRamplaSug(ramplas.slice(0, 10))
   }
-
   const openGuiaRuta = () => {
     const opening = activeMenu !== 'GuiaRuta'
     setActiveMenu(opening ? 'GuiaRuta' : null)
   }
+
+  // Clases para scroll sutil
+  const scrollClasses = 'flex-1 min-w-0 px-1 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
 
   return (
     <div className="mb-4">
@@ -143,9 +150,7 @@ export default function DetailsGrid({
             onClick={openTitular}
             className={classNames(
               'flex items-center gap-x-2 w-full p-1 border-b-2 rounded',
-              activeMenu === 'Titular'
-                ? 'border-violet-600'
-                : 'border-transparent hover:border-gray-300'
+              activeMenu === 'Titular' ? 'border-violet-600' : 'border-transparent hover:border-gray-300'
             )}
           >
             <IdentificationIcon
@@ -156,8 +161,12 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'truncate px-1',
-                activeMenu === 'Titular' ? 'text-violet-600' : ''
+                scrollClasses,
+                activeMenu === 'Titular'
+                  ? 'text-violet-600'
+                  : !titularText
+                  ? 'text-red-600'
+                  : ''
               )}
             >
               {titularText || 'Titular'}
@@ -176,9 +185,8 @@ export default function DetailsGrid({
                 type="text"
                 value={titularText}
                 onChange={e => {
-                  const v = e.target.value
-                  setTitularText(v)
-                  setTitularSug(filterOpts([...conductores, ...colaboradores], v))
+                  setTitularText(e.target.value)
+                  setTitularSug(filterOpts([...conductores, ...colaboradores], e.target.value))
                 }}
                 placeholder="Escribe titular..."
                 className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
@@ -202,16 +210,14 @@ export default function DetailsGrid({
           </PortalDropdown>
         </div>
 
-        {/* Guía/Ruta */}
+        {/* Guía Ruta */}
         <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="GuiaRuta"
             onClick={openGuiaRuta}
             className={classNames(
               'flex items-center gap-x-2 w-full p-1 border-b-2 rounded',
-              activeMenu === 'GuiaRuta'
-                ? 'border-violet-600'
-                : 'border-transparent hover:border-gray-300'
+              activeMenu === 'GuiaRuta' ? 'border-violet-600' : 'border-transparent hover:border-gray-300'
             )}
           >
             <ClipboardDocumentListIcon
@@ -222,8 +228,12 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'truncate px-1',
-                activeMenu === 'GuiaRuta' ? 'text-violet-600' : ''
+                scrollClasses,
+                activeMenu === 'GuiaRuta'
+                  ? 'text-violet-600'
+                  : !guiaRutaText
+                  ? 'text-red-600'
+                  : ''
               )}
             >
               {guiaRutaText || 'Guía Ruta'}
@@ -237,9 +247,7 @@ export default function DetailsGrid({
           </button>
           <PortalDropdown isOpen={activeMenu === 'GuiaRuta'} type="GuiaRuta">
             <div className="w-56 bg-white rounded-lg shadow-md p-4 space-y-2">
-              <div className="font-bold text-sm">
-                Ingresar Nro. Guía Ruta de Carga
-              </div>
+              <div className="font-bold text-sm">Ingresar Nro. Guía Ruta de Carga</div>
               <input
                 ref={guiaRutaInputRef}
                 type="text"
@@ -276,9 +284,7 @@ export default function DetailsGrid({
             onClick={openTracto}
             className={classNames(
               'flex items-center gap-x-2 w-full p-1 border-b-2 rounded',
-              activeMenu === 'Tracto'
-                ? 'border-violet-600'
-                : 'border-transparent hover:border-gray-300'
+              activeMenu === 'Tracto' ? 'border-violet-600' : 'border-transparent hover:border-gray-300'
             )}
           >
             <TruckIcon
@@ -289,8 +295,12 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'truncate px-1',
-                activeMenu === 'Tracto' ? 'text-violet-600' : ''
+                scrollClasses,
+                activeMenu === 'Tracto'
+                  ? 'text-violet-600'
+                  : !tractoText
+                  ? 'text-red-600'
+                  : ''
               )}
             >
               {tractoText || 'Tracto'}
@@ -309,9 +319,8 @@ export default function DetailsGrid({
                 type="text"
                 value={tractoText}
                 onChange={e => {
-                  const v = e.target.value
-                  setTractoText(v)
-                  setTractoSug(filterOpts(tractos, v))
+                  setTractoText(e.target.value)
+                  setTractoSug(filterOpts(tractos, e.target.value))
                 }}
                 placeholder="Escribe tracto..."
                 className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
@@ -339,14 +348,10 @@ export default function DetailsGrid({
         <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Salida"
-            onClick={() =>
-              setActiveMenu(activeMenu === 'Salida' ? null : 'Salida')
-            }
+            onClick={() => setActiveMenu(activeMenu === 'Salida' ? null : 'Salida')}
             className={classNames(
               'flex items-center gap-x-2 w-full p-1 border-b-2 rounded',
-              activeMenu === 'Salida'
-                ? 'border-violet-600'
-                : 'border-transparent hover:border-gray-300'
+              activeMenu === 'Salida' ? 'border-violet-600' : 'border-transparent hover:border-gray-300'
             )}
           >
             <CalendarDaysIcon
@@ -357,8 +362,12 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'truncate px-1',
-                activeMenu === 'Salida' ? 'text-violet-600' : ''
+                scrollClasses,
+                activeMenu === 'Salida'
+                  ? 'text-violet-600'
+                  : !fechaSalidaFormatted
+                  ? 'text-red-600'
+                  : ''
               )}
             >
               {fechaSalidaLabel}
@@ -395,9 +404,7 @@ export default function DetailsGrid({
             onClick={openRampla}
             className={classNames(
               'flex items-center gap-x-2 w-full p-1 border-b-2 rounded',
-              activeMenu === 'Rampla'
-                ? 'border-violet-600'
-                : 'border-transparent hover:border-gray-300'
+              activeMenu === 'Rampla' ? 'border-violet-600' : 'border-transparent hover:border-gray-300'
             )}
           >
             <ShoppingCartIcon
@@ -408,8 +415,12 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'truncate px-1',
-                activeMenu === 'Rampla' ? 'text-violet-600' : ''
+                scrollClasses,
+                activeMenu === 'Rampla'
+                  ? 'text-violet-600'
+                  : !ramplaText
+                  ? 'text-red-600'
+                  : ''
               )}
             >
               {ramplaText || 'Rampla'}
@@ -428,9 +439,8 @@ export default function DetailsGrid({
                 type="text"
                 value={ramplaText}
                 onChange={e => {
-                  const v = e.target.value
-                  setRamplaText(v)
-                  setRamplaSug(filterOpts(ramplas, v))
+                  setRamplaText(e.target.value)
+                  setRamplaSug(filterOpts(ramplas, e.target.value))
                 }}
                 placeholder="Escribe rampla..."
                 className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none mb-2"
@@ -458,14 +468,10 @@ export default function DetailsGrid({
         <div className="relative min-w-0 whitespace-nowrap">
           <button
             data-toggle-type="Llegada"
-            onClick={() =>
-              setActiveMenu(activeMenu === 'Llegada' ? null : 'Llegada')
-            }
+            onClick={() => setActiveMenu(activeMenu === 'Llegada' ? null : 'Llegada')}
             className={classNames(
               'flex items-center gap-x-2 w-full p-1 border-b-2 rounded',
-              activeMenu === 'Llegada'
-                ? 'border-violet-600'
-                : 'border-transparent hover:border-gray-300'
+              activeMenu === 'Llegada' ? 'border-violet-600' : 'border-transparent hover:border-gray-300'
             )}
           >
             <ArrowRightEndOnRectangleIcon
@@ -476,8 +482,12 @@ export default function DetailsGrid({
             />
             <span
               className={classNames(
-                'truncate px-1',
-                activeMenu === 'Llegada' ? 'text-violet-600' : ''
+                scrollClasses,
+                activeMenu === 'Llegada'
+                  ? 'text-violet-600'
+                  : !fechaLlegadaFormatted
+                  ? 'text-red-600'
+                  : ''
               )}
             >
               {fechaLlegadaLabel}
