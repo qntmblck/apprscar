@@ -10,31 +10,35 @@ use App\Models\Rendicion;
 class AdicionalController extends Controller
 {
     /**
-     * Store a newly created “Adicional” (tabla independiente).
+     * Store a newly created “Adicional”.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'flete_id'    => 'required|exists:fletes,id',
-            'descripcion' => 'required|string|max:255',
-            'monto'       => 'required|numeric|min:0',
+            'flete_id'     => 'required|exists:fletes,id',
+            'rendicion_id' => 'required|exists:rendiciones,id',
+            'descripcion'  => 'required|string|max:255',
+            'monto'        => 'required|numeric|min:0',
         ]);
 
         try {
-            // 1) Crear adicional
+            // 1) Obtener rendición
+            $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
+
+            // 2) Crear adicional
             $adicional = Adicional::create([
-                'flete_id'    => $validated['flete_id'],
-                'tipo'        => 'Adicional',
-                'descripcion' => $validated['descripcion'],
-                'monto'       => $validated['monto'],
+                'flete_id'     => $validated['flete_id'],
+                'rendicion_id' => $validated['rendicion_id'],
+                'tipo'         => 'Adicional',
+                'descripcion'  => $validated['descripcion'],
+                'monto'        => $validated['monto'],
             ]);
 
-            // 2) Recalcular y guardar totales en la rendición
-            $flete     = Flete::findOrFail($validated['flete_id']);
-            $rendicion = $flete->rendicion;
+            // 3) Recalcular totales y guardar
             $rendicion->recalcularTotales();
+            $rendicion->save();
 
-            // 3) Recargar el flete con relaciones necesarias (sin comisiones)
+            // 4) Recargar flete con relaciones necesarias
             $flete = Flete::with([
                 'clientePrincipal:id,razon_social',
                 'conductor:id,name',
@@ -50,7 +54,7 @@ class AdicionalController extends Controller
                 'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
             ])->findOrFail($validated['flete_id']);
 
-            // 4) Exponer campos calculados
+            // 5) Exponer campos calculados
             $flete->makeVisible(['retorno']);
             $flete->rendicion->makeVisible([
                 'saldo', 'total_gastos', 'total_diesel', 'viatico_calculado', 'comision',
@@ -77,12 +81,12 @@ class AdicionalController extends Controller
         $fleteId = $adicional->flete_id;
         $adicional->delete();
 
-        // 1) Recalcular totales en la rendición
-        $flete     = Flete::findOrFail($fleteId);
-        $rendicion = $flete->rendicion;
+        // 1) Obtener y recalcular rendición
+        $rendicion = Rendicion::where('flete_id', $fleteId)->firstOrFail();
         $rendicion->recalcularTotales();
+        $rendicion->save();
 
-        // 2) Recargar el flete sin comisiones
+        // 2) Recargar flete con relaciones necesarias
         $flete = Flete::with([
             'clientePrincipal:id,razon_social',
             'conductor:id,name',

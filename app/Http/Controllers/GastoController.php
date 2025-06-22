@@ -82,17 +82,15 @@ class GastoController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Gasto $gasto)
     {
-        $registro = Gasto::find($id);
-        if (! $registro) {
-            return response()->json(['message' => 'Gasto no encontrado'], 404);
-        }
+        // 1) Obtener ID del flete antes de borrar
+        $fleteId = $gasto->flete_id;
 
-        $fleteId = $registro->flete_id;
-        $registro->delete();
+        // 2) Eliminar el gasto
+        $gasto->delete();
 
-        // 1) Recargar flete con todas las relaciones
+        // 3) Recargar flete con todas las relaciones
         $flete = Flete::with([
             'clientePrincipal:id,razon_social',
             'conductor:id,name',
@@ -105,11 +103,11 @@ class GastoController extends Controller
             'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
         ])->findOrFail($fleteId);
 
-        // 2) Recalcular totales luego de eliminar
+        // 4) Recalcular totales luego de eliminar
         $flete->rendicion->recalcularTotales();
         $flete->rendicion->save();
 
-        // 3) Exponer campos calculados para la tarjeta
+        // 5) Exponer campos calculados para la tarjeta
         $flete->makeVisible(['retorno']);
         $flete->rendicion->makeVisible([
             'saldo',

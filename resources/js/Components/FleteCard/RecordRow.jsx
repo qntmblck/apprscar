@@ -10,9 +10,10 @@ export default function RecordRow({
   onEliminar,       // función eliminar registro (recibe el objeto registro)
   isSubmitting,     // estado de envío
 }) {
-  // Ordenamos descendente y tomamos los dos primeros
+  // Filtrar sólo registros con id, ordenar descendente y tomar los 2 primeros
   const ultimos = useMemo(() => {
     return registros
+      .filter(r => r.id) // descartar objetos sin identificador
       .slice()
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 2)

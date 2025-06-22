@@ -121,11 +121,14 @@ export default function GastoForm({ fleteId, rendicionId, submitForm, onCancel, 
             />
           </label>
           <button
-            onClick={handleSend}
-            className="group flex-grow h-6 flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200"
-          >
-            <PaperAirplaneIcon className="h-6 w-6 text-white transition-transform group-hover:rotate-12 group-hover:scale-110 duration-200" />
-          </button>
+  onClick={handleSend}
+  className="group flex-grow h-6 flex items-center justify-center bg-red-600 hover:bg-red-700 transition-all duration-200"
+>
+  <PaperAirplaneIcon
+    className="h-6 w-6 text-white transition-transform group-hover:rotate-12 group-hover:scale-110 duration-200"
+  />
+</button>
+
         </div>
       </div>
 

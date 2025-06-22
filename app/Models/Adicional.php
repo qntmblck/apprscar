@@ -14,9 +14,9 @@ class Adicional extends Model
     protected $fillable = [
         'flete_id',
         'rendicion_id',
-        'tipo',        // p.ej. 'demora', 'peaje', …
-        'monto',       // valor en pesos
-        'descripcion', // opcional
+        'tipo',
+        'monto',
+        'descripcion',
     ];
 
     /**

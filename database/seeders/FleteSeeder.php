@@ -123,7 +123,7 @@ class FleteSeeder extends Seeder
                 $llegada = $finPeriodo->copy();
             }
 
-            // Crear flete con estado "Sin Notificar" siempre
+            // Crear flete
             $flete = Flete::create([
                 'cliente_principal_id' => $cli->id,
                 'destino_id'           => $des->id,
@@ -144,25 +144,14 @@ class FleteSeeder extends Seeder
                 'colaborador_id'       => $actorKey === 'colaborador_id' ? $actor->id : null,
             ]);
 
-            // — Actualizar kms y crear mantenciones cada 5000 km —
+            // Crear mantenciones cada 5.000 km
             $prevTractoKm = $tra->kilometraje;
             $prevRamplaKm = $ram->kilometraje;
-
             $tra->increment('kilometraje', $km);
             $ram->increment('kilometraje', $km);
-
-            $newTractoKm = $prevTractoKm + $km;
-            $newRamplaKm = $prevRamplaKm + $km;
-
-            $prevTractoIntervals = intdiv($prevTractoKm, 5000);
-            $newTractoIntervals  = intdiv($newTractoKm, 5000);
-            $toCreateTracto      = $newTractoIntervals - $prevTractoIntervals;
-
-            $prevRamplaIntervals = intdiv($prevRamplaKm, 5000);
-            $newRamplaIntervals  = intdiv($newRamplaKm, 5000);
-            $toCreateRampla      = $newRamplaIntervals - $prevRamplaIntervals;
-
-            for ($j = 1; $j <= $toCreateTracto; $j++) {
+            $newTractoIntervals = intdiv($prevTractoKm + $km, 5000) - intdiv($prevTractoKm, 5000);
+            $newRamplaIntervals = intdiv($prevRamplaKm + $km, 5000) - intdiv($prevRamplaKm, 5000);
+            for ($j = 0; $j < $newTractoIntervals; $j++) {
                 Mantencion::create([
                     'user_id'   => $actor->id,
                     'flete_id'  => $flete->id,
@@ -175,7 +164,7 @@ class FleteSeeder extends Seeder
                     'estado'    => 'pendiente',
                 ]);
             }
-            for ($j = 1; $j <= $toCreateRampla; $j++) {
+            for ($j = 0; $j < $newRamplaIntervals; $j++) {
                 Mantencion::create([
                     'user_id'   => $actor->id,
                     'flete_id'  => $flete->id,
@@ -189,7 +178,7 @@ class FleteSeeder extends Seeder
                 ]);
             }
 
-            // Crear rendición siempre con estado "Activo"
+            // Crear rendición
             $rend = Rendicion::create([
                 'flete_id'         => $flete->id,
                 'user_id'          => $actor->id,
@@ -218,7 +207,7 @@ class FleteSeeder extends Seeder
                     'rendicion_id' => $rend->id,
                     'user_id'      => $actor->id,
                     'tipo'         => $faker->randomElement(['Peaje','Carga','Estacionamiento']),
-                    'descripcion'  => $faker->words(3,true),
+                    'descripcion'  => $faker->words(3, true),
                     'monto'        => $faker->numberBetween(10000,40000),
                 ]);
             }
@@ -230,18 +219,22 @@ class FleteSeeder extends Seeder
                 ]);
             }
 
-            // Adicionales: 0–2 por flete
+            // — CORREGIDO: Adicionales como entidad independiente —
             foreach (range(1, rand(0,2)) as $_) {
+                // guardamos siempre tipo = 'Adicional' y pasamos la categoría a descripción
+                $categoria = $faker->randomElement(['Camioneta','Peoneta','Carga Extra']);
                 Adicional::create([
                     'flete_id'     => $flete->id,
                     'rendicion_id' => $rend->id,
-                    'tipo'         => $faker->randomElement(['Demora','Peaje','Carga Extra']),
-                    'descripcion'  => $faker->sentence(4),
+                    'tipo'         => 'Adicional',     // modelo espera siempre este valor :contentReference[oaicite:0]{index=0}
+                    'descripcion'  => $categoria,
                     'monto'        => $faker->numberBetween(5000,20000),
                 ]);
             }
         }
 
-        $this->command->info("✅ Seed completo con 1000 fletes (Jul–Dic 2025), expendables, adicionales y mantenciones cada 5000 km.");
+        $this->command->info(
+            "✅ Seed completo con 1000 fletes (Jul–Dic 2025), expendables, adicionales y mantenciones."
+        );
     }
 }

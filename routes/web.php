@@ -146,13 +146,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.guiaruta');
     // AJAX DetailsGrid — fechas
-Route::post('/fletes/{flete}/fecha-salida',  [FleteController::class, 'updateFechaSalida'])
-    ->middleware('role:superadmin|admin|colaborador|cliente')
-    ->name('fletes.fecha-salida');
-
-Route::post('/fletes/{flete}/fecha-llegada', [FleteController::class, 'updateFechaLlegada'])
-    ->middleware('role:superadmin|admin|colaborador|cliente')
-    ->name('fletes.fecha-llegada');
+    Route::post('/fletes/{flete}/fecha-salida',  [FleteController::class, 'updateFechaSalida'])
+        ->middleware('role:superadmin|admin|colaborador|cliente')
+        ->name('fletes.fecha-salida');
+    Route::post('/fletes/{flete}/fecha-llegada', [FleteController::class, 'updateFechaLlegada'])
+        ->middleware('role:superadmin|admin|colaborador|cliente')
+        ->name('fletes.fecha-llegada');
 
     Route::get('/fletes/suggest-titulares',      [FleteController::class, 'suggestTitulares'])
         ->middleware('auth')
@@ -169,25 +168,27 @@ Route::post('/fletes/{flete}/fecha-llegada', [FleteController::class, 'updateFec
     });
 
     // Formularios frontal y trasera...
-    Route::post('/adicionales',     [AdicionalController::class, 'store'])->name('adicionales.store');
-    Route::post('/diesel',          [DieselController::class, 'store'])->name('diesel.store');
-    Route::delete('/diesels/{id}',  [DieselController::class, 'destroy'])->name('diesel.destroy');
-    Route::post('/gasto',           [GastoController::class, 'store'])->name('gasto.store');
-    Route::delete('/gastos/{id}',   [GastoController::class, 'destroy'])->name('gastos.destroy');
-    Route::post('/abonos',          [AbonoController::class, 'store'])->name('abonos.store');
-    Route::delete('/abonos/{id}',   [AbonoController::class, 'destroy'])->name('abonos.destroy');
-    Route::post('/retornos',        [RetornoController::class, 'store'])->name('retornos.store');
-    Route::delete('/retornos/{id}', [RetornoController::class, 'destroy'])->name('retornos.destroy');
-    Route::post('/comisiones',      [ComisionController::class, 'store'])->name('comisiones.store');
+    Route::post('/adicionales',       [AdicionalController::class, 'store'])->name('adicionales.store');
+    Route::post('/diesel',            [DieselController::class, 'store'])->name('diesel.store');
+    Route::delete('/diesels/{id}',    [DieselController::class, 'destroy'])->name('diesel.destroy');
+
+    Route::post('/gastos',            [GastoController::class, 'store'])->name('gastos.store');
+    Route::delete('/gastos/{gasto}',  [GastoController::class, 'destroy'])->name('gastos.destroy');
+
+    Route::post('/abonos',            [AbonoController::class, 'store'])->name('abonos.store');
+    Route::delete('/abonos/{id}',     [AbonoController::class, 'destroy'])->name('abonos.destroy');
+    Route::post('/retornos',          [RetornoController::class, 'store'])->name('retornos.store');
+    Route::delete('/retornos/{id}',   [RetornoController::class, 'destroy'])->name('retornos.destroy');
+    Route::post('/comisiones',        [ComisionController::class, 'store'])->name('comisiones.store');
     Route::delete('/comisiones/{id}', [ComisionController::class, 'destroy'])->name('comisiones.destroy');
 
     // ——— Nuevas rutas batch ———
     Route::post('/fletes/batch/export',     [FleteBatchController::class, 'exportExcel'])
         ->name('fletes.batch.export');
     Route::post('/fletes/batch/notificar', [FleteBatchController::class, 'notificarMasivo'])
-    ->withoutMiddleware('auth')
-    ->withoutMiddleware(BaseVerify::class)
-    ->name('fletes.batch.notificar');
+        ->withoutMiddleware('auth')
+        ->withoutMiddleware(BaseVerify::class)
+        ->name('fletes.batch.notificar');
 
     // ——— Rutas para pagos/resumen y pagos/liquidar ———
     Route::post('/pagos/resumen',  [PagoController::class, 'resumen'])->name('pagos.resumen');

@@ -119,11 +119,14 @@ export default function DieselForm({ fleteId, rendicionId, onSubmit, onCancel, o
             />
           </label>
           <button
-            onClick={handleSend}
-            className="group flex-grow h-6 flex items-center justify-center bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200"
-          >
-            <PaperAirplaneIcon className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200" />
-          </button>
+  onClick={handleSend}
+  className="group flex-grow h-6 flex items-center justify-center bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+>
+  <PaperAirplaneIcon
+    className="h-6 w-6 text-white transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-200"
+  />
+</button>
+
         </div>
       </div>
 
