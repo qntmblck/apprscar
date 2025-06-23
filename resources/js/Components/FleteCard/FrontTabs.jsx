@@ -22,8 +22,6 @@ export default function FrontTabs({
   setIsSubmitting,
   selectedIds = [],
   toggleSelect,
-
-  // Props levantadas desde FleteCard
   fechaSalidaISO,
   fechaLlegadaISO,
   fletePosteriorEnMismoDia,
@@ -33,7 +31,7 @@ export default function FrontTabs({
   const viaticoCount   = flete.rendicion?.viaticos?.length   ?? 0
   const adicionalCount = flete.rendicion?.adicionales?.length ?? 0
 
-  const tabs = [
+  const allTabs = [
     {
       key: 'adicional',
       icon: InboxArrowDownIcon,
@@ -76,6 +74,12 @@ export default function FrontTabs({
       minWidth: 80,
     },
   ]
+
+  // Si el titular es colaborador (colaborador_id existe), solo adicional
+  const esColaborador = !!flete.colaborador_id
+  const tabs = esColaborador
+    ? allTabs.filter(t => t.key === 'adicional')
+    : allTabs
 
   return (
     <div className="mt-4">

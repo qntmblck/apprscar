@@ -217,7 +217,7 @@ export default function BackDetails({
         {/* Comisión Manual */}
         {comisionRegistro && (
           <div className="grid grid-cols-[1fr_minmax(70px,max-content)] items-center px-2 py-1 rounded-md bg-purple-50 text-purple-700">
-            <span className="font-medium">Comisión Manual</span>
+            <span className="font-medium">Comisión Retorno</span>
             <div className="flex items-center space-x-1 justify-end">
               <span>${comisionManual.toLocaleString('es-CL')}</span>
               <button
