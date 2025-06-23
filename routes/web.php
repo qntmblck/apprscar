@@ -152,6 +152,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/fletes/{flete}/fecha-llegada', [FleteController::class, 'updateFechaLlegada'])
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.fecha-llegada');
+    Route::post('/fletes/{flete}/kilometraje', [FleteController::class, 'updateKilometraje']);
+
 
     Route::get('/fletes/suggest-titulares',      [FleteController::class, 'suggestTitulares'])
         ->middleware('auth')
@@ -169,14 +171,18 @@ Route::middleware('auth')->group(function () {
 
     // Formularios frontal y trasera...
     Route::post('/adicionales',       [AdicionalController::class, 'store'])->name('adicionales.store');
+    Route::delete('/adicionales/{id}',[AdicionalController::class, 'destroy'])->name('adicionales.destroy');
+
     Route::post('/diesel',            [DieselController::class, 'store'])->name('diesel.store');
     Route::delete('/diesels/{id}',    [DieselController::class, 'destroy'])->name('diesel.destroy');
 
     Route::post('/gastos',            [GastoController::class, 'store'])->name('gastos.store');
     Route::delete('/gastos/{gasto}',  [GastoController::class, 'destroy'])->name('gastos.destroy');
 
+    // Abonos: ahora implicit binding con {abono}
     Route::post('/abonos',            [AbonoController::class, 'store'])->name('abonos.store');
-    Route::delete('/abonos/{id}',     [AbonoController::class, 'destroy'])->name('abonos.destroy');
+    Route::delete('/abonos/{abono}',  [AbonoController::class, 'destroy'])->name('abonos.destroy');
+
     Route::post('/retornos',          [RetornoController::class, 'store'])->name('retornos.store');
     Route::delete('/retornos/{id}',   [RetornoController::class, 'destroy'])->name('retornos.destroy');
     Route::post('/comisiones',        [ComisionController::class, 'store'])->name('comisiones.store');

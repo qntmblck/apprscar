@@ -77,6 +77,36 @@ export default function Index({
     data.fecha_desde !== '' ||
     data.fecha_hasta !== ''
 
+  // 1) Actualizar un flete en la lista tras edición
+  const actualizarFleteEnLista = useCallback(f => {
+    setFletesState(prev =>
+      prev.map(x =>
+        x.id === f.id
+          ? {
+              ...x,
+              ...f,
+              fecha_llegada: f.fecha_llegada ?? x.fecha_llegada,
+            }
+          : x
+      )
+    )
+  }, [])
+
+  // 2) Ahora sí definimos el update de Kilometraje
+  const handleUpdateKilometraje = useCallback(async (fleteId, km) => {
+    try {
+      const res = await axios.post(
+        `/fletes/${fleteId}/kilometraje`,
+        { kilometraje: km }
+      )
+      actualizarFleteEnLista(res.data.flete)
+    } catch (e) {
+      console.error('Error actualizando kilómetro:', e)
+    }
+  }, [actualizarFleteEnLista])
+
+
+
   // 1) Sincronizar lista de fletes al montarse y cuando cambien paginatedFletes
   useEffect(() => {
     const lista = paginatedFletes.data || []
@@ -145,21 +175,6 @@ export default function Index({
     setSelectedIds([])
   }, [])
 
-  // Actualizar un flete en la lista tras edición
-const actualizarFleteEnLista = useCallback(f => {
-  setFletesState(prev =>
-    prev.map(x =>
-      x.id === f.id
-        ? {
-            ...x,
-            ...f,
-            // si el backend no retorna fecha_llegada, mantenemos la que ya había
-            fecha_llegada: f.fecha_llegada ?? x.fecha_llegada,
-          }
-        : x
-    )
-  )
-}, [])
 
 
 
@@ -510,6 +525,7 @@ const onSelectFechaLlegada = useCallback(async (id, date) => {
         onSelectFechaLlegada={onSelectFechaLlegada}
         selectedIds={selectedIds}
         toggleSelect={toggleSelect}
+        onUpdateKilometraje={handleUpdateKilometraje}
       />
 
       <Pagination

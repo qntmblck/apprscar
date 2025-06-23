@@ -38,39 +38,41 @@ export default function Header({
         ...flete,
         rendicion: {
           ...flete.rendicion,
-          estado: flete.rendicion.estado === 'Activo' ? 'Cerrado' : 'Activo',
+          estado:
+            flete.rendicion.estado === 'Activo' ? 'Cerrado' : 'Activo',
         },
       })
-      setAlert({ type: 'success', message: 'Estado actualizado correctamente.' })
+      setAlert({
+        type: 'success',
+        message: 'Estado actualizado correctamente.',
+      })
     } catch (e) {
       console.error('toggleEstado error:', e)
       setAlert({ type: 'error', message: 'Error al actualizar el estado.' })
     }
   }, [flete, actualizarFleteEnLista])
 
-const handleNotify = useCallback(async () => {
-  try {
-    setAlert({ type: '', message: '' })
-    await axios.post('/fletes/batch/notificar', {
-      flete_ids: [flete.id],
-    })
-    // Actualizamos el string estado
-    actualizarFleteEnLista({
-      ...flete,
-      estado: 'Notificado',
-    })
-    setAlert({ type: 'success', message: 'Correo enviado correctamente.' })
-  } catch (e) {
-    console.error('handleNotify error:', e)
-    // Extraemos el detalle de la respuesta (si existe)
-    const serverMsg =
-      e.response?.data?.message ||
-      (typeof e.response?.data === 'string' ? e.response.data : null)
-    const clientMsg = serverMsg || e.message || 'Error al enviar el correo.'
-    setAlert({ type: 'error', message: clientMsg })
-  }
-}, [flete, actualizarFleteEnLista])
-
+  const handleNotify = useCallback(async () => {
+    try {
+      setAlert({ type: '', message: '' })
+      await axios.post('/fletes/batch/notificar', {
+        flete_ids: [flete.id],
+      })
+      // Actualizamos el string estado
+      actualizarFleteEnLista({
+        ...flete,
+        estado: 'Notificado',
+      })
+      setAlert({ type: 'success', message: 'Correo enviado correctamente.' })
+    } catch (e) {
+      console.error('handleNotify error:', e)
+      const serverMsg =
+        e.response?.data?.message ||
+        (typeof e.response?.data === 'string' ? e.response.data : null)
+      const clientMsg = serverMsg || e.message || 'Error al enviar el correo.'
+      setAlert({ type: 'error', message: clientMsg })
+    }
+  }, [flete, actualizarFleteEnLista])
 
   return (
     <div className="w-full overflow-hidden mb-4">
@@ -102,8 +104,8 @@ const handleNotify = useCallback(async () => {
           <div className="flex items-center gap-x-1 text-green-600 px-1">
             <CurrencyDollarIcon className="h-4 w-4" />
             <span>
-              {flete.rendicion?.comision != null
-                ? `$${flete.rendicion.comision.toLocaleString('es-CL')}`
+              {flete.comision != null
+                ? `$${flete.comision.toLocaleString('es-CL')}`
                 : '—'}
             </span>
           </div>
@@ -118,7 +120,9 @@ const handleNotify = useCallback(async () => {
               disabled={isSubmitting}
               className={classNames(
                 'p-1 rounded-full transition-colors',
-                isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-green-50'
+                isSubmitting
+                  ? 'cursor-not-allowed opacity-50'
+                  : 'hover:bg-green-50'
               )}
               aria-label="Notificar"
             >
@@ -137,7 +141,9 @@ const handleNotify = useCallback(async () => {
               disabled={isSubmitting}
               className={classNames(
                 'p-1 rounded-full transition-colors',
-                isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-black/10'
+                isSubmitting
+                  ? 'cursor-not-allowed opacity-50'
+                  : 'hover:bg-black/10'
               )}
               aria-label="Cerrar rendición"
             >
@@ -149,7 +155,9 @@ const handleNotify = useCallback(async () => {
               disabled={isSubmitting}
               className={classNames(
                 'p-1 rounded-full transition-colors font-bold',
-                isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-green-50'
+                isSubmitting
+                  ? 'cursor-not-allowed opacity-50'
+                  : 'hover:bg-green-50'
               )}
               aria-label="Reabrir rendición"
             >

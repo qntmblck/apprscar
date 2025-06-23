@@ -72,48 +72,51 @@ class AbonoController extends Controller
     }
 
     /**
-     * Eliminar un Abono o Retorno (según id).
+     * Eliminar un Abono usando implicit binding.
      */
-    public function destroy($id)
+    public function destroy(AbonoCaja $abono)
     {
-        $registro = AbonoCaja::find($id);
-        if (! $registro) {
-            return response()->json(['message' => 'Abono no encontrado'], 404);
+        // Captura el flete asociado, si existe
+        $flete = $abono->flete;
+
+        // Borra el abono independientemente
+        $abono->delete();
+
+        if ($flete) {
+            // Recarga relaciones y recalcula totales
+            $flete->load([
+                'clientePrincipal:id,razon_social',
+                'conductor:id,name',
+                'colaborador:id,name',
+                'tracto:id,patente',
+                'rampla:id,patente',
+                'destino:id,nombre',
+                'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
+                'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
+            ]);
+            $flete->rendicion->recalcularTotales();
+            $flete->rendicion->save();
+
+            // Exponer campos calculados
+            $flete->makeVisible(['retorno']);
+            $flete->rendicion->makeVisible([
+                'saldo',
+                'total_gastos',
+                'total_diesel',
+                'viatico_calculado',
+                'comision',
+            ]);
+
+            return response()->json([
+                'message' => '✅ Abono eliminado correctamente.',
+                'flete'   => $flete,
+            ], 200);
         }
 
-        $fleteId = $registro->flete_id;
-        $registro->delete();
-
-        // 1) Recargar el flete con todas las relaciones necesarias
-        $flete = Flete::with([
-            'clientePrincipal:id,razon_social',
-            'conductor:id,name',
-            'colaborador:id,name',
-            'tracto:id,patente',
-            'rampla:id,patente',
-            'destino:id,nombre',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-        ])->findOrFail($fleteId);
-
-        // 2) Recalcular y guardar totales luego de eliminar
-        $flete->rendicion->recalcularTotales();
-        $flete->rendicion->save();
-
-        // 3) Exponer campos calculados para la tarjeta
-        $flete->makeVisible(['retorno']);
-        $flete->rendicion->makeVisible([
-            'saldo',
-            'total_gastos',
-            'total_diesel',
-            'viatico_calculado',
-            'comision',
-        ]);
-
+        // Si no hay flete, devolvemos sólo el mensaje de éxito
         return response()->json([
-            'message' => '✅ Abono eliminado correctamente.',
-            'flete'   => $flete,
+            'message' => "✅ Abono #{$abono->id} eliminado, pero no se encontró el flete asociado.",
         ], 200);
     }
 }

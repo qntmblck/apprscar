@@ -4,100 +4,86 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Flete;
-use App\Models\AbonoCaja;
 
 class RetornoController extends Controller
 {
     /**
-     * Store a newly created Retorno (usando la tabla abonos_caja con método "Retorno").
+     * Store or update the single retorno value on the Flete.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'flete_id'     => 'required|exists:fletes,id',
-            'rendicion_id' => 'required|exists:rendiciones,id',
-            'tipo'         => 'required|string|max:255', // normalmente: "Retorno"
-            'monto'        => 'required|numeric|min:1',
+        $data = $request->validate([
+            'flete_id' => 'required|exists:fletes,id',
+            'monto'    => 'required|numeric|min:0',
         ]);
 
-        // Creamos un registro en AbonoCaja con método = "Retorno"
-        $retorno = AbonoCaja::create([
-            'flete_id'     => $validated['flete_id'],
-            'rendicion_id' => $validated['rendicion_id'],
-            'metodo'       => $validated['tipo'],  // se espera "Retorno"
-            'monto'        => $validated['monto'],
-        ]);
+        // 1) Carga el Flete y actualiza su campo retorno
+        $flete = Flete::findOrFail($data['flete_id']);
+        $flete->update(['retorno' => $data['monto']]);
 
-        // Cargamos el flete completo con las relaciones necesarias
+        // 2) Recalcular totales en la rendición asociada
+        $rend = $flete->rendicion;
+        $rend->recalcularTotales();
+        $rend->save();
+
+        // 3) Recargar el Flete con todas las relaciones para el front
         $flete = Flete::with([
-            'cliente',
-            'conductor',
-            'tracto',
-            'rampla',
-            'destino',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-        ])->find($validated['flete_id']);
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'tarifa:id,valor_comision',
+            'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+        ])->findOrFail($flete->id);
 
-        if ($flete->rendicion) {
-            $flete->rendicion->makeVisible([
-                'saldo_temporal',
-                'total_diesel',
-                'total_gastos',
-                'viatico_efectivo',
-                'viatico_calculado',
-                'caja_flete_acumulada',
-                'retorno_monto',    // Si usas un campo específico para retorno
-            ]);
-        }
+        // 4) Hacer visible el campo retorno
+        $flete->makeVisible(['retorno']);
 
         return response()->json([
             'message' => '✅ Retorno registrado correctamente.',
             'flete'   => $flete,
-        ]);
+        ], 201);
     }
 
     /**
-     * Remove the specified Retorno.
+     * Remove the retorno (setear a cero) en el Flete.
      */
-    public function destroy($id)
+    public function destroy($fleteId)
     {
-        $registro = AbonoCaja::find($id);
-        if (! $registro) {
-            return response()->json(['message' => 'Retorno no encontrado'], 404);
-        }
+        // 1) Carga el Flete y pone retorno a cero
+        $flete = Flete::findOrFail($fleteId);
+        $flete->update(['retorno' => 0]);
 
-        $rendicion = $registro->rendicion;
-        $flete_id  = $rendicion->flete_id;
-        $registro->delete();
+        // 2) Recalcular totales en la rendición
+        $rend = $flete->rendicion;
+        $rend->recalcularTotales();
+        $rend->save();
 
+        // 3) Recargar el Flete con relaciones
         $flete = Flete::with([
-            'cliente',
-            'conductor',
-            'tracto',
-            'rampla',
-            'destino',
-            'rendicion.abonos'  => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.diesels' => fn($q) => $q->orderByDesc('created_at'),
-            'rendicion.gastos'  => fn($q) => $q->orderByDesc('created_at'),
-        ])->find($flete_id);
+            'clientePrincipal:id,razon_social',
+            'conductor:id,name',
+            'colaborador:id,name',
+            'tracto:id,patente',
+            'rampla:id,patente',
+            'destino:id,nombre',
+            'tarifa:id,valor_comision',
+            'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+            'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+        ])->findOrFail($flete->id);
 
-        if ($flete->rendicion) {
-            $flete->rendicion->makeVisible([
-                'saldo_temporal',
-                'total_diesel',
-                'total_gastos',
-                'viatico_efectivo',
-                'viatico_calculado',
-                'caja_flete_acumulada',
-                'retorno_monto',
-            ]);
-        }
+        $flete->makeVisible(['retorno']);
 
         return response()->json([
             'message' => '✅ Retorno eliminado correctamente.',
             'flete'   => $flete,
-        ]);
+        ], 200);
     }
 }

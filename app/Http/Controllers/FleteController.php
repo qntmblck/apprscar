@@ -17,21 +17,23 @@ use Illuminate\Support\Facades\Auth;
 
 class FleteController extends Controller
 {
-    public function index(Request $request)
+    // En tu FleteController.php
+
+public function index(Request $request)
 {
     $user = Auth::user();
 
     // 1) Recogemos filtros para enviarlos de vuelta a la vista
     $filters = [
-        'conductor_ids'       => array_filter((array) $request->input('conductor_ids')),
-        'colaborador_ids'     => array_filter((array) $request->input('colaborador_ids')),
-        'cliente_ids'         => array_filter((array) $request->input('cliente_ids')),
-        'tracto_ids'          => array_filter((array) $request->input('tracto_ids')),
-        'destino_ids'         => array_filter((array) $request->input('destino_ids')),
-        'fecha_desde'         => $request->input('fecha_desde'),
-        'fecha_hasta'         => $request->input('fecha_hasta'),
-        'rendicion_estado'    => $request->input('rendicion_estado'),
-        'notificar_estado'    => $request->input('notificar_estado'),
+        'conductor_ids'    => array_filter((array) $request->input('conductor_ids')),
+        'colaborador_ids'  => array_filter((array) $request->input('colaborador_ids')),
+        'cliente_ids'      => array_filter((array) $request->input('cliente_ids')),
+        'tracto_ids'       => array_filter((array) $request->input('tracto_ids')),
+        'destino_ids'      => array_filter((array) $request->input('destino_ids')),
+        'fecha_desde'      => $request->input('fecha_desde'),
+        'fecha_hasta'      => $request->input('fecha_hasta'),
+        'rendicion_estado' => $request->input('rendicion_estado'),
+        'notificar_estado' => $request->input('notificar_estado'),
     ];
 
     // 2) Meses para el filtro por periodo
@@ -45,6 +47,7 @@ class FleteController extends Controller
     $query = Flete::query()
         ->select([
             'id',
+            'id as viaje_numero',       // <-- agregamos el número de flete alias
             'destino_id',
             'cliente_principal_id',
             'conductor_id',
@@ -57,21 +60,33 @@ class FleteController extends Controller
             'pagado',
             'retorno',
             'guiaruta',
+            'tarifa_id',
+            'comision',
+            'kilometraje',
         ])
         ->with([
             'clientePrincipal:id,razon_social',
-            'cliente:id,razon_social',
             'conductor:id,name',
             'colaborador:id,name',
-            'tracto:id,patente',
+            'tracto:id,patente',                // <-- cargamos patente
             'rampla:id,patente',
             'destino:id,nombre',
+            'tarifa:id,valor_comision',
             'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
-            'rendicion.gastos'      => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderByDesc('created_at'),
-            'rendicion.diesels'     => fn($q) => $q->select(['id','rendicion_id','litros','metodo_pago','monto','created_at'])->orderByDesc('created_at'),
-            'rendicion.abonos'      => fn($q) => $q->select(['id','rendicion_id','metodo','monto','created_at'])->orderByDesc('created_at'),
-            'rendicion.adicionales' => fn($q) => $q->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])->orderByDesc('created_at'),
+            'rendicion.gastos'      => fn($q) => $q
+                ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
+                ->orderByDesc('created_at'),
+            'rendicion.diesels'     => fn($q) => $q
+                ->select(['id','rendicion_id','litros','metodo_pago','monto','created_at'])
+                ->orderByDesc('created_at'),
+            'rendicion.abonos'      => fn($q) => $q
+                ->select(['id','rendicion_id','metodo','monto','created_at'])
+                ->orderByDesc('created_at'),
+            'rendicion.adicionales' => fn($q) => $q
+                ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
+                ->orderByDesc('created_at'),
         ])
+        // ... mantenemos todos tus filtros tal como estaban ...
         ->when(
             (! empty($filters['conductor_ids']) || ! empty($filters['colaborador_ids'])),
             fn($q) => $q->where(function($sub) use ($filters) {
@@ -113,14 +128,12 @@ class FleteController extends Controller
             ! empty($filters['destino_ids']),
             fn($q) => $q->whereIn('destino_id', $filters['destino_ids'])
         )
-        // FILTRO POR RENDICIÓN (Activo / Cerrado)
         ->when(
             $filters['rendicion_estado'],
-            fn($q) => $q->whereHas('rendicion', function($q2) use ($filters) {
-                $q2->where('estado', $filters['rendicion_estado']);
-            })
+            fn($q) => $q->whereHas('rendicion', fn($q2) =>
+                $q2->where('estado', $filters['rendicion_estado'])
+            )
         )
-        // FILTRO POR NOTIFICACIÓN (Sin Notificar / Notificado)
         ->when(
             $filters['notificar_estado'],
             fn($q) => $q->where('estado', $filters['notificar_estado'])
@@ -128,9 +141,7 @@ class FleteController extends Controller
         ->orderBy('fecha_salida', 'desc');
 
     // 4) Paginación
-    $fletes = $query
-        ->paginate(48)
-        ->appends($filters);
+    $fletes = $query->paginate(48)->appends($filters);
 
     // 5) Renderizado Inertia
     return Inertia::render('Fletes/Index', [
@@ -149,7 +160,109 @@ class FleteController extends Controller
     ]);
 }
 
+public function show(Flete $flete): JsonResponse
+{
+    // 1) Cargamos relaciones necesarias
+    $flete = Flete::with([
+        'clientePrincipal:id,razon_social',
+        'conductor:id,name',
+        'colaborador:id,name',
+        'tracto:id,patente',                // <-- cargamos patente
+        'rampla:id,patente',
+        'destino:id,nombre',
+        'tarifa:id,valor_comision',
+        'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
+        'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
+    ])->findOrFail($flete->id);
 
+    if ($flete->rendicion) {
+        // 2) Recalcular totales de la rendición
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+
+        // 3) Actualizar la comisión total de Flete = tarifa + comisión manual
+        $flete->comision =
+            ($flete->tarifa?->valor_comision ?? 0)
+          + ($flete->rendicion->comision   ?? 0);
+        $flete->save();
+
+        // 4) Exponer los campos calculados
+        $flete->makeVisible(['retorno']);
+        $flete->rendicion->makeVisible([
+            'saldo',
+            'total_gastos',
+            'total_diesel',
+            'viatico_calculado',
+            'comision',
+        ]);
+    }
+
+    return response()->json(['flete' => $flete], 200);
+}
+
+public function updateKilometraje(Request $request, Flete $flete)
+{
+    $data = $request->validate([
+      'kilometraje' => 'required|numeric|min:0',
+    ]);
+
+    // 1) Guardar en el Flete
+    $flete->kilometraje = $data['kilometraje'];
+    $flete->save();
+
+    // 2) Si el Flete tiene un tracto, actualizar también su odómetro
+    if ($flete->tracto) {
+        $tracto = $flete->tracto;
+        $tracto->kilometraje = $data['kilometraje'];
+        $tracto->save();
+    }
+
+    // 3) Devolver el Flete recargado con su relación tracto
+    $flete->load('tracto');
+
+    return response()->json([
+      'message' => 'Kilometraje actualizado en flete y tracto',
+      'flete'   => $flete,
+    ]);
+}
+
+
+public function updateTitular(Request $request, Flete $flete)
+{
+    $request->validate([
+        'conductor_id'   => 'required_without:colaborador_id|nullable|exists:users,id',
+        'colaborador_id' => 'required_without:conductor_id|nullable|exists:users,id',
+    ]);
+
+    $conductor   = $request->input('conductor_id');
+    $colaborador = $request->input('colaborador_id');
+
+    if ($conductor !== null) {
+        $flete->update([
+            'conductor_id'   => $conductor,
+            'colaborador_id' => null,
+        ]);
+    } else {
+        $flete->update([
+            'conductor_id'   => null,
+            'colaborador_id' => $colaborador,
+        ]);
+    }
+
+    // Recalcular comisión tras cambiar titular
+    if ($flete->rendicion) {
+        $flete->rendicion->recalcularTotales();
+        $flete->rendicion->save();
+    }
+
+    $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
+
+    return response()->json([
+        'flete' => $flete,
+    ]);
+}
 
 
 public function store(Request $request)
@@ -355,73 +468,10 @@ public function store(Request $request)
         ], 200);
     }
 
-    public function show(Flete $flete): JsonResponse
-{
-    $flete = Flete::with([
-        'clientePrincipal:id,razon_social',
-        'conductor:id,name',
-        'tracto:id,patente',
-        'rampla:id,patente',
-        'destino:id,nombre',
-        'rendicion.abonos'      => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.gastos'      => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.diesels'     => fn($q) => $q->orderByDesc('created_at'),
-        'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
-    ])->findOrFail($flete->id);
 
-    if ($flete->rendicion) {
-        $flete->rendicion->recalcularTotales();
-        $flete->rendicion->save();
 
-        $flete->makeVisible(['retorno']);
-        $flete->rendicion->makeVisible([
-            'saldo',
-            'total_gastos',
-            'total_diesel',
-            'viatico_calculado',
-            'comision',
-        ]);
-    }
 
-    return response()->json([
-        'flete' => $flete,
-    ], 200);
-}
 
-public function updateTitular(Request $request, Flete $flete)
-{
-    $request->validate([
-        'conductor_id'   => 'required_without:colaborador_id|nullable|exists:users,id',
-        'colaborador_id' => 'required_without:conductor_id|nullable|exists:users,id',
-    ]);
-
-    $conductor   = $request->input('conductor_id');
-    $colaborador = $request->input('colaborador_id');
-
-    if ($conductor !== null) {
-        $flete->update([
-            'conductor_id'   => $conductor,
-            'colaborador_id' => null,
-        ]);
-    } else {
-        $flete->update([
-            'conductor_id'   => null,
-            'colaborador_id' => $colaborador,
-        ]);
-    }
-
-    // Recalcular comisión tras cambiar titular
-    if ($flete->rendicion) {
-        $flete->rendicion->recalcularTotales();
-        $flete->rendicion->save();
-    }
-
-    $flete->load(['conductor', 'colaborador', 'tracto', 'rampla', 'rendicion']);
-
-    return response()->json([
-        'flete' => $flete,
-    ]);
-}
 
 public function updateTracto(Request $request, Flete $flete)
 {

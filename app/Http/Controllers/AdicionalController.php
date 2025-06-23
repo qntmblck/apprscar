@@ -10,7 +10,7 @@ use App\Models\Rendicion;
 class AdicionalController extends Controller
 {
     /**
-     * Store a newly created “Adicional”.
+     * Store a newly created “Adicional” (tabla independiente).
      */
     public function store(Request $request)
     {
@@ -22,10 +22,7 @@ class AdicionalController extends Controller
         ]);
 
         try {
-            // 1) Obtener rendición
-            $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
-
-            // 2) Crear adicional
+            // 1) Crear adicional
             $adicional = Adicional::create([
                 'flete_id'     => $validated['flete_id'],
                 'rendicion_id' => $validated['rendicion_id'],
@@ -34,11 +31,12 @@ class AdicionalController extends Controller
                 'monto'        => $validated['monto'],
             ]);
 
-            // 3) Recalcular totales y guardar
+            // 2) Recalcular y guardar totales en la rendición
+            $rendicion = Rendicion::findOrFail($validated['rendicion_id']);
             $rendicion->recalcularTotales();
             $rendicion->save();
 
-            // 4) Recargar flete con relaciones necesarias
+            // 3) Recargar el flete con relaciones necesarias
             $flete = Flete::with([
                 'clientePrincipal:id,razon_social',
                 'conductor:id,name',
@@ -54,7 +52,7 @@ class AdicionalController extends Controller
                 'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
             ])->findOrFail($validated['flete_id']);
 
-            // 5) Exponer campos calculados
+            // 4) Exponer campos calculados
             $flete->makeVisible(['retorno']);
             $flete->rendicion->makeVisible([
                 'saldo', 'total_gastos', 'total_diesel', 'viatico_calculado', 'comision',
@@ -74,19 +72,25 @@ class AdicionalController extends Controller
     }
 
     /**
-     * Remove the specified “Adicional”.
+     * Remove the specified “Adicional” by ID.
      */
-    public function destroy(Adicional $adicional)
+    public function destroy($id)
     {
+        // 1) Buscar el adicional manualmente
+        $adicional = Adicional::find($id);
+        if (! $adicional) {
+            return response()->json(['message' => 'Adicional no encontrado'], 404);
+        }
+
         $fleteId = $adicional->flete_id;
         $adicional->delete();
 
-        // 1) Obtener y recalcular rendición
+        // 2) Recalcular y guardar totales en la rendición
         $rendicion = Rendicion::where('flete_id', $fleteId)->firstOrFail();
         $rendicion->recalcularTotales();
         $rendicion->save();
 
-        // 2) Recargar flete con relaciones necesarias
+        // 3) Recargar el flete con relaciones necesarias
         $flete = Flete::with([
             'clientePrincipal:id,razon_social',
             'conductor:id,name',
@@ -102,7 +106,7 @@ class AdicionalController extends Controller
             'rendicion.adicionales' => fn($q) => $q->orderByDesc('created_at'),
         ])->findOrFail($fleteId);
 
-        // 3) Exponer campos calculados
+        // 4) Exponer campos calculados
         $flete->makeVisible(['retorno']);
         $flete->rendicion->makeVisible([
             'saldo', 'total_gastos', 'total_diesel', 'viatico_calculado', 'comision',

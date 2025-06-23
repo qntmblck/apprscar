@@ -30,6 +30,7 @@ export default function FleteList({
   // **NUEVOS** props
   selectedIds,
   toggleSelect,
+  onUpdateKilometraje,
 }) {
   const allCards = useMemo(
     () =>
@@ -37,12 +38,14 @@ export default function FleteList({
         <div key={flete.id} className="relative p-1 h-full">
           <FleteCard
             flete={flete}
+            viajeNumero={flete.viaje_numero}
             openForm={openForm}
             handleToggleForm={handleToggleForm}
             handleCloseForm={handleCloseForm}
             actualizarFleteEnLista={actualizarFleteEnLista}
             submitForm={submitForm}
             onEliminarRegistro={onEliminarRegistro}
+            onUpdateKilometraje={onUpdateKilometraje}
 
             conductores={conductores}
             colaboradores={colaboradores}
@@ -59,7 +62,6 @@ export default function FleteList({
             onSelectFechaSalida={onSelectFechaSalida}
             onSelectFechaLlegada={onSelectFechaLlegada}
 
-            // **NUEVOS**:
             selectedIds={selectedIds}
             toggleSelect={toggleSelect}
           />
@@ -88,6 +90,7 @@ export default function FleteList({
       onSelectFechaLlegada,
       selectedIds,
       toggleSelect,
+      onUpdateKilometraje,
     ]
   )
 

@@ -40,6 +40,10 @@ function FleteCard({
   // Props para selección
   selectedIds = [],
   toggleSelect,
+
+  onUpdateKilometraje,
+
+
 }) {
   const [flipped, setFlipped] = useState(false)
   const [errorCierre, setErrorCierre] = useState(null)
@@ -111,28 +115,39 @@ function FleteCard({
   ])
 
   const handleEliminarRegistro = useCallback(
-    async registro => {
-      if (!confirm('¿Eliminar este registro?')) return
-      setIsSubmitting(true)
-      try {
-        let url
-        if ('litros' in registro) url = `/diesels/${registro.id}`
-        else if (registro.tipo === 'Comisión') url = `/comisiones/${registro.id}`
-        else if (registro.tipo) url = `/gastos/${registro.id}`
-        else if (registro.metodo === 'Retorno') url = `/retornos/${registro.id}`
-        else url = `/abonos/${registro.id}`
-
-        await axios.delete(url)
-        const res = await axios.get(`/fletes/${flete.id}`)
-        if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
-      } catch (e) {
-        alert('Error eliminando: ' + (e.response?.data?.message || e.message))
-      } finally {
-        setIsSubmitting(false)
+  async registro => {
+    if (!confirm('¿Eliminar este registro?')) return
+    setIsSubmitting(true)
+    try {
+      let url
+      if ('litros' in registro) {
+        url = `/diesels/${registro.id}`
+      } else if (registro.tipo === 'Adicional') {
+        url = `/adicionales/${registro.id}`
+      } else if (registro.tipo === 'Comisión') {
+        url = `/comisiones/${registro.id}`
+      } else if (registro.metodo === 'Retorno') {
+        url = `/retornos/${registro.id}`
+      } else if (registro.tipo) {
+        url = `/gastos/${registro.id}`
+      } else {
+        url = `/abonos/${registro.id}`
       }
-    },
-    [flete.id, actualizarFleteEnLista]
-  )
+
+      await axios.delete(url)
+      const res = await axios.get(`/fletes/${flete.id}`)
+      if (res.data?.flete) {
+        actualizarFleteEnLista(res.data.flete)
+      }
+    } catch (e) {
+      alert('Error eliminando: ' + (e.response?.data?.message || e.message))
+    } finally {
+      setIsSubmitting(false)
+    }
+  },
+  [flete.id, actualizarFleteEnLista]
+)
+
 
   // Memoizados: fechas y montos
   const fechaSalidaFormatted = useMemo(
@@ -283,12 +298,21 @@ function FleteCard({
 
           <div className={isClosed ? 'pointer-events-none' : ''}>
             <BackDetails
-              registros={detallesBack}
-              viaticoEfec={flete.rendicion?.viatico_calculado || 0}
-              saldoTemporal={flete.rendicion?.saldo_temporal || 0}
-              onEliminarRegistro={handleEliminarRegistro}
-              isSubmitting={isSubmitting}
-            />
+  flete={flete}
+  registros={detallesBack}
+  viaticoEfec    ={flete.rendicion?.viatico_calculado  || 0}
+  saldoTemporal  ={flete.rendicion?.saldo              || 0}
+  retornoValor   ={flete.retorno                       || 0}
+  comisionManual ={flete.rendicion?.comision          || 0}
+  comisionTarifa ={flete.tarifa?.valor_comision       || 0}
+  viajeNumero    ={flete.viaje_numero}
+  onEliminarRegistro   ={handleEliminarRegistro}
+  isSubmitting         ={isSubmitting}
+  onUpdateKilometraje  ={onUpdateKilometraje}
+/>
+
+
+
 
             <BackTabs
               flete={flete}

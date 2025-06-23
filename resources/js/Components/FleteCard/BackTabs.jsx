@@ -20,9 +20,10 @@ export default function BackTabs({
   toggleFlip = () => {},
   setIsSubmitting = () => {},
 }) {
-  const abonoCount    = flete.rendicion?.abonos?.length    ?? 0
-  const retornoCount  = flete.rendicion?.retorno ? 1 : 0
-  const comisionCount = flete.rendicion?.comision != null ? 1 : 0
+  // Conteos ajustados según la nueva lógica
+  const abonoCount    = flete.rendicion?.abonos?.length ?? 0
+  const retornoCount  = flete.retorno > 0 ? 1 : 0
+  const comisionCount = (flete.rendicion?.comision ?? 0) > 0 ? 1 : 0
 
   const tabs = [
     {
@@ -123,6 +124,7 @@ export default function BackTabs({
           />
         </div>
       )}
+
       {formAbierto === 'retorno' && (
         <div className="px-4">
           <RetornoForm
@@ -130,9 +132,10 @@ export default function BackTabs({
             onSubmit={async payload => {
               setIsSubmitting(true)
               try {
+                // Solo enviamos flete_id y monto
                 await submitForm(
                   '/retornos',
-                  { ...payload, flete_id: flete.id, rendicion_id: flete.rendicion.id, tipo: 'Retorno' },
+                  { flete_id: flete.id, monto: payload.monto },
                   f => {
                     actualizarFleteEnLista(f)
                     handleCloseForm(flete.id)
@@ -147,6 +150,7 @@ export default function BackTabs({
           />
         </div>
       )}
+
       {formAbierto === 'comision' && (
         <div className="px-4">
           <ComisionForm

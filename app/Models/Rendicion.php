@@ -12,6 +12,7 @@ use App\Models\AbonoCaja;
 use App\Models\Adicional;
 use App\Models\Documento;
 use App\Models\User;
+use App\Models\Retorno;
 
 class Rendicion extends Model
 {
@@ -84,6 +85,15 @@ class Rendicion extends Model
         return $this->hasMany(Adicional::class)
                     ->select(['id', 'rendicion_id', 'tipo', 'descripcion', 'monto', 'created_at']);
     }
+
+        /** Relación con Retorno */
+    public function retornos()
+    {
+        return $this->hasMany(Retorno::class, 'flete_id', 'flete_id')
+                    ->select(['id', 'flete_id', 'valor as monto', 'created_at']);
+    }
+
+
 
     /** Relación polimórfica con Documento */
     public function documentos()
