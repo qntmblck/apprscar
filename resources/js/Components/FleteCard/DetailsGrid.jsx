@@ -45,9 +45,9 @@ export default function DetailsGrid({
   const fechaLlegadaLabel = fechaLlegadaFormatted || 'Fecha Término'
 
   // Refs para inputs
-  const titularInputRef = useRef(null)
-  const tractoInputRef  = useRef(null)
-  const ramplaInputRef  = useRef(null)
+  const titularInputRef  = useRef(null)
+  const tractoInputRef   = useRef(null)
+  const ramplaInputRef   = useRef(null)
   const guiaRutaInputRef = useRef(null)
 
   // Estados de texto
@@ -65,8 +65,8 @@ export default function DetailsGrid({
   const [errorMsg, setErrorMsg] = useState('')
 
   // Fechas seleccionadas
-  const [selectedSalida,   setSelectedSalida]   = useState(flete.fecha_salida   ? parseLocalDate(flete.fecha_salida)   : undefined)
-  const [selectedLlegada,  setSelectedLlegada]  = useState(flete.fecha_llegada  ? parseLocalDate(flete.fecha_llegada)  : undefined)
+  const [selectedSalida,  setSelectedSalida]  = useState(flete.fecha_salida   ? parseLocalDate(flete.fecha_salida)   : undefined)
+  const [selectedLlegada, setSelectedLlegada] = useState(flete.fecha_llegada  ? parseLocalDate(flete.fecha_llegada)  : undefined)
 
   // Focus al abrir cada menú
   useEffect(() => {
@@ -136,7 +136,8 @@ export default function DetailsGrid({
   }
 
   // Clases para scroll sutil
-  const scrollClasses = 'flex-1 min-w-0 px-1 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
+  const scrollClasses =
+    'flex-1 min-w-0 px-1 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
 
   return (
     <div className="mb-4">
@@ -380,24 +381,28 @@ export default function DetailsGrid({
             />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Salida'} type="Salida">
-  <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded">
-    <DayPicker
-      mode="single"
-      selected={selectedSalida}
-      onSelect={d => {
-        if (!d) return
-        setSelectedSalida(d)
-        onSelectFechaSalida(flete.id, d)
-        setActiveMenu(null)
-      }}
-    />
-    <div className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
-      Inicio · {destinoClienteLabel}
-    </div>
-  </div>
-</PortalDropdown>
-
-
+            <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded">
+              <DayPicker
+                mode="single"
+                selected={selectedSalida}
+                disabled={selectedLlegada ? { after: selectedLlegada } : {}}
+                onSelect={d => {
+                  if (!d) return
+                  if (selectedLlegada && d > selectedLlegada) {
+                    setErrorMsg('La fecha inicio no puede ser posterior a la fecha término')
+                    return
+                  }
+                  setErrorMsg('')
+                  setSelectedSalida(d)
+                  onSelectFechaSalida(flete.id, d)
+                  setActiveMenu(null)
+                }}
+              />
+              <div className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
+                Inicio · {destinoClienteLabel}
+              </div>
+            </div>
+          </PortalDropdown>
         </div>
 
         {/* Rampla */}
@@ -503,35 +508,41 @@ export default function DetailsGrid({
             />
           </button>
           <PortalDropdown isOpen={activeMenu === 'Llegada'} type="Llegada">
-  <div className="relative bg-white border border-gray-200 shadow-lg p-2 rounded
-                  [--rdp-color-accent:#d97706] [--rdp-color-accent-hover:#fbbf24]">
-    <DayPicker
-      mode="single"
-      selected={selectedLlegada}
-      disabled={{ before: selectedSalida }}
-      onSelect={d => {
-        if (!d) return
-        setSelectedLlegada(d)
-        onSelectFechaLlegada(flete.id, d)
-        setActiveMenu(null)
-      }}
-      classNames={{
-        nav_button:          'text-[var(--rdp-color-accent)] hover:text-[var(--rdp-color-accent-hover)]',
-        nav_button_previous: 'mr-2',
-        nav_button_next:     'ml-2',
-        day_selected:        'bg-[var(--rdp-color-accent)] text-white',
-        day_today:           'font-semibold text-[var(--rdp-color-accent)]',
-      }}
-    />
-    <div className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
-      Termino · {destinoClienteLabel}
-    </div>
-  </div>
-</PortalDropdown>
-
+            <div
+              className="relative bg-white border border-gray-200 shadow-lg p-2 rounded
+                         [--rdp-color-accent:#d97706] [--rdp-color-accent-hover:#fbbf24]"
+            >
+              <DayPicker
+                mode="single"
+                selected={selectedLlegada}
+                disabled={selectedSalida ? { before: selectedSalida } : {}}
+                onSelect={d => {
+                  if (!d) return
+                  if (selectedSalida && d < selectedSalida) {
+                    setErrorMsg('La fecha término no puede ser anterior a la fecha inicio')
+                    return
+                  }
+                  setErrorMsg('')
+                  setSelectedLlegada(d)
+                  onSelectFechaLlegada(flete.id, d)
+                  setActiveMenu(null)
+                }}
+                classNames={{
+                  nav_button:          'text-[var(--rdp-color-accent)] hover:text-[var(--rdp-color-accent-hover)]',
+                  nav_button_previous: 'mr-2',
+                  nav_button_next:     'ml-2',
+                  day_selected:        'bg-[var(--rdp-color-accent)] text-white',
+                  day_today:           'font-semibold text-[var(--rdp-color-accent)]',
+                }}
+              />
+              <div className="absolute bottom-1 right-2 text-xs text-[var(--rdp-color-accent)]">
+                Termino · {destinoClienteLabel}
+              </div>
+            </div>
+          </PortalDropdown>
         </div>
 
       </div>
     </div>
-)
+  )
 }
