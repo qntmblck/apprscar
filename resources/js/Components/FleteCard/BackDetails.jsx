@@ -214,7 +214,7 @@ export default function BackDetails({
           <span>${comisionTarifa.toLocaleString('es-CL')}</span>
         </div>
 
-        {/* Comisión Manual */}
+        {/* Comisión  */}
         {comisionRegistro && (
           <div className="grid grid-cols-[1fr_minmax(70px,max-content)] items-center px-2 py-1 rounded-md bg-purple-50 text-purple-700">
             <span className="font-medium">Comisión Retorno</span>
