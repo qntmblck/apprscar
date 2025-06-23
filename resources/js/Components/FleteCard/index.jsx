@@ -301,7 +301,7 @@ function FleteCard({
   flete={flete}
   registros={detallesBack}
   viaticoEfec    ={flete.rendicion?.viatico_calculado  || 0}
-  saldoTemporal  ={flete.rendicion?.saldo              || 0}
+  saldo          ={saldoTemporal}
   retornoValor   ={flete.retorno                       || 0}
   comisionManual ={flete.rendicion?.comision          || 0}
   comisionTarifa ={flete.tarifa?.valor_comision       || 0}

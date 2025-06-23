@@ -1,14 +1,14 @@
 // resources/js/Components/FleteCard/BackDetails.jsx
 import React, { useState, useRef } from 'react'
 import classNames from 'classnames'
-import { ClipboardDocumentListIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
+import { ClipboardDocumentListIcon, TruckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
 import PortalDropdown from './PortalDropdown'
 
 export default function BackDetails({
   flete = {},
   registros = [],
   viaticoEfec = 0,
-  saldoTemporal = 0,
+  saldo = 0,
   retornoValor = 0,
   comisionManual = 0,
   comisionTarifa = 0,
@@ -127,86 +127,82 @@ export default function BackDetails({
     )
   }
 
-  const saldoFinalColor = saldoTemporal > 0
+  const saldoFinalColor = saldo > 0
     ? 'text-red-700'
     : 'text-green-700'
 
   return (
     <div>
-      {/* Título con Flete */}
-<div className="mb-4">
-  <div className="flex items-center">
-    <h2 className="text-lg font-semibold text-gray-800">
-      Detalle Flete {viajeNumero || flete.id}
-    </h2>
-  </div>
-  <div className="flex items-center space-x-4 mt-2">
-    {/* Tracto */}
-    <span className="text-sm text-gray-600">
-      {flete.tracto?.patente || ''}
-    </span>
-
-    {/* Kilometraje editable */}
-    <div className="relative min-w-0 whitespace-nowrap">
-      <button
-        onClick={openKm}
-        className={classNames(
-          'flex items-center gap-x-1 p-1 border-b-2 rounded',
-          activeMenu === 'Km'
-            ? 'border-violet-600 text-violet-600'
-            : 'border-transparent text-gray-700 hover:border-gray-300'
-        )}
-      >
-        <ClipboardDocumentListIcon className="h-5 w-5 flex-shrink-0" />
-        <span
-          className={classNames(
-            'truncate',
-            // placeholder rojo si no hay km > 0
-            !(parseInt(kmText, 10) > 0) && 'text-red-600'
-          )}
-        >
-          {parseInt(kmText, 10) > 0 ? `${kmText} km` : 'Kilometraje'}
-        </span>
-        <ChevronDownIcon
-          className={classNames(
-            'h-4 w-4',
-            activeMenu === 'Km' ? 'text-violet-600' : 'text-gray-500'
-          )}
-        />
-      </button>
-      <PortalDropdown isOpen={activeMenu === 'Km'} type="Km">
-        <div className="w-48 bg-white rounded-lg shadow-md p-4 space-y-2">
-          <div className="font-bold text-sm">Ingresar Kilometraje</div>
-          <input
-            ref={kmInputRef}
-            type="text"
-            value={kmText}
-            onChange={e => setKmText(e.target.value)}
-            placeholder="Kilometraje"
-            className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none"
-          />
-          <div className="mt-2 flex items-center justify-between">
+      {/* Título con Flete + Tracto + Kilometraje en una fila */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between space-x-4 mt-2 overflow-hidden">
+          {/* Izquierda: número y tracto */}
+          <div className="flex-1 min-w-0 flex items-center space-x-2">
+            <h2 className="text-lg font-semibold text-gray-800 truncate">
+              Detalle Flete {viajeNumero || flete.id}
+            </h2>
+            <span className="text-sm text-gray-600 truncate">
+              {flete.tracto?.patente || ''}
+            </span>
+          </div>
+          {/* Derecha: Kilometraje fijo */}
+          <div className="flex-shrink-0">
             <button
-              onClick={() => {
-                onUpdateKilometraje(flete.id, kmText)
-                closeKm()
-              }}
-              className="px-3 py-1 bg-violet-600 text-white rounded hover:bg-violet-500"
+              onClick={openKm}
+              className={classNames(
+                'flex items-center gap-x-1 p-1 border-b-2 rounded',
+                activeMenu === 'Km'
+                  ? 'border-violet-600 text-violet-600'
+                  : 'border-transparent text-gray-700 hover:border-gray-300'
+              )}
             >
-              Guardar
+              <TruckIcon className="h-5 w-5 flex-shrink-0" />
+              <span
+                className={classNames(
+                  'ml-1 truncate whitespace-nowrap',
+                  !(parseInt(kmText, 10) > 0) && 'text-red-600'
+                )}
+              >
+                {parseInt(kmText, 10) > 0 ? `${kmText} km` : 'Kilometraje'}
+              </span>
+              <ChevronDownIcon
+                className={classNames(
+                  'h-4 w-4 flex-shrink-0 ml-1',
+                  activeMenu === 'Km' ? 'text-violet-600' : 'text-gray-500'
+                )}
+              />
             </button>
-            <button
-              onClick={closeKm}
-              className="px-3 py-1 text-gray-500 hover:underline"
-            >
-              Cancelar
-            </button>
+            <PortalDropdown isOpen={activeMenu === 'Km'} type="Km">
+              <div className="w-48 bg-white rounded-lg shadow-md p-4 space-y-2">
+                <div className="font-bold text-sm">Ingresar Kilometraje</div>
+                <input
+                  ref={kmInputRef}
+                  type="text"
+                  value={kmText}
+                  onChange={e => setKmText(e.target.value)}
+                  placeholder="Kilometraje"
+                  className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none"
+                />
+                <div className="mt-2 flex items-center justify-between">
+                  <button
+                    onClick={() => { onUpdateKilometraje(flete.id, kmText); closeKm() }}
+                    className="px-3 py-1 bg-violet-600 text-white rounded hover:bg-violet-500"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    onClick={closeKm}
+                    className="px-3 py-1 text-gray-500 hover:underline"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </PortalDropdown>
           </div>
         </div>
-      </PortalDropdown>
-    </div>
-  </div>
-</div>
+      </div>
+
 
 
 
@@ -300,7 +296,7 @@ export default function BackDetails({
     )}
   >
     <span>Saldo final</span>
-    <span>${saldoTemporal.toLocaleString('es-CL')}</span>
+    <span>${saldo.toLocaleString('es-CL')}</span>
   </div>
 </div>
 

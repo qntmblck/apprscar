@@ -177,7 +177,6 @@ export default function Index({
 
 
 
-
   // Envío de formularios (diésel, gastos, etc.)
   const submitForm = useCallback(
     async (ruta, payload, onSuccess, onError) => {
