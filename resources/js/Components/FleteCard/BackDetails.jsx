@@ -97,6 +97,7 @@ export default function BackDetails({
 
     const monto = (r.monto ?? r.total ?? 0).toLocaleString('es-CL')
 
+
     return (
       <div
         key={key}
@@ -125,6 +126,10 @@ export default function BackDetails({
       </div>
     )
   }
+
+  const saldoFinalColor = saldoTemporal > 0
+    ? 'text-red-700'
+    : 'text-green-700'
 
   return (
     <div>
@@ -283,16 +288,22 @@ export default function BackDetails({
       </div>
 
       {/* Valores al pie */}
-      <div className="mt-4 pt-4 border-t space-y-2">
-        <div className="flex justify-between text-xs">
-          <span className="font-medium">Viático</span>
-          <span>${viaticoEfec.toLocaleString('es-CL')}</span>
-        </div>
-        <div className="flex justify-between text-sm font-semibold text-green-700">
-          <span>Saldo final</span>
-          <span>${saldoTemporal.toLocaleString('es-CL')}</span>
-        </div>
-      </div>
+<div className="mt-4 pt-4 border-t space-y-2">
+  <div className="flex justify-between text-xs">
+    <span className="font-medium">Viático</span>
+    <span>${viaticoEfec.toLocaleString('es-CL')}</span>
+  </div>
+  <div
+    className={classNames(
+      'flex justify-between text-sm font-semibold',
+      saldoFinalColor
+    )}
+  >
+    <span>Saldo final</span>
+    <span>${saldoTemporal.toLocaleString('es-CL')}</span>
+  </div>
+</div>
+
     </div>
   )
 }

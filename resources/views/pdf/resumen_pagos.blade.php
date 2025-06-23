@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Resumen de Pagos – {{ $periodo }}</title>
+  <title>Pagos – {{ $periodo }}</title>
   <style>
     body {
       font-family: 'DejaVu Sans', sans-serif;
@@ -11,18 +11,34 @@
       color: #111827;
     }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
+    /* Encabezado como tabla para compatibilidad con PDF */
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      border: none;
     }
-    .header img {
-      height: 45px;
+    .header-table td {
+      vertical-align: top;
+      padding: 0;
+      border: none;
     }
-    h1 {
-      font-size: 20px;
-      margin: 0;
+
+    /* Tabla resumen compacta en encabezado */
+    .header-summary {
+      border-collapse: collapse;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .header-summary th,
+    .header-summary td {
+      border: 1px solid #d1d5db;
+      padding: 4px 6px;
+      text-align: center;
+    }
+    .header-summary th {
+      background-color: #e5e7eb;
+      font-weight: 600;
     }
 
     .status-pill {
@@ -37,31 +53,7 @@
       margin-bottom: 20px;
     }
 
-    .summary-grid {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    .summary-card {
-      flex: 1;
-      background-color: #f3f4f6;
-      padding: 12px 16px;
-      border-radius: 8px;
-      text-align: center;
-    }
-    .summary-card .title {
-      font-size: 12px;
-      color: #6b7280;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .summary-card .value {
-      font-size: 18px;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    table {
+    table.stripe {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 30px;
@@ -69,13 +61,14 @@
     table.stripe tbody tr:nth-child(even) {
       background-color: #f9fafb;
     }
-    th, td {
+    table.stripe th,
+    table.stripe td {
       border: 1px solid #d1d5db;
       padding: 8px 10px;
       text-align: left;
       font-size: 10.5px;
     }
-    th {
+    table.stripe th {
       background-color: #e5e7eb;
       font-weight: 600;
       font-size: 11px;
@@ -83,7 +76,7 @@
     .text-right {
       text-align: right;
     }
-    tfoot td {
+    table.stripe tfoot td {
       background-color: #f3f4f6;
       font-weight: 600;
       font-size: 11px;
@@ -93,31 +86,43 @@
 </head>
 <body>
 
-  <div class="header">
-    <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Scar Logo">
-    <h1>📋 Resumen de Pagos</h1>
-  </div>
+  <!-- ENCABEZADO: logo y resumen -->
+  <table class="header-table">
+    <tr>
+      <td style="text-align:left;">
+        <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Scar Logo" style="height:45px;">
+      </td>
+      <td style="text-align:right;">
+        <!-- Se añade margen superior para bajar la tabla -->
+        <table class="header-summary" style="margin-top:12px; margin-left:auto; margin-right:0;">
+          <thead>
+            <tr>
+              <th>Fletes Totales</th>
+              <th>Saldo Total</th>
+              <th>Comisión Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ count($fletes) }}</td>
+              <td>${{ number_format($fletes->sum(fn($f) => optional($f->rendicion)->saldo ?? 0), 0, ',', '.') }}</td>
+              <td>${{ number_format($fletes->sum(fn($f) => optional($f->rendicion)->comision ?? 0), 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td><strong>Resultado</strong></td>
+              <td><strong>${{ number_format(
+                $fletes->sum(fn($f) => optional($f->rendicion)->comision ?? 0)
+                - $fletes->sum(fn($f) => optional($f->rendicion)->saldo ?? 0),
+              0, ',', '.') }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </table>
 
   <div class="status-pill">Periodo: {{ $periodo }}</div>
-
-  <div class="summary-grid">
-    <div class="summary-card">
-      <div class="title">Fletes Totales</div>
-      <div class="value">{{ count($fletes) }}</div>
-    </div>
-    <div class="summary-card">
-      <div class="title">Saldo Total</div>
-      <div class="value">
-        ${{ number_format($fletes->sum(fn($f) => optional($f->rendicion)->saldo ?? 0), 0, ',', '.') }}
-      </div>
-    </div>
-    <div class="summary-card">
-      <div class="title">Comisión Total</div>
-      <div class="value">
-        ${{ number_format($fletes->sum(fn($f) => optional($f->rendicion)->comision ?? 0), 0, ',', '.') }}
-      </div>
-    </div>
-  </div>
 
   <table class="stripe">
     <thead>

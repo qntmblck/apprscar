@@ -18,6 +18,9 @@ export default function RecordRow({
       .slice(0, 2)
   }, [registros])
 
+  // Nuevo: color dinámico para saldo
+  const saldoColor = saldo > 0 ? 'text-red-600' : 'text-green-600'
+
   return (
     <div className="flex items-start">
       {/* Viático & Saldo */}
@@ -28,7 +31,7 @@ export default function RecordRow({
             ${viatico.toLocaleString('es-CL')}
           </span>
         </div>
-        <div className="flex items-center space-x-1 text-green-600">
+        <div className={classNames('flex items-center space-x-1', saldoColor)}>
           <BanknotesIcon className="h-4 w-4 flex-shrink-0" />
           <span className="text-sm font-medium">
             ${saldo.toLocaleString('es-CL')}
@@ -39,9 +42,10 @@ export default function RecordRow({
       {/* Separador */}
       <div className="border-l border-gray-300 mx-2 self-stretch" />
 
-      {/* Contenedor de registros: oculta todo overflow exterior */}
+      {/* Contenedor de registros */}
       <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
         {ultimos.map(registro => {
+          // ... lógica de tipo, detalle y color para cada registro (sin cambios)
           const esDiesel    = 'litros' in registro && 'metodo_pago' in registro
           const esAbono     = 'metodo' in registro && !esDiesel
           const esRetorno   = esAbono && registro.metodo === 'Retorno'
@@ -90,20 +94,10 @@ export default function RecordRow({
               {/* 1) Zona colapsable (tipo + detalle) */}
               <div className="flex-1 min-w-0 overflow-x-auto">
                 <div className="inline-flex items-center space-x-2">
-                  <span
-                    className={classNames(
-                      textColor,
-                      'text-sm font-medium whitespace-nowrap'
-                    )}
-                  >
+                  <span className={classNames(textColor, 'text-sm font-medium whitespace-nowrap')}>
                     {tipo}
                   </span>
-                  <span
-                    className={classNames(
-                      textColor,
-                      'text-sm truncate'
-                    )}
-                  >
+                  <span className={classNames(textColor, 'text-sm truncate')}>
                     {detalle}
                   </span>
                 </div>

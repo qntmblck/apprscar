@@ -17,7 +17,6 @@ use App\Models\Rendicion;
 use App\Models\Diesel;
 use App\Models\Gasto;
 use App\Models\AbonoCaja;
-use App\Models\Retorno;
 use App\Models\Adicional;
 use App\Models\Mantencion;
 use Database\Factories\ClienteFactory;
@@ -121,8 +120,8 @@ class FleteSeeder extends Seeder
             ])->first();
 
             // Fechas y km
-            $km         = ($des->km_destino ?? 0) * 2;
-            $fechaSalida  = (clone $inicio)->addDays(rand(0,$totalDias));
+            $km           = ($des->km_destino ?? 0) * 2;
+            $fechaSalida  = (clone $inicio)->addDays(rand(0, $totalDias));
             $fechaLlegada = (clone $fechaSalida)->addDays(rand(0,5));
             if ($fechaLlegada->gt($fin)) $fechaLlegada = $fin->copy();
 
@@ -142,11 +141,13 @@ class FleteSeeder extends Seeder
                 'rendimiento'          => $faker->randomFloat(2,3,7),
                 'comision'             => $tarifa->valor_comision + $manual,
                 'retorno'              => rand(0,1) ? $faker->numberBetween(10000,50000) : 0,
-                'pagado'               => $fechaLlegada->month <= 3,
+                // Solo los últimos 2 meses sin pagar
+                'pagado'               => $fechaLlegada->lt(Carbon::now()->subMonths(2)),
                 'guiaruta'             => $faker->bothify('GR-??-####'),
+                'conductor_id'         => $actorKey==='conductor_id' ? $actor->id : null,
+                'colaborador_id'       => $actorKey==='colaborador_id' ? $actor->id : null,
                 'tracto_id'            => $tra->id,
                 'rampla_id'            => $ram->id,
-                $actorKey              => $actor->id,
             ]);
 
             // Mantenciones cada 5000 km
@@ -154,98 +155,100 @@ class FleteSeeder extends Seeder
             $prevRam = $ram->kilometraje;
             $tra->increment('kilometraje', $km);
             $ram->increment('kilometraje', $km);
-
             $nTra = intdiv($prevTra + $km, 5000) - intdiv($prevTra, 5000);
             $nRam = intdiv($prevRam + $km, 5000) - intdiv($prevRam, 5000);
+            for ($j = 0; $j < $nTra; $j++) Mantencion::create([
+                'user_id'   => $actor->id,
+                'flete_id'  => $flete->id,
+                'tracto_id' => $tra->id,
+                'rampla_id' => null,
+                'fecha'     => $faker->dateTimeBetween($fechaSalida, $fechaLlegada),
+                'tipo'      => 'Mantención',
+                'detalle'   => $faker->sentence(),
+                'costo'     => $faker->numberBetween(50000,150000),
+                'estado'    => 'pendiente',
+            ]);
+            for ($j = 0; $j < $nRam; $j++) Mantencion::create([
+                'user_id'   => $actor->id,
+                'flete_id'  => $flete->id,
+                'tracto_id' => null,
+                'rampla_id' => $ram->id,
+                'fecha'     => $faker->dateTimeBetween($fechaSalida, $fechaLlegada),
+                'tipo'      => 'Mantención',
+                'detalle'   => $faker->sentence(),
+                'costo'     => $faker->numberBetween(50000,150000),
+                'estado'    => 'pendiente',
+            ]);
 
-            for ($j = 0; $j < $nTra; $j++) {
-                Mantencion::create([
-                    'user_id'   => $actor->id,
-                    'flete_id'  => $flete->id,
-                    'tracto_id' => $tra->id,
-                    'rampla_id' => null,
-                    'fecha'     => $faker->dateTimeBetween($fechaSalida, $fechaLlegada),
-                    'tipo'      => 'Mantención',
-                    'detalle'   => $faker->sentence(),
-                    'costo'     => $faker->numberBetween(50000,150000),
-                    'estado'    => 'pendiente',
-                ]);
-            }
-            for ($j = 0; $j < $nRam; $j++) {
-                Mantencion::create([
-                    'user_id'   => $actor->id,
-                    'flete_id'  => $flete->id,
-                    'tracto_id' => null,
-                    'rampla_id' => $ram->id,
-                    'fecha'     => $faker->dateTimeBetween($fechaSalida, $fechaLlegada),
-                    'tipo'      => 'Mantención',
-                    'detalle'   => $faker->sentence(),
-                    'costo'     => $faker->numberBetween(50000,150000),
-                    'estado'    => 'pendiente',
-                ]);
-            }
-
-            // Crear rendición solo con manual
+            // Crear rendición con viáticos coherentes
+            $diasViaje = max(1, $fechaSalida->diffInDays($fechaLlegada) + 1);
             $rend = Rendicion::create([
                 'flete_id'         => $flete->id,
                 'user_id'          => $actor->id,
                 'estado'           => 'Activo',
                 'caja_flete'       => 0,
-                'viatico_efectivo' => 15000 * max(1, $fechaSalida->diffInDays($fechaLlegada)),
+                'viatico_efectivo' => 15000 * $diasViaje,
                 'viatico_calculado'=> 0,
                 'saldo'            => 0,
                 'comision'         => $manual,
             ]);
-            // Recalcular para sumar fija+manual internamente en rendición
             $rend->recalcularTotales();
 
-            // Expendables
-            foreach (range(1, rand(1,2)) as $_) {
-                Diesel::create([
-                    'flete_id'     => $flete->id,
-                    'rendicion_id' => $rend->id,
-                    'user_id'      => $actor->id,
-                    'litros'       => $faker->numberBetween(40,120),
-                    'monto'        => $faker->numberBetween(80000,140000),
-                    'metodo_pago'  => $faker->randomElement(['Efectivo','Transferencia','Crédito']),
+            // Expendables “naturales”
+            foreach (range(1, rand(1,2)) as $_) Diesel::create([
+                'flete_id'     => $flete->id,
+                'rendicion_id' => $rend->id,
+                'user_id'      => $actor->id,
+                'litros'       => $faker->numberBetween(40,120),
+                'monto'        => $faker->numberBetween(80000,140000),
+                'metodo_pago'  => $faker->randomElement(['Efectivo','Transferencia','Crédito']),
+            ]);
+            foreach (range(1, rand(1,3)) as $_) Gasto::create([
+                'flete_id'     => $flete->id,
+                'rendicion_id' => $rend->id,
+                'user_id'      => $actor->id,
+                'tipo'         => $faker->randomElement(['Peaje','Estacionamiento','Carga']),
+                'descripcion'  => $faker->words(3, true),
+                'monto'        => $faker->numberBetween(10000,40000),
+            ]);
+            foreach (range(1, rand(1,2)) as $_) AbonoCaja::create([
+                'rendicion_id'=> $rend->id,
+                'monto'       => $faker->numberBetween(30000,70000),
+                'metodo'      => $faker->randomElement(['Efectivo','Transferencia']),
+            ]);
+
+            // Ajuste residual en torno a cero
+            $targetResidual = rand(-2000, 2000);
+            $current        = $rend->saldo;
+            $diff           = $current - $targetResidual;
+            if ($diff > 0) {
+                AbonoCaja::create([
+                    'rendicion_id'=> $rend->id,
+                    'monto'       => $diff,
+                    'metodo'      => $faker->randomElement(['Efectivo','Transferencia','Crédito']),
                 ]);
-            }
-            foreach (range(1, rand(1,3)) as $_) {
+            } elseif ($diff < 0) {
                 Gasto::create([
                     'flete_id'     => $flete->id,
                     'rendicion_id' => $rend->id,
                     'user_id'      => $actor->id,
-                    'tipo'         => $faker->randomElement(['Peaje','Estacionamiento','Carga']),
-                    'descripcion'  => $faker->words(3, true),
-                    'monto'        => $faker->numberBetween(10000,40000),
+                    'tipo'         => 'Peaje',
+                    'descripcion'  => 'Ajuste saldo residual',
+                    'monto'        => abs($diff),
                 ]);
             }
-            foreach (range(1, rand(1,2)) as $_) {
-                AbonoCaja::create([
-                    'rendicion_id' => $rend->id,
-                    'monto'        => $faker->numberBetween(30000,70000),
-                    'metodo'       => $faker->randomElement(['Efectivo','Transferencia']),
-                ]);
-            }
-            // Crear Retorno si aplica
-            if ($flete->retorno > 0) {
-                Retorno::create([
-                    'flete_id'    => $flete->id,
-                    'valor'       => $flete->retorno,
-                    'descripcion' => 'Retorno automático',
-                ]);
-            }
-            foreach (range(1, rand(0,2)) as $_) {
-                Adicional::create([
-                    'flete_id'     => $flete->id,
-                    'rendicion_id' => $rend->id,
-                    'tipo'         => 'Adicional',
-                    'descripcion'  => $faker->randomElement(['Camioneta','Peoneta','Extra']),
-                    'monto'        => $faker->numberBetween(5000,20000),
-                ]);
-            }
+            $rend->recalcularTotales();
+
+            // Adicionales
+            foreach (range(1, rand(0,2)) as $_) Adicional::create([
+                'flete_id'     => $flete->id,
+                'rendicion_id' => $rend->id,
+                'tipo'         => 'Adicional',
+                'descripcion'  => $faker->randomElement(['Camioneta','Peoneta','Extra']),
+                'monto'        => $faker->numberBetween(5000,20000),
+            ]);
         }
 
-        $this->command->info("✅ Seed completo con 1000 fletes y rendiciones con comisiones totales.");
+        $this->command->info("✅ Seed completo con 1000 fletes y rendiciones con ajustes y mantenciones.");
     }
 }
