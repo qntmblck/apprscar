@@ -267,13 +267,17 @@ public function updateTitular(Request $request, Flete $flete)
 
 public function store(Request $request)
 {
-    // 1) Validar destino, cliente y opcionales
+    // 1) Validar destino, cliente y opcionales (tarifa_id ahora es nullable)
     $validated = $request->validate([
-        'destino_id'             => 'required|exists:destinos,id',
-        'cliente_principal_id'   => 'required|exists:clientes,id',
-        'conductor_id'           => 'nullable|exists:users,id',
-        'colaborador_id'         => 'nullable|exists:users,id',
-        'tracto_id'              => 'nullable|exists:tractos,id',
+        'destino_id'           => 'required|exists:destinos,id',
+        'cliente_principal_id' => 'required|exists:clientes,id',
+        'conductor_id'         => 'nullable|exists:users,id',
+        'colaborador_id'       => 'nullable|exists:users,id',
+        'tracto_id'            => 'nullable|exists:tractos,id',
+
+        // tarifa_id ahora opcional
+        'tarifa_id'            => 'nullable|exists:tarifas,id',
+        'comision_retorno'     => 'nullable|numeric|min:0',
     ]);
 
     // 2) Extraer user_id del cliente principal
@@ -291,8 +295,8 @@ public function store(Request $request)
             ->value('tracto_id')
         ?? Tracto::inRandomOrder()->value('id');
 
-    // 4) Crear flete
-    $flete = Flete::create([
+    // 4) Crear flete con tarifa_id si se envió
+    $fleteData = [
         'destino_id'           => $validated['destino_id'],
         'cliente_principal_id' => $validated['cliente_principal_id'],
         'conductor_id'         => $validated['conductor_id']   ?? null,
@@ -302,22 +306,31 @@ public function store(Request $request)
         'estado'               => 'Sin Notificar',
         'notificar'            => false,
         'tipo'                 => 'Directo',
-    ]);
+    ];
 
-    // 4bis) Asociar tarifa por defecto
-    if ($tarifa = Tarifa::where('destino_id', $flete->destino_id)
-                       ->where('tipo', $flete->tipo)
-                       ->first()) {
+    if (! empty($validated['tarifa_id'])) {
+        $fleteData['tarifa_id'] = $validated['tarifa_id'];
+    }
+
+    $flete = Flete::create($fleteData);
+
+    // 4bis) Asociar tarifa por defecto si no se envió ninguna
+    if (empty($validated['tarifa_id'])
+        && $tarifa = Tarifa::where('destino_id', $flete->destino_id)
+                           ->where('tipo', $flete->tipo)
+                           ->first()
+    ) {
         $flete->tarifa_id = $tarifa->id;
         $flete->save();
     }
 
-    // 5) Crear rendición inicial
+    // 5) Crear rendición inicial con la comisión de retorno “manual”
     $rendicion = $flete->rendicion()->create([
         'user_id'           => $userId,
         'estado'            => 'Activo',
         'viatico_efectivo'  => 0,
         'viatico_calculado' => 0,
+        'comision'          => $validated['comision_retorno'] ?? 0,
     ]);
 
     // 6) Recalcular totales y guardar mensaje
@@ -340,16 +353,17 @@ public function store(Request $request)
 
     // 8) Responder JSON o redirect
     if ($request->expectsJson()) {
-        return response()->json([
-            'message' => 'Flete “borrador” creado correctamente.',
-            'flete'   => $flete,
-        ], 201);
+        // antes de devolver, llamamos a show() para recálculo completo y sincronización
+        return $this->show($flete);
     }
 
     return redirect()
         ->route('fletes.index')
         ->with('success', 'Flete “borrador” creado correctamente.');
 }
+
+
+
 
 
 

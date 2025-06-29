@@ -139,31 +139,49 @@ class Rendicion extends Model
      * Usa 'comision' existente como manual y suma tarifa.
      */
     public function recalcularTotales(): ?string
-    {
-        try {
-            $abonos = $this->abonos()->sum('monto');
-            $gastos = $this->gastos()->sum('monto');
-            $diesel = $this->diesels()
-                          ->where('metodo_pago', '!=', 'Crédito')
-                          ->sum('monto');
+{
+    try {
+        // 1) Sumas de abonos, gastos y diesel
+        $abonos = $this->abonos()->sum('monto');
+        $gastos = $this->gastos()->sum('monto');
+        $diesel = $this->diesels()
+                      ->where('metodo_pago', '!=', 'Crédito')
+                      ->sum('monto');
 
-            $viatico = $this->attributes['viatico_efectivo']
-                       ?? $this->attributes['viatico_calculado']
-                       ?? 0;
+        // 2) Viáticos
+        $viatico = $this->viatico_efectivo
+                   ?? $this->viatico_calculado
+                   ?? 0;
 
-            $this->saldo = $abonos - $gastos - $diesel - $viatico;
+        // 3) Saldo en rendición
+        $this->saldo = $abonos - $gastos - $diesel - $viatico;
 
-            $fija   = optional($this->flete->tarifa)->valor_comision ?? 0;
-            $manual = $this->attributes['comision'] ?? 0;
-            $this->comision = $fija + $manual;
+        // 4) Comisión = fija (tarifa) + manual (retorno)
+        $fija   = optional($this->flete->tarifa)->valor_comision ?? 0;
+        $manual = $this->comision ?? 0;
+        $this->comision = $fija + $manual;
 
-            $this->save();
-        } catch (\Throwable $e) {
-            \Log::error('Error al recalcular totales: ' . $e->getMessage());
+        // 5) Guardar la rendición
+        $this->save();
+
+        // 6) Sincronizar comisión en el flete padre
+        if ($this->flete) {
+            $this->flete->update([
+                'comision' => $this->comision,
+            ]);
+
+            // 7) REFRESCAR el modelo para que la prop 'comision' venga actualizada
+            $this->flete->refresh();
         }
-
-        return null;
+    } catch (\Throwable $e) {
+        \Log::error('Error al recalcular totales: ' . $e->getMessage());
     }
+
+    return null;
+}
+
+
+
 
     // Scopes
     public function scopeOfFlete($query, int $fleteId)
