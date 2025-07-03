@@ -11,8 +11,8 @@ import {
   BuildingStorefrontIcon,
   LockClosedIcon,
   LockOpenIcon,
-    EnvelopeIcon,
-   EnvelopeOpenIcon,
+  EnvelopeIcon,
+  EnvelopeOpenIcon,
   XMarkIcon as XIcon,
 } from '@heroicons/react/20/solid'
 import { DayPicker } from 'react-day-picker'
@@ -28,8 +28,6 @@ export default function FiltrosBar({
   get,
   activeTab,
   setActiveTab,
-  suggestions,
-  setSuggestions,
   clientes,
   conductores,
   colaboradores,
@@ -48,35 +46,27 @@ export default function FiltrosBar({
   const { props } = usePage()
   const [clientesList, setClientesList] = useState(clientes)
   const [destInput, setDestInput] = useState('')
+  const [localSuggestions, setLocalSuggestions] = useState(topDestinos)
 
-  useEffect(() => {
-    if (data.destino_ids.length === 0) {
-      setDestInput('')
-      setSuggestions(topDestinos)
-    }
-  }, [data.destino_ids, setSuggestions, topDestinos])
-
+  // Sync clientesList si props cambian
   useEffect(() => {
     setClientesList(props.clientes)
   }, [props.clientes])
 
-  useEffect(() => {
-    if (activeTab === 'Destino') {
-      setSuggestions(topDestinos)
-      setDestInput('')
-    }
-  }, [activeTab, topDestinos, setSuggestions])
-
+  // Filtrar sugerencias mientras el usuario escribe
   const handleDestSearch = e => {
     const v = e.target.value
     setDestInput(v)
-    setSuggestions(
-      !v.trim()
-        ? topDestinos
-        : destinos
-            .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
-            .slice(0, 10)
-    )
+
+    if (!v.trim()) {
+      setLocalSuggestions(topDestinos)
+    } else {
+      setLocalSuggestions(
+        destinos
+          .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
+          .slice(0, 10)
+      )
+    }
   }
 
   const onCrear = () => {
@@ -85,9 +75,9 @@ export default function FiltrosBar({
     handleCreateClick({
       destino_id:           data.destino_ids[0],
       cliente_principal_id: data.cliente_ids[0],
-      conductor_id:   data.conductor_ids[0]   ?? null,
-      colaborador_id: data.colaborador_ids[0] ?? null,
-      tracto_id:      data.tracto_ids[0]      ?? null,
+      conductor_id:         data.conductor_ids[0]   ?? null,
+      colaborador_id:       data.colaborador_ids[0] ?? null,
+      tracto_id:            data.tracto_ids[0]      ?? null,
     })
   }
 
@@ -143,16 +133,23 @@ export default function FiltrosBar({
             setActiveTab(activeTab === 'Destino' ? '' : 'Destino')
           }
         >
-          <div className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+          <div
+            onClick={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
+            className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 z-50"
+          >
             <div className="p-2">
               <input
                 type="text"
                 placeholder="Buscar destino..."
                 value={destInput}
                 onChange={handleDestSearch}
+                onClick={e => e.stopPropagation()}
+                onMouseDown={e => e.stopPropagation()}
                 className="w-full px-2 py-1 text-base border rounded focus:outline-none"
               />
             </div>
+
             {data.destino_ids.length > 0 && (
               <div className="divide-y divide-gray-100">
                 {data.destino_ids.map(selId => {
@@ -177,15 +174,16 @@ export default function FiltrosBar({
                 })}
               </div>
             )}
-            {suggestions
+
+            {localSuggestions
               .filter(d => !data.destino_ids.includes(String(d.id)))
               .map(d => (
                 <div
                   key={d.id}
                   onClick={() => {
                     handleToggleMultiSelect('destino_ids', d.id)
-                    setDestInput('')
-                    setSuggestions([])
+                    setDestInput('')            // sólo al seleccionar, limpiamos
+                    setLocalSuggestions([])
                     setActiveTab('')
                     get('/fletes', { preserveState: true, data })
                   }}
@@ -320,149 +318,142 @@ export default function FiltrosBar({
         </FiltroBoton>
 
         {/* Rendición */}
-<div className="relative flex-shrink-0">
-  <button
-    data-toggle-type="Rendición"
-    onClick={() =>
-      setActiveTab(activeTab === 'Rendición' ? '' : 'Rendición')
-    }
-    className={classNames(
-      activeTab === 'Rendición'
-        ? 'border-violet-500'
-        : 'border-transparent hover:border-violet-300',
-      'inline-flex items-center bg-white p-1 border-b-2 rounded'
-    )}
-  >
-    {!data.rendicion_estado && (
-      <LockClosedIcon className="h-5 w-5 text-gray-500" />
-    )}
-    {data.rendicion_estado === 'Activo' && (
-      <LockOpenIcon className="h-5 w-5 text-green-600" />
-    )}
-    {data.rendicion_estado === 'Cerrado' && (
-      <LockClosedIcon className="h-5 w-5 text-red-600" />
-    )}
-  </button>
+        <div className="relative flex-shrink-0">
+          <button
+            data-toggle-type="Rendición"
+            onClick={() =>
+              setActiveTab(activeTab === 'Rendición' ? '' : 'Rendición')
+            }
+            className={classNames(
+              activeTab === 'Rendición'
+                ? 'border-violet-500'
+                : 'border-transparent hover:border-violet-300',
+              'inline-flex items-center bg-white p-1 border-b-2 rounded'
+            )}
+          >
+            {!data.rendicion_estado && (
+              <LockClosedIcon className="h-5 w-5 text-gray-500" />
+            )}
+            {data.rendicion_estado === 'Activo' && (
+              <LockOpenIcon className="h-5 w-5 text-green-600" />
+            )}
+            {data.rendicion_estado === 'Cerrado' && (
+              <LockClosedIcon className="h-5 w-5 text-red-600" />
+            )}
+          </button>
+          <PortalDropdown isOpen={activeTab === 'Rendición'} type="Rendición">
+            <div className="w-32 bg-white shadow-lg rounded divide-y divide-gray-100">
+              <button
+                onClick={() => {
+                  setData('rendicion_estado', '')
+                  setActiveTab('')
+                  get('/fletes', { preserveState: true, data })
+                }}
+                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
+              >
+                <LockClosedIcon className="h-5 w-5 text-gray-500 mr-2" />
+                Todas
+              </button>
+              <button
+                onClick={() => {
+                  setData('rendicion_estado', 'Activo')
+                  setActiveTab('')
+                  get('/fletes', {
+                    preserveState: true,
+                    data: { ...data, rendicion_estado: 'Activo' },
+                  })
+                }}
+                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
+              >
+                <LockOpenIcon className="h-5 w-5 text-green-600 mr-2" />
+                Activo
+              </button>
+              <button
+                onClick={() => {
+                  setData('rendicion_estado', 'Cerrado')
+                  setActiveTab('')
+                  get('/fletes', {
+                    preserveState: true,
+                    data: { ...data, rendicion_estado: 'Cerrado' },
+                  })
+                }}
+                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
+              >
+                <LockClosedIcon className="h-5 w-5 text-red-600 mr-2" />
+                Cerrado
+              </button>
+            </div>
+          </PortalDropdown>
+        </div>
 
-  <PortalDropdown isOpen={activeTab === 'Rendición'} type="Rendición">
-    <div className="w-32 bg-white shadow-lg rounded divide-y divide-gray-100">
-      <button
-        onClick={() => {
-          setData('rendicion_estado', '')
-          setActiveTab('')
-          get('/fletes', { preserveState: true, data })
-        }}
-        className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-      >
-        <LockClosedIcon className="h-5 w-5 text-gray-500 mr-2" />
-        Todas
-      </button>
-      <button
-        onClick={() => {
-          setData('rendicion_estado', 'Activo')
-          setActiveTab('')
-          get('/fletes', {
-            preserveState: true,
-            data: { ...data, rendicion_estado: 'Activo' },
-          })
-        }}
-        className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-      >
-        <LockOpenIcon className="h-5 w-5 text-green-600 mr-2" />
-        Activo
-      </button>
-      <button
-        onClick={() => {
-          setData('rendicion_estado', 'Cerrado')
-          setActiveTab('')
-          get('/fletes', {
-            preserveState: true,
-            data: { ...data, rendicion_estado: 'Cerrado' },
-          })
-        }}
-        className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-      >
-        <LockClosedIcon className="h-5 w-5 text-red-600 mr-2" />
-        Cerrado
-      </button>
-    </div>
-  </PortalDropdown>
-</div>
-
-{/* Notificación */}
-<div className="relative flex-shrink-0">
-  <button
-    data-toggle-type="Notificación"
-    onClick={() =>
-      setActiveTab(activeTab === 'Notificación' ? '' : 'Notificación')
-    }
-    className={classNames(
-      activeTab === 'Notificación'
-        ? 'border-violet-500'
-        : 'border-transparent hover:border-violet-300',
-      'inline-flex items-center bg-white p-1 border-b-2 rounded'
-    )}
-  >
-    {/* icono gris por defecto */}
-    {!data.notificar_estado && (
-      <EnvelopeIcon className="h-5 w-5 text-gray-500" />
-    )}
-    {/* icono verde para “Sin Notificar” */}
-    {data.notificar_estado === 'Sin Notificar' && (
-      <EnvelopeOpenIcon className="h-5 w-5 text-green-600" />
-    )}
-    {/* icono negro para “Notificado” */}
-    {data.notificar_estado === 'Notificado' && (
-      <EnvelopeIcon className="h-5 w-5 text-black" />
-    )}
-  </button>
-
-  <PortalDropdown isOpen={activeTab === 'Notificación'} type="Notificación">
-    <div className="w-32 bg-white shadow-lg rounded divide-y divide-gray-100">
-      <button
-        onClick={() => {
-          setData('notificar_estado', '')
-          setActiveTab('')
-          get('/fletes', { preserveState: true, data })
-        }}
-        className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-      >
-        <EnvelopeIcon className="h-5 w-5 text-gray-500 mr-2" />
-        Todas
-      </button>
-
-      <button
-        onClick={() => {
-          setData('notificar_estado', 'Sin Notificar')
-          setActiveTab('')
-          get('/fletes', {
-            preserveState: true,
-            data: { ...data, notificar_estado: 'Sin Notificar' },
-          })
-        }}
-        className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-      >
-        <EnvelopeOpenIcon className="h-5 w-5 text-green-600 mr-2" />
-        Sin Notificar
-      </button>
-
-      <button
-        onClick={() => {
-          setData('notificar_estado', 'Notificado')
-          setActiveTab('')
-          get('/fletes', {
-            preserveState: true,
-            data: { ...data, notificar_estado: 'Notificado' },
-          })
-        }}
-        className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-      >
-        <EnvelopeIcon className="h-5 w-5 text-black mr-2" />
-        Notificado
-      </button>
-    </div>
-  </PortalDropdown>
-</div>
+        {/* Notificación */}
+        <div className="relative flex-shrink-0">
+          <button
+            data-toggle-type="Notificación"
+            onClick={() =>
+              setActiveTab(activeTab === 'Notificación' ? '' : 'Notificación')
+            }
+            className={classNames(
+              activeTab === 'Notificación'
+                ? 'border-violet-500'
+                : 'border-transparent hover:border-violet-300',
+              'inline-flex items-center bg-white p-1 border-b-2 rounded'
+            )}
+          >
+            {!data.notificar_estado && (
+              <EnvelopeIcon className="h-5 w-5 text-gray-500" />
+            )}
+            {data.notificar_estado === 'Sin Notificar' && (
+              <EnvelopeOpenIcon className="h-5 w-5 text-green-600" />
+            )}
+            {data.notificar_estado === 'Notificado' && (
+              <EnvelopeIcon className="h-5 w-5 text-black" />
+            )}
+          </button>
+          <PortalDropdown isOpen={activeTab === 'Notificación'} type="Notificación">
+            <div className="w-32 bg-white shadow-lg rounded divide-y divide-gray-100">
+              <button
+                onClick={() => {
+                  setData('notificar_estado', '')
+                  setActiveTab('')
+                  get('/fletes', { preserveState: true, data })
+                }}
+                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
+              >
+                <EnvelopeIcon className="h-5 w-5 text-gray-500 mr-2" />
+                Todas
+              </button>
+              <button
+                onClick={() => {
+                  setData('notificar_estado', 'Sin Notificar')
+                  setActiveTab('')
+                  get('/fletes', {
+                    preserveState: true,
+                    data: { ...data, notificar_estado: 'Sin Notificar' },
+                  })
+                }}
+                className="flex items-center:px-3 py-2 hover:bg-gray-100 w-full"
+              >
+                <EnvelopeOpenIcon className="h-5 w-5 text-green-600 mr-2" />
+                Sin Notificar
+              </button>
+              <button
+                onClick={() => {
+                  setData('notificar_estado', 'Notificado')
+                  setActiveTab('')
+                  get('/fletes', {
+                    preserveState: true,
+                    data: { ...data, notificar_estado: 'Notificado' },
+                  })
+                }}
+                className="flex items-center:px-3 py-2 hover:bg-gray-100 w-full"
+              >
+                <EnvelopeIcon className="h-5 w-5 text-black mr-2" />
+                Notificado
+              </button>
+            </div>
+          </PortalDropdown>
+        </div>
 
       </div>
     </div>

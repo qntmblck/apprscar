@@ -42,7 +42,7 @@ export default function Index({
   })
 
   // Estado local
-  const [suggestions, setSuggestions]         = useState([])
+  const [suggestions, setSuggestions]         = useState(destinos.slice(0, 10))
   const [range, setRange]                     = useState({
     from: filters.fecha_desde ? new Date(filters.fecha_desde) : undefined,
     to:   filters.fecha_hasta ? new Date(filters.fecha_hasta) : undefined,
@@ -315,7 +315,7 @@ export default function Index({
     setData('fecha_hasta',     '')
     setRange({ from: undefined, to: undefined })
     setActiveTab('')
-    setSuggestions([])
+    setSuggestions(destinos.slice(0, 10))
     setSelectedIds([])
     get('/fletes', {
       preserveState: false,
