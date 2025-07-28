@@ -112,7 +112,10 @@
               </td>
               <td>
                 ${{ number_format(
-                  $fletes->sum(fn($f) => $f->comision ?? 0),
+                  $fletes->sum(fn($f) =>
+                    (optional($f->tarifa)->valor_comision ?? 0)
+                    + ($f->comision ?? 0)
+                  ),
                   0, ',', '.'
                 ) }}
               </td>
@@ -122,7 +125,10 @@
               <td><strong>Resultado</strong></td>
               <td><strong>
                 ${{ number_format(
-                  $fletes->sum(fn($f) => $f->comision ?? 0)
+                  $fletes->sum(fn($f) =>
+                    (optional($f->tarifa)->valor_comision ?? 0)
+                    + ($f->comision ?? 0)
+                  )
                   - $fletes->sum(fn($f) => optional($f->rendicion)->saldo ?? 0),
                   0, ',', '.'
                 ) }}
@@ -158,7 +164,7 @@
       <tbody>
         @foreach($grupo as $i => $f)
           @php
-            $rend = $f->rendicion;
+            $rend   = $f->rendicion;
             $abonos = $rend
               ? $rend->abonos
                   ->whereIn('metodo',['Efectivo','Transferencia'])
@@ -178,7 +184,7 @@
           <tr>
             <td>{{ $i + 1 }}</td>
             <td>{{ optional($f->destino)->nombre ?? '—' }}</td>
-            <td>{{ optional($f->clientePrincipal)->nombre ?? '—' }}</td>
+            <td>{{ optional($f->clientePrincipal)->razon_social ?? '—' }}</td>
             <td>
               {{ $f->fecha_salida
                   ? \Carbon\Carbon::parse($f->fecha_salida)->format('d-m-Y')
@@ -235,4 +241,3 @@
 
 </body>
 </html>
-

@@ -23,6 +23,11 @@ export default function Header({
   // Detectamos estado exacto
   const isSinNotificar = flete.estado?.trim() === 'Sin Notificar'
 
+  // Calculamos aquí la comisión total
+  const tarifa = flete.tarifa?.valor_comision ?? 0
+  const manual = flete.rendicion?.comision ?? 0
+  const total = tarifa + manual
+
   const toggleEstado = useCallback(async () => {
     try {
       setAlert({ type: '', message: '' })
@@ -102,11 +107,7 @@ export default function Header({
           <span className="text-gray-400 select-none">|</span>
           <div className="flex items-center gap-x-1 text-green-600 px-1">
             <CurrencyDollarIcon className="h-4 w-4" />
-            <span>
-              {flete.comision_total != null
-                ? `$${flete.comision_total.toLocaleString('es-CL')}`
-                : '—'}
-            </span>
+            <span>{`$${total.toLocaleString('es-CL')}`}</span>
           </div>
         </div>
 

@@ -69,43 +69,63 @@ class FleteBatchController extends Controller
 
 
     public function notificarMasivo(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'flete_ids'   => 'required|array',
-            'flete_ids.*' => 'integer|exists:fletes,id',
-        ]);
+{
+    $validated = $request->validate([
+        'flete_ids'   => 'required|array',
+        'flete_ids.*' => 'integer|exists:fletes,id',
+    ]);
 
-        $fletes = Flete::with('rendicion.adicionales')
-                        ->findMany($validated['flete_ids']);
+    $fletes = Flete::with('rendicion.adicionales')
+                    ->findMany($validated['flete_ids']);
 
-        foreach ($fletes as $flete) {
-            try {
-                $html = view('emails.fletes.notificado', [
-                    'flete'       => $flete,
-                    'adicionales' => $flete->rendicion->adicionales,
-                ])->render();
+    foreach ($fletes as $flete) {
+        try {
+            // 1) Renderizamos el HTML
+            $html = view('emails.fletes.notificado', [
+                'flete'       => $flete,
+                'adicionales' => $flete->rendicion->adicionales,
+            ])->render();
 
-                Mail::html($html, function($msg) use ($flete) {
-                    $msg->from(config('mail.from.address'), config('mail.from.name'));
-                    $msg->to('contacto@scartransportes.cl');
-                    $msg->cc('scartransportes@gmail.com');
-                    $msg->subject("Notificación Flete #{$flete->id}");
-                });
+            // 2) Preparamos los adicionales y capturamos los “zeros” (monto = 0 o null)
+            $items = collect($flete->rendicion->adicionales);
+            $zeros = $items->filter(fn($ad) => $ad->monto == 0 || is_null($ad->monto));
 
-                Log::info("Email Flete #{$flete->id} enviado correctamente.");
-            } catch (Throwable $e) {
-                Log::error("Error enviando Flete #{$flete->id}: " . $e->getMessage());
-                return response()->json([
-                    'message' => 'Error interno enviando correo.',
-                    'error'   => $e->getMessage(),
-                ], 500);
-            }
+            // 3) Construimos el subjectList incluyendo las descripciones de esos zeros
+            $subjectList = collect()
+                ->push($flete->guiaruta)                         // "124768 - 124765"
+                ->push(optional($flete->destino)->nombre ?? '')   // "Coquimbo"
+                ->merge($zeros->pluck('descripcion'))             // ["La Cantera","Peñuelas"]
+                ->filter()                                        // elimina cadenas vacías
+                ->implode(', ');                                  // => "124768 - 124765, Coquimbo, La Cantera, Peñuelas"
+
+            // 4) Enviamos el correo con el subject definitivo
+            Mail::html($html, function($msg) use ($subjectList) {
+                $msg->from(config('mail.from.address'), config('mail.from.name'));
+                $msg->to('contacto@scartransportes.cl');
+                $msg->cc('scartransportes@gmail.com');
+                $msg->subject("Rendición {$subjectList}");
+            });
+
+            // 5) Marcamos en BD que este flete ya fue notificado
+            $flete->estado = 'Notificado';
+            $flete->save();
+
+            Log::info("Email Flete #{$flete->id} enviado y estado guardado como Notificado.");
+        } catch (Throwable $e) {
+            Log::error("Error enviando Flete #{$flete->id}: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Error interno enviando correo.',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Todos los correos procesados con éxito.',
-        ]);
     }
+
+    return response()->json([
+        'message' => 'Todos los correos procesados con éxito.',
+    ]);
+}
+
+
 }
 
 
