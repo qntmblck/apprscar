@@ -14,6 +14,7 @@ use App\Models\Destino;
 use App\Models\Tarifa;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class FleteController extends Controller
 {
@@ -45,34 +46,39 @@ public function index(Request $request)
 
     // 3) Construcción de la consulta principal
     $query = Flete::query()
+        ->leftJoin('tarifas',    'tarifas.id',      '=', 'fletes.tarifa_id')
+        ->leftJoin('rendiciones','rendiciones.flete_id', '=', 'fletes.id')
         ->select([
-            'id',
-            'id as viaje_numero',       // <-- agregamos el número de flete alias
-            'destino_id',
-            'cliente_principal_id',
-            'conductor_id',
-            'colaborador_id',
-            'tracto_id',
-            'rampla_id',
-            'fecha_salida',
-            'fecha_llegada',
-            'estado',
-            'pagado',
-            'retorno',
-            'guiaruta',
-            'tarifa_id',
-            'comision',
-            'kilometraje',
+            'fletes.id',
+            'fletes.id as viaje_numero',
+            'fletes.destino_id',
+            'fletes.cliente_principal_id',
+            'fletes.conductor_id',
+            'fletes.colaborador_id',
+            'fletes.tracto_id',
+            'fletes.rampla_id',
+            'fletes.fecha_salida',
+            'fletes.fecha_llegada',
+            'fletes.estado',
+            'fletes.pagado',
+            'fletes.retorno',
+            'fletes.guiaruta',
+            'fletes.tarifa_id',
+            'fletes.comision',
+            'fletes.kilometraje',
+            DB::raw('
+              COALESCE(tarifas.valor_comision,0)
+            + COALESCE(rendiciones.comision,0)
+              as comision_total
+            '),
         ])
         ->with([
             'clientePrincipal:id,razon_social',
             'conductor:id,name',
             'colaborador:id,name',
-            'tracto:id,patente',                // <-- cargamos patente
+            'tracto:id,patente',
             'rampla:id,patente',
             'destino:id,nombre',
-            'tarifa:id,valor_comision',
-            'rendicion:id,flete_id,estado,viatico_efectivo,viatico_calculado,saldo,caja_flete,comision',
             'rendicion.gastos'      => fn($q) => $q
                 ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
                 ->orderByDesc('created_at'),
@@ -86,47 +92,47 @@ public function index(Request $request)
                 ->select(['id','rendicion_id','tipo','descripcion','monto','created_at'])
                 ->orderByDesc('created_at'),
         ])
-        // ... mantenemos todos tus filtros tal como estaban ...
+        // filtros: prefix de columnas ambiguas con 'fletes.'
         ->when(
             (! empty($filters['conductor_ids']) || ! empty($filters['colaborador_ids'])),
             fn($q) => $q->where(function($sub) use ($filters) {
                 if (! empty($filters['conductor_ids'])) {
-                    $sub->whereIn('conductor_id', $filters['conductor_ids']);
+                    $sub->whereIn('fletes.conductor_id', $filters['conductor_ids']);
                 }
                 if (! empty($filters['colaborador_ids'])) {
-                    $sub->orWhereIn('colaborador_id', $filters['colaborador_ids']);
+                    $sub->orWhereIn('fletes.colaborador_id', $filters['colaborador_ids']);
                 }
             })
         )
         ->when(
             ! empty($filters['cliente_ids']),
-            fn($q) => $q->whereIn('cliente_principal_id', $filters['cliente_ids'])
+            fn($q) => $q->whereIn('fletes.cliente_principal_id', $filters['cliente_ids'])
         )
         ->when(
             ! empty($filters['tracto_ids']),
-            fn($q) => $q->whereIn('tracto_id', $filters['tracto_ids'])
+            fn($q) => $q->whereIn('fletes.tracto_id', $filters['tracto_ids'])
         )
         ->when(
             $request->filled('periodo'),
-            fn($q) => $q->whereMonth('fecha_salida', $meses[$request->periodo] ?? 0)
+            fn($q) => $q->whereMonth('fletes.fecha_salida', $meses[$request->periodo] ?? 0)
         )
         ->when(
             $filters['fecha_desde'] && $filters['fecha_hasta'],
             fn($q) => $q
-                ->whereDate('fecha_salida', '>=', $filters['fecha_desde'])
-                ->whereDate('fecha_salida', '<=', $filters['fecha_hasta'])
+                ->whereDate('fletes.fecha_salida', '>=', $filters['fecha_desde'])
+                ->whereDate('fletes.fecha_salida', '<=', $filters['fecha_hasta'])
         )
         ->when(
             $filters['fecha_desde'] && ! $filters['fecha_hasta'],
-            fn($q) => $q->whereDate('fecha_salida', '>=', $filters['fecha_desde'])
+            fn($q) => $q->whereDate('fletes.fecha_salida', '>=', $filters['fecha_desde'])
         )
         ->when(
             ! $filters['fecha_desde'] && $filters['fecha_hasta'],
-            fn($q) => $q->whereDate('fecha_salida', '<=', $filters['fecha_hasta'])
+            fn($q) => $q->whereDate('fletes.fecha_salida', '<=', $filters['fecha_hasta'])
         )
         ->when(
             ! empty($filters['destino_ids']),
-            fn($q) => $q->whereIn('destino_id', $filters['destino_ids'])
+            fn($q) => $q->whereIn('fletes.destino_id', $filters['destino_ids'])
         )
         ->when(
             $filters['rendicion_estado'],
@@ -136,9 +142,9 @@ public function index(Request $request)
         )
         ->when(
             $filters['notificar_estado'],
-            fn($q) => $q->where('estado', $filters['notificar_estado'])
+            fn($q) => $q->where('fletes.estado', $filters['notificar_estado'])
         )
-        ->orderBy('fecha_salida', 'desc');
+        ->orderBy('fletes.fecha_salida', 'desc');
 
     // 4) Paginación
     $fletes = $query->paginate(48)->appends($filters);
@@ -159,6 +165,7 @@ public function index(Request $request)
         ],
     ]);
 }
+
 
 public function show(Flete $flete): JsonResponse
 {

@@ -58,7 +58,6 @@ export default function Header({
       await axios.post('/fletes/batch/notificar', {
         flete_ids: [flete.id],
       })
-      // Actualizamos el string estado
       actualizarFleteEnLista({
         ...flete,
         estado: 'Notificado',
@@ -104,8 +103,8 @@ export default function Header({
           <div className="flex items-center gap-x-1 text-green-600 px-1">
             <CurrencyDollarIcon className="h-4 w-4" />
             <span>
-              {flete.comision != null
-                ? `$${flete.comision.toLocaleString('es-CL')}`
+              {flete.comision_total != null
+                ? `$${flete.comision_total.toLocaleString('es-CL')}`
                 : '—'}
             </span>
           </div>
