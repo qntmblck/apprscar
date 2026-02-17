@@ -84,12 +84,12 @@ export default function Statistics() {
     >
       <div
         className={`max-w-7xl mx-auto text-center transform transition-all duration-700 ${
-          animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         }`}
       >
         {/* MICROCOPY SEO */}
         <p className="text-xs font-semibold tracking-widest uppercase text-indigo-600">
-          Métricas · Cumplimiento · Cobertura · Certificación
+          Métricas · Cobertura · Certificación
         </p>
 
         <h2

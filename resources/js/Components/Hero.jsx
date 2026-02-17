@@ -51,7 +51,7 @@ export default function Hero() {
         animate={controls}
         className="relative z-10 w-full max-w-4xl px-6 lg:px-16 text-center"
       >
-        {/* ✅ H1 optimizado para rankeo (marca + nicho B2B) */}
+
         <motion.h1
           id="hero-title"
           whileHover={reduceMotion ? undefined : { scale: 1.03 }}
@@ -61,7 +61,7 @@ export default function Hero() {
           Transporte de carga y distribución para empresas en Chile
         </motion.h1>
 
-        {/* ✅ Mantener tu frase EXACTA, ahora como subtítulo/slogan */}
+
         <motion.p
           whileHover={reduceMotion ? undefined : { scale: 1.01 }}
           transition={{ type: 'spring', stiffness: 60, damping: 12 }}
