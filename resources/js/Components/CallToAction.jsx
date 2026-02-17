@@ -14,38 +14,68 @@ export default function CallToAction() {
       id="cta"
       ref={ref}
       className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a] py-16 sm:py-24 text-white"
+      aria-labelledby="cta-title"
+      itemScope
+      itemType="https://schema.org/Service"
     >
       <div
         className={`mx-auto max-w-7xl px-6 sm:px-8 lg:px-8 transform transition-all duration-1000 ${
-          animate ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-        } hover:scale-[1.05]`}
+          animate ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
+        }`}
       >
         <div className="relative isolate px-4 sm:px-8 text-center z-10">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white transition-transform duration-300 hover:scale-115">
+
+          {/* Microcopy SEO */}
+          <p className="text-xs font-semibold tracking-widest uppercase text-indigo-200">
+            Transporte · Distribución · Logística Nacional
+          </p>
+
+          <h2
+            id="cta-title"
+            className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white"
+          >
             ¿Listo para confiar tu carga a verdaderos profesionales?
           </h2>
 
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/80 transition-transform duration-300 hover:scale-115">
-            En Transportes SCAR, aseguramos puntualidad, eficiencia y seguimiento en cada uno de tus envíos.
-            Escríbenos hoy mismo y cotiza sin compromiso.
+          <p className="mx-auto mt-5 max-w-3xl text-base sm:text-lg leading-7 text-white/80">
+            En <span className="font-semibold text-white">Transportes SCAR</span> aseguramos
+            <b> puntualidad, trazabilidad y eficiencia operativa</b> en cada envío.
+            Optimizamos tiempos, reducimos riesgos y entregamos respaldo documental completo.
+            <br className="hidden sm:block" />
+            Cotiza hoy y transforma tu logística en una ventaja competitiva real.
           </p>
 
-          <div className="mt-6 flex justify-center gap-x-6 flex-wrap">
+          {/* Botones optimizados a conversión */}
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+
             <a
-              href="/contacto#colaboradores"
-              className="rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-transform duration-300 hover:scale-115"
+              href="/contacto#clientes"
+              className="rounded-md bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-indigo-500 hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              Alianza Transportista
+              Cotizar Servicio
+            </a>
+
+            <a
+              href="/contacto#conductores"
+              className="rounded-md bg-white/10 px-6 py-3 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105"
+            >
+              Postular como Conductor
             </a>
 
             <a
               href="/contacto#colaboradores"
-              className="text-sm font-semibold leading-6 text-white hover:text-indigo-300 transition-transform duration-300 hover:scale-115"
+              className="rounded-md bg-white/10 px-6 py-3 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105"
             >
-              Quiero Conducir <span aria-hidden="true">→</span>
+              Integrar mi Flota
             </a>
           </div>
 
+          {/* SEO estructurado */}
+          <meta itemProp="provider" content="Transportes SCAR" />
+          <meta itemProp="areaServed" content="Chile" />
+          <meta itemProp="serviceType" content="Transporte y distribución de carga con trazabilidad" />
+
+          {/* Glow decorativo refinado */}
           <svg
             viewBox="0 0 1024 1024"
             aria-hidden="true"

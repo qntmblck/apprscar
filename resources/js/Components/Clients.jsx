@@ -17,28 +17,42 @@ const clients = [
 ]
 
 export default function Clients() {
+  const doubledClients = clients.concat(clients)
+
   return (
     <section id="clientes" className="bg-white py-6 px-6 sm:px-8 -mt-[1px]">
       <div className="overflow-x-auto scrollbar-hide">
         <div className="flex animate-scroll space-x-8 px-2 w-max">
-          {clients.concat(clients).map((client, index) => (
-            <div
-              key={`${client.name}-${index}`}
-              className="flex items-center justify-center flex-shrink-0 grayscale-[60%] opacity-90 hover:grayscale-0 hover:opacity-100 transition duration-300"
-              style={{ width: `${client.width + 20}px`, height: `${client.height + 10}px` }}
-            >
-              <img
-                src={client.logo}
-                alt={`Logo ${client.name}`}
-                className="object-contain mx-auto"
+          {doubledClients.map((client, index) => {
+            const isDuplicate = index >= clients.length
+
+            return (
+              <div
+                key={`${client.name}-${index}`}
+                className="flex items-center justify-center flex-shrink-0 grayscale-[60%] opacity-90 hover:grayscale-0 hover:opacity-100 transition duration-300"
                 style={{
-                  width: `${client.width}px`,
-                  height: `${client.height}px`,
-                  transform: `translate(${client.offsetX}px, ${client.offsetY}px)`,
+                  width: `${client.width + 20}px`,
+                  height: `${client.height + 10}px`,
                 }}
-              />
-            </div>
-          ))}
+              >
+                <img
+                  src={client.logo}
+                  alt={isDuplicate ? '' : `Logo ${client.name}`}
+                  aria-hidden={isDuplicate ? 'true' : undefined}
+                  loading="lazy"
+                  decoding="async"
+                  width={client.width}
+                  height={client.height}
+                  className="object-contain mx-auto"
+                  style={{
+                    width: `${client.width}px`,
+                    height: `${client.height}px`,
+                    transform: `translate(${client.offsetX}px, ${client.offsetY}px)`,
+                  }}
+                />
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>

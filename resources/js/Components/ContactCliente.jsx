@@ -1,135 +1,139 @@
-import { useForm } from '@inertiajs/react'
+// resources/js/Components/ContactCliente.jsx
+import { Link, usePage } from '@inertiajs/react'
 import { BuildingOffice2Icon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
 
 export default function ContactCliente() {
-  const { data, setData, post, processing, errors, reset, recentlySuccessful } = useForm({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    message: '',
-  })
+  const { props } = usePage()
+  const user = props.auth?.user || null
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    post(route('contacto.cliente'), {
-      onSuccess: () => reset(),
-    })
-  }
+  const ctaHref = user ? '/dashboard#solicitud-transporte' : '/register'
 
   return (
-    <div className="relative isolate bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a] py-20 px-6 lg:px-8 text-white" id="clientes">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Información de contacto */}
-        <div className="max-w-xl">
-          <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Solicita tu cotización
-          </h2>
-          <p className="mt-6 text-lg text-white/80">
-            Completa el formulario y te responderemos con una propuesta personalizada lo antes posible.
-          </p>
-          <dl className="mt-10 space-y-4 text-base text-white/80">
-            <div className="flex gap-x-4">
-              <dt><BuildingOffice2Icon className="h-6 w-6 text-indigo-400" /></dt>
-              <dd>Sta. Rosa de Santiago & Cam. Uno, Lampa</dd>
+    <section
+      className="bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]"
+      aria-labelledby="clientes-title"
+      itemScope
+      itemType="https://schema.org/Service"
+    >
+      {/* Alineado EXACTO a ContactColaborador */}
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
+        {/* Card oscura (paleta del resto) con layout alineado */}
+        <div className="rounded-xl bg-white/5 ring-1 ring-white/15 p-6 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="max-w-xl">
+              <p className="text-xs font-semibold tracking-widest uppercase text-indigo-200">
+                Clientes · Cotización
+              </p>
+
+              <h2 id="clientes-title" className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+                Cliente: cotizar flete
+              </h2>
+
+              <p className="mt-6 text-lg text-white/80">
+                Para cotizar un flete necesitamos origen, destino y descripción de la carga. La forma más rápida es
+                usar el portal SCAR para registrar tu solicitud.
+              </p>
+
+              <div className="mt-8 rounded-xl bg-white/5 ring-1 ring-white/15 p-5">
+                <h3 className="text-lg font-semibold text-white">Qué debes ingresar</h3>
+                <ul className="mt-3 space-y-2 text-white/80 list-disc list-inside">
+                  <li>Origen y destino.</li>
+                  <li>Tipo de carga y observaciones.</li>
+                  <li>Peso/volumen aproximado (si aplica).</li>
+                  <li>Fecha de retiro (opcional).</li>
+                </ul>
+
+                <div className="mt-5 flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href={ctaHref}
+                    className="rounded-md bg-indigo-500 hover:bg-indigo-400 px-4 py-2 text-sm font-semibold text-white shadow transition"
+                  >
+                    {user ? 'Ir al portal y solicitar' : 'Crear cuenta para solicitar'}
+                  </Link>
+                  {!user && (
+                    <Link
+                      href="/login"
+                      className="rounded-md bg-white/10 hover:bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 transition"
+                    >
+                      Iniciar sesión
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              <dl className="mt-10 space-y-4 text-base text-white/80" aria-label="Datos de contacto">
+                <div className="flex gap-x-4">
+                  <dt className="flex-shrink-0" aria-hidden="true">
+                    <BuildingOffice2Icon className="h-6 w-6 text-indigo-300" />
+                  </dt>
+                  <dd>Sta. Rosa de Santiago &amp; Cam. Uno, Lampa</dd>
+                </div>
+                <div className="flex gap-x-4">
+                  <dt className="flex-shrink-0" aria-hidden="true">
+                    <PhoneIcon className="h-6 w-6 text-indigo-300" />
+                  </dt>
+                  <dd>
+                    <a href="tel:+56944671205" className="hover:text-white">
+                      +56 9 4467 1205
+                    </a>
+                  </dd>
+                </div>
+                <div className="flex gap-x-4">
+                  <dt className="flex-shrink-0" aria-hidden="true">
+                    <EnvelopeIcon className="h-6 w-6 text-indigo-300" />
+                  </dt>
+                  <dd>
+                    <a href="mailto:contacto@scartransportes.cl" className="hover:text-white">
+                      contacto@scartransportes.cl
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+
+              {/* SEO / marketing */}
+              <p className="mt-6 text-xs text-white/70">
+                Servicio orientado a <span className="font-semibold text-white">transporte y distribución</span> con foco
+                en cumplimiento, planificación y trazabilidad. Cotiza por portal para respuesta más rápida.
+              </p>
+
+              {/* Schema.org */}
+              <meta itemProp="serviceType" content="Cotización de fletes y transporte" />
+              <meta itemProp="provider" content="Transportes SCAR" />
+              <meta itemProp="areaServed" content="Chile" />
             </div>
-            <div className="flex gap-x-4">
-              <dt><PhoneIcon className="h-6 w-6 text-indigo-400" /></dt>
-              <dd><a href="tel:+56944671205" className="hover:text-white">+56 9 4467 1205</a></dd>
+
+            <div className="max-w-xl rounded-xl bg-white/5 ring-1 ring-white/15 p-6 h-fit">
+              <h3 className="text-xl font-semibold text-white">¿No puedes registrarte ahora?</h3>
+              <p className="mt-2 text-white/80">
+                Escríbenos por correo con origen, destino y descripción de carga para evaluarlo.
+              </p>
+              <p className="mt-4 text-sm text-white/70">
+                Correo:{' '}
+                <a className="underline hover:text-white" href="mailto:contacto@scartransportes.cl">
+                  contacto@scartransportes.cl
+                </a>
+              </p>
+
+              {/* Extra SEO text */}
+              <p className="mt-4 text-xs text-white/70">
+                Incluye comuna de retiro/entrega, tipo de carga, ventanas horarias y si requiere peoneta o rampa.
+              </p>
+
+              {/* LocalBusiness microdata */}
+              <div className="sr-only" itemScope itemType="https://schema.org/LocalBusiness">
+                <span itemProp="name">Transportes SCAR</span>
+                <a itemProp="email" href="mailto:contacto@scartransportes.cl">
+                  contacto@scartransportes.cl
+                </a>
+                <a itemProp="telephone" href="tel:+56944671205">
+                  +56 9 4467 1205
+                </a>
+                <span itemProp="address">Sta. Rosa de Santiago &amp; Cam. Uno, Lampa</span>
+              </div>
             </div>
-            <div className="flex gap-x-4">
-              <dt><EnvelopeIcon className="h-6 w-6 text-indigo-400" /></dt>
-              <dd><a href="mailto:contacto@scartransportes.cl" className="hover:text-white">contacto@scartransportes.cl</a></dd>
-            </div>
-          </dl>
+          </div>
         </div>
-
-        {/* Formulario funcional */}
-        <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
-          {recentlySuccessful && (
-            <div className="p-4 rounded bg-green-500/20 border border-green-500 text-green-200 text-sm">
-              ¡Tu mensaje ha sido enviado correctamente!
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="first_name" className="block text-sm font-semibold">Nombre</label>
-              <input
-                type="text"
-                name="first_name"
-                id="first_name"
-                value={data.first_name}
-                onChange={(e) => setData('first_name', e.target.value)}
-                className="mt-2 w-full rounded-md bg-white/10 px-3.5 py-2 text-white placeholder:text-white/50 focus:ring-2 focus:ring-indigo-400 outline-none"
-              />
-              {errors.first_name && <p className="text-sm text-red-400 mt-1">{errors.first_name}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="last_name" className="block text-sm font-semibold">Apellido</label>
-              <input
-                type="text"
-                name="last_name"
-                id="last_name"
-                value={data.last_name}
-                onChange={(e) => setData('last_name', e.target.value)}
-                className="mt-2 w-full rounded-md bg-white/10 px-3.5 py-2 text-white placeholder:text-white/50 focus:ring-2 focus:ring-indigo-400 outline-none"
-              />
-              {errors.last_name && <p className="text-sm text-red-400 mt-1">{errors.last_name}</p>}
-            </div>
-
-            <div className="sm:col-span-2">
-              <label htmlFor="email" className="block text-sm font-semibold">Correo electrónico</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                value={data.email}
-                onChange={(e) => setData('email', e.target.value)}
-                className="mt-2 w-full rounded-md bg-white/10 px-3.5 py-2 text-white placeholder:text-white/50 focus:ring-2 focus:ring-indigo-400 outline-none"
-              />
-              {errors.email && <p className="text-sm text-red-400 mt-1">{errors.email}</p>}
-            </div>
-
-            <div className="sm:col-span-2">
-              <label htmlFor="phone" className="block text-sm font-semibold">Teléfono</label>
-              <input
-                type="tel"
-                name="phone"
-                id="phone"
-                value={data.phone}
-                onChange={(e) => setData('phone', e.target.value)}
-                className="mt-2 w-full rounded-md bg-white/10 px-3.5 py-2 text-white placeholder:text-white/50 focus:ring-2 focus:ring-indigo-400 outline-none"
-              />
-              {errors.phone && <p className="text-sm text-red-400 mt-1">{errors.phone}</p>}
-            </div>
-
-            <div className="sm:col-span-2">
-              <label htmlFor="message" className="block text-sm font-semibold">¿En qué podemos ayudarte?</label>
-              <textarea
-                id="message"
-                name="message"
-                rows="4"
-                value={data.message}
-                onChange={(e) => setData('message', e.target.value)}
-                className="mt-2 w-full rounded-md bg-white/10 px-3.5 py-2 text-white placeholder:text-white/50 focus:ring-2 focus:ring-indigo-400 outline-none"
-              />
-              {errors.message && <p className="text-sm text-red-400 mt-1">{errors.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={processing}
-              className="rounded-md bg-indigo-500 hover:bg-indigo-400 px-4 py-2 text-sm font-semibold text-white shadow transition disabled:opacity-50"
-            >
-              Enviar mensaje
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </section>
   )
 }
