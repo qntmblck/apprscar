@@ -58,7 +58,7 @@ export default function Hero() {
           transition={{ type: 'spring', stiffness: 60, damping: 12 }}
           className="text-3xl sm:text-5xl font-bold tracking-tight"
         >
-          Transportes SCAR: transporte de carga y distribución para empresas en Chile
+          Transporte de carga y distribución para empresas en Chile
         </motion.h1>
 
         {/* ✅ Mantener tu frase EXACTA, ahora como subtítulo/slogan */}
