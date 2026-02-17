@@ -102,35 +102,7 @@ export default function ContactCliente() {
               <meta itemProp="areaServed" content="Chile" />
             </div>
 
-            <div className="max-w-xl rounded-xl bg-white/5 ring-1 ring-white/15 p-6 h-fit">
-              <h3 className="text-xl font-semibold text-white">¿No puedes registrarte ahora?</h3>
-              <p className="mt-2 text-white/80">
-                Escríbenos por correo con origen, destino y descripción de carga para evaluarlo.
-              </p>
-              <p className="mt-4 text-sm text-white/70">
-                Correo:{' '}
-                <a className="underline hover:text-white" href="mailto:contacto@scartransportes.cl">
-                  contacto@scartransportes.cl
-                </a>
-              </p>
 
-              {/* Extra SEO text */}
-              <p className="mt-4 text-xs text-white/70">
-                Incluye comuna de retiro/entrega, tipo de carga, ventanas horarias y si requiere peoneta o rampa.
-              </p>
-
-              {/* LocalBusiness microdata */}
-              <div className="sr-only" itemScope itemType="https://schema.org/LocalBusiness">
-                <span itemProp="name">Transportes SCAR</span>
-                <a itemProp="email" href="mailto:contacto@scartransportes.cl">
-                  contacto@scartransportes.cl
-                </a>
-                <a itemProp="telephone" href="tel:+56944671205">
-                  +56 9 4467 1205
-                </a>
-                <span itemProp="address">Sta. Rosa de Santiago &amp; Cam. Uno, Lampa</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
