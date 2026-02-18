@@ -1,3 +1,4 @@
+// Statistics.jsx
 import { useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
@@ -10,18 +11,18 @@ const statsData = [
     sr: 'Empresas atendidas recientemente',
   },
   {
-    label: 'Índice de cumplimiento logístico',
+    label: 'Índice de cumplimiento operativo',
     value: 98.7,
     suffix: '%',
     decimals: true,
-    sr: 'Cumplimiento operativo promedio',
+    sr: 'Cumplimiento promedio',
   },
   {
-    label: 'Cobertura geográfica nacional',
+    label: 'Cobertura activa',
     value: 16,
     suffix: ' regiones',
     decimals: false,
-    sr: 'Cobertura en regiones de Chile',
+    sr: 'Presencia operativa por región',
   },
   {
     label: 'Personal operativo certificado',
@@ -41,7 +42,6 @@ function useCounter(target, decimals = false, trigger) {
     let raf
     const duration = 1100
     const start = performance.now()
-
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
 
     const animate = (now) => {
@@ -51,11 +51,8 @@ function useCounter(target, decimals = false, trigger) {
 
       setCount(value)
 
-      if (progress < 1) {
-        raf = requestAnimationFrame(animate)
-      } else {
-        setCount(target)
-      }
+      if (progress < 1) raf = requestAnimationFrame(animate)
+      else setCount(target)
     }
 
     raf = requestAnimationFrame(animate)
@@ -87,29 +84,23 @@ export default function Statistics() {
           animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         }`}
       >
-        {/* MICROCOPY SEO */}
         <p className="text-xs font-semibold tracking-widest uppercase text-indigo-600">
-          Métricas · Cobertura · Certificación
+          Métricas · Cumplimiento · Cobertura
         </p>
 
         <h2
           id="stats-title"
           className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight"
         >
-          Indicadores Clave de Desempeño
+          Indicadores operativos
         </h2>
 
+        {/* ✅ Un solo párrafo: sin repetir "transporte/distribución" */}
         <p className="mt-6 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
-          Transportes SCAR presenta resultados concretos en transporte y distribución:
-          cobertura nacional, cumplimiento superior al 98% y un equipo 100% certificado.
+          Datos orientativos que reflejan nivel de cumplimiento, cobertura activa y certificación operacional.
+          Transparencia y control para respaldar decisiones y planificación logística.
         </p>
 
-        <p className="mt-4 text-base sm:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
-          Eficiencia, trazabilidad y confiabilidad que convierten la logística en una ventaja
-          competitiva real para nuestros clientes.
-        </p>
-
-        {/* GRID MODERNO */}
         <dl
           className="mt-16 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           role="list"
@@ -146,17 +137,15 @@ export default function Statistics() {
           })}
         </dl>
 
-        {/* COPY SEO EXTRA */}
         <p className="mt-12 text-sm text-gray-600 max-w-4xl mx-auto leading-relaxed">
-          Métricas orientativas que reflejan capacidad operativa, estándares de servicio y alcance
-          logístico. Para disponibilidad por ruta y cotizaciones específicas, contáctanos desde el portal.
+          Métricas orientativas que reflejan capacidad operativa y estándares de servicio.
+          Para disponibilidad por ruta y cotizaciones específicas, contáctanos desde el portal.
         </p>
 
-        {/* MICRODATA */}
         <div className="sr-only" itemScope itemType="https://schema.org/LocalBusiness">
           <span itemProp="name">Transportes SCAR</span>
           <span itemProp="areaServed">Chile</span>
-          <span itemProp="serviceType">Transporte y distribución</span>
+          <span itemProp="serviceType">Logística B2B</span>
         </div>
       </div>
     </section>

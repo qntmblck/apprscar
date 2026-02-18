@@ -1,3 +1,4 @@
+// Features.jsx
 import {
   ShieldCheckIcon,
   ClockIcon,
@@ -12,28 +13,28 @@ const features = [
   {
     name: 'Levantamiento y diseño del servicio',
     description:
-      'Levantamos tu operación (origen/destino, ventanas, volúmenes, restricciones) y la convertimos en parámetros claros de ruta, capacidad y servicio.',
+      'Traducimos tu operación (origen/destino, ventanas, volúmenes, restricciones) en parámetros claros de ruta, capacidad y niveles de servicio.',
     icon: UserGroupIcon,
     keywords: 'cotización, levantamiento, requerimientos, operación, distribución',
   },
   {
     name: 'Protocolos, seguridad y continuidad',
     description:
-      'Operamos con procedimientos estandarizados y personal capacitado para responder ante contingencias, sostener continuidad y cumplir SLA.',
+      'Aplicamos procedimientos estandarizados y equipos capacitados para responder ante contingencias, sostener continuidad y cumplir SLA.',
     icon: ShieldCheckIcon,
     keywords: 'seguridad, protocolos, contingencias, estándar, cumplimiento',
   },
   {
     name: 'Coordinación trazable y control operacional',
     description:
-      'Definimos responsables, hitos y puntos de control para reducir ambigüedades, evitar reprocesos y mantener visibilidad con KPI.',
+      'Definimos responsables, hitos y puntos de control para reducir ambigüedad, evitar reprocesos y mantener visibilidad con KPI.',
     icon: ChartBarIcon,
     keywords: 'coordinación, trazabilidad, control, información, KPI',
   },
   {
     name: 'Menos latencia, más eficiencia',
     description:
-      'Automatizamos flujos y asignamos recursos para bajar tiempos de espera, acelerar decisiones y mejorar productividad en terreno y backoffice.',
+      'Optimizamos flujos y asignación de recursos para bajar tiempos de respuesta y acelerar decisiones en terreno y backoffice.',
     icon: ClockIcon,
     keywords: 'tiempo de respuesta, automatización, SLA, eficiencia',
   },
@@ -76,7 +77,6 @@ export default function Features() {
       itemType="https://schema.org/Service"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* ✅ HEADER RE-ARMADO: microcopy full width + bloque horizontal (título | logo | párrafo) */}
         <motion.div
           ref={ref}
           initial={{ opacity: 0, x: reduceMotion ? 0 : -42 }}
@@ -84,19 +84,15 @@ export default function Features() {
           transition={{ duration: 0.65, ease: 'easeOut' }}
           className="mb-7 sm:mb-9"
         >
-
-
-          {/* 2) Segundo bloque horizontal */}
+          {/* 2) Bloque horizontal (título | logo | párrafo) */}
           <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-5 lg:gap-10">
-            {/* Título (izquierda en desktop) */}
             <h2
               id="features-title"
               className="text-2xl sm:text-4xl font-semibold tracking-tight text-white text-center text-balance lg:pr-2"
             >
-             Estandarización y control en cada etapa del servicio
+              Método operativo: estándares, control y evidencia
             </h2>
 
-            {/* Logo (centro en desktop, entre título y párrafo) */}
             <div className="flex items-center justify-center">
               <img
                 src="/img/logoscar.png"
@@ -107,27 +103,20 @@ export default function Features() {
               />
             </div>
 
-            {/* Párrafo (derecha en desktop) */}
             <p
               className="text-sm sm:text-base leading-6 sm:leading-7 text-gray-300 text-justify [hyphens:auto] lg:pl-2"
               style={{ textAlignLast: 'left' }}
             >
-              En Transportes SCAR estandarizamos procesos, medimos desempeño y dejamos respaldo documental para reducir
-              incidencias, mejorar cumplimiento y sostener un servicio consistente en transporte, distribución y última
-              milla.
+              Convertimos la operación en un sistema claro: estándares, responsables, KPI y respaldo documental.
+              Así reducimos errores, mejoramos cumplimiento y sostenemos continuidad con visibilidad de punta a punta.
             </p>
           </div>
 
-          {/* Schema meta */}
           <meta itemProp="provider" content="Transportes SCAR" />
           <meta itemProp="areaServed" content="Chile" />
-          <meta itemProp="serviceType" content="Transporte y distribución con control operativo" />
+          <meta itemProp="serviceType" content="Transporte de carga y distribución con control operativo" />
         </motion.div>
 
-
-
-
-        {/* Cards */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -165,8 +154,6 @@ export default function Features() {
             </motion.div>
           ))}
         </motion.div>
-
-
       </div>
     </section>
   )

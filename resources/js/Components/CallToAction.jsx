@@ -1,3 +1,5 @@
+
+
 import { useInView } from 'react-intersection-observer'
 import { useEffect, useState } from 'react'
 
@@ -24,30 +26,20 @@ export default function CallToAction() {
         }`}
       >
         <div className="relative isolate px-4 sm:px-8 text-center z-10">
-
-          {/* Microcopy SEO */}
           <p className="text-xs font-semibold tracking-widest uppercase text-indigo-200">
-            Transporte · Distribución · Logística Nacional
+            Diagnóstico · Diseño · Puesta en marcha
           </p>
 
-          <h2
-            id="cta-title"
-            className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white"
-          >
-            ¿Listo para confiar tu carga a verdaderos profesionales?
+          <h2 id="cta-title" className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+            Conversemos tu operación y definamos el mejor esquema
           </h2>
 
-          <p className="mx-auto mt-5 max-w-3xl text-base sm:text-lg leading-7 text-white/80">
-            En <span className="font-semibold text-white">Transportes SCAR</span> aseguramos
-            <b> puntualidad, trazabilidad y eficiencia operativa</b> en cada envío.
-            Optimizamos tiempos, reducimos riesgos y entregamos respaldo documental completo.
-            <br className="hidden sm:block" />
-            Cotiza hoy y transforma tu logística en una ventaja competitiva real.
+          <p className="mx-auto mt-5 max-w-3xl text-base sm:text-lg leading-7 text-white/85">
+            Cuéntanos tu flujo (rutas, ventanas, volúmenes y restricciones) y te respondemos con una propuesta clara:
+            alcance, condiciones, plazos y puntos de control. Menos fricción operativa, más previsibilidad y respaldo.
           </p>
 
-          {/* Botones optimizados a conversión */}
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-
             <a
               href="/contacto#clientes"
               className="rounded-md bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-indigo-500 hover:shadow-xl transition-all duration-300 hover:scale-105"
@@ -70,12 +62,10 @@ export default function CallToAction() {
             </a>
           </div>
 
-          {/* SEO estructurado */}
           <meta itemProp="provider" content="Transportes SCAR" />
           <meta itemProp="areaServed" content="Chile" />
-          <meta itemProp="serviceType" content="Transporte y distribución de carga con trazabilidad" />
+          <meta itemProp="serviceType" content="Servicios logísticos B2B con control operativo" />
 
-          {/* Glow decorativo refinado */}
           <svg
             viewBox="0 0 1024 1024"
             aria-hidden="true"
