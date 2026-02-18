@@ -10,10 +10,10 @@ export default function SEO({
 }) {
   const { props } = usePage()
 
-  // Base URL desde Laravel (APP_URL compartido vía HandleInertiaRequests)
+
   const baseUrl = (props?.app?.url || '').replace(/\/$/, '')
 
-  // Si no se pasa canonical, usar pathname actual
+
   const pathname =
     typeof window !== 'undefined' ? window.location.pathname : ''
 

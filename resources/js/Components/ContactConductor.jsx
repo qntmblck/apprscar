@@ -21,7 +21,7 @@ export default function ContactConductor() {
             </p>
 
             <h2 id="conductores-title" className="mt-2 text-3xl sm:text-4xl font-semibold">
-              Conductor: postular con CV
+              Postula con CV
             </h2>
 
             <p className="mt-4 text-white/80">

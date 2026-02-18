@@ -26,7 +26,7 @@ export default function ContactCliente() {
               </p>
 
               <h2 id="clientes-title" className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
-                Cliente: cotizar flete
+                Solicita tu Flete
               </h2>
 
               <p className="mt-6 text-lg text-white/80">
