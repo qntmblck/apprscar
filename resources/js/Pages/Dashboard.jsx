@@ -4,10 +4,11 @@ import { Link, useForm, usePage } from '@inertiajs/react'
 import { PhotoIcon } from '@heroicons/react/24/solid'
 
 export default function Dashboard() {
-  const { props } = usePage()
-  const user = props.auth?.user || {}
-  const roles = user.roles || []
-  const flash = props.flash || {}
+    const { props } = usePage()
+    const user = props.auth?.user || {}
+    const roles = props.auth?.roles || []
+    const flash = props.flash || {}
+
 
   const hasRole = roles.length > 0
 
