@@ -146,49 +146,50 @@ export default function Footer() {
 
       <div className="relative z-20 max-w-7xl mx-auto px-6 py-10 sm:py-12 lg:px-8">
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Texto centrado */}
-          <div className="flex flex-col justify-center items-center text-center">
-            <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Transportes SCAR</h2>
-            <p className="mt-6 max-w-2xl text-sm leading-6 text-white font-semibold">
-              Empresa nacional dedicada al transporte de carga, comprometida con la seguridad, cumplimiento y eficiencia. Construimos alianzas confiables en todo Chile.
-            </p>
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+    {/* Texto centrado */}
+    <div className="flex flex-col justify-center items-center text-center">
+      <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Transportes SCAR</h2>
+      <p className="mt-6 max-w-2xl text-sm leading-6 text-white font-semibold">
+        Empresa nacional dedicada al transporte de carga, comprometida con la seguridad, cumplimiento y eficiencia. Construimos alianzas confiables en todo Chile.
+      </p>
 
-            <div className="mt-8 space-y-2 text-sm">
-              <p>📍 <span className="text-indigo-300 font-semibold">Dirección:</span> Sta. Rosa de Santiago & Cam. Uno, Batuco, Lampa</p>
-              <p>📞 <span className="text-indigo-300 font-semibold">Teléfono:</span> <a href="tel:+56944671205" className="hover:underline">+56 9 4467 1205</a></p>
-              <p>📧 <span className="text-indigo-300 font-semibold">Correo:</span> <a href="mailto:contacto@scartransportes.cl" className="hover:underline">contacto@scartransportes.cl</a></p>
-            </div>
-          </div>
-
-          {/* Mapa */}
-          <div className="w-full h-96 rounded-xl overflow-hidden shadow-xl relative">
-            <iframe
-              title="Ubicación Transportes SCAR"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11360.518375032407!2d-70.77939047130636!3d-33.24605036819924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662bc2ab0096e85%3A0x144213a8b702d3be!2sSta.%20Rosa%20de%20Santiago%20%26%20Cam.%20Uno%2C%20Batuco%2C%20Lampa%2C%20Regi%C3%B3n%20Metropolitana!5e0!3m2!1ses!2scl!4v1746529815067!5m2!1ses!2scl"
-              className="absolute inset-0 w-full h-full border-0"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
-        </div>
-
-        {/* Línea inferior y RRSS */}
-        <div className="mt-16 border-t border-indigo-500 pt-6 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-sm text-white font-semibold">
-            © 2024 Transportes SCAR SpA. Todos los derechos reservados.
-          </p>
-          <div className="mt-4 md:mt-0 flex space-x-6">
-            {socialLinks.map((item) => (
-              <a key={item.name} href={item.href} className="text-white hover:text-indigo-300 transition-colors">
-                <span className="sr-only">{item.name}</span>
-                <item.icon className="w-6 h-6" aria-hidden="true" />
-              </a>
-            ))}
-          </div>
-        </div>
+      <div className="mt-8 space-y-2 text-sm">
+        <p>📍 <span className="text-indigo-300 font-semibold">Dirección:</span> Sta. Rosa de Santiago & Cam. Uno, Batuco, Lampa</p>
+        <p>📞 <span className="text-indigo-300 font-semibold">Teléfono:</span> <a href="tel:+56961068999" className="hover:underline">+56 9 6106 8999 Laura</a></p>
+        <p>📞 <span className="text-indigo-300 font-semibold">Teléfono:</span> <a href="tel:+56949023562" className="hover:underline">+56 9 4902 3562 Pablo</a></p>
+        <p>📧 <span className="text-indigo-300 font-semibold">Correo:</span> <a href="mailto:contacto@scartransportes.cl" className="hover:underline">contacto@scartransportes.cl</a></p>
       </div>
+    </div>
+
+    {/* Mapa */}
+    <div className="w-full h-96 rounded-xl overflow-hidden shadow-xl relative">
+      <iframe
+        title="Ubicación Transportes SCAR"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11360.518375032407!2d-70.77939047130636!3d-33.24605036819924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662bc2ab0096e85%3A0x144213a8b702d3be!2sSta.%20Rosa%20de%20Santiago%20%26%20Cam.%20Uno%2C%20Batuco%2C%20Lampa%2C%20Regi%C3%B3n%20Metropolitana!5e0!3m2!1ses!2scl!4v1746529815067!5m2!1ses!2scl"
+        className="absolute inset-0 w-full h-full border-0"
+        allowFullScreen
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      ></iframe>
+    </div>
+  </div>
+
+  {/* Línea inferior y RRSS */}
+  <div className="mt-16 border-t border-indigo-500 pt-6 flex flex-col md:flex-row items-center justify-between">
+    <p className="text-sm text-white font-semibold">
+      © 2024 Transportes SCAR SpA. Todos los derechos reservados.
+    </p>
+    <div className="mt-4 md:mt-0 flex space-x-6">
+      {socialLinks.map((item) => (
+        <a key={item.name} href={item.href} className="text-white hover:text-indigo-300 transition-colors">
+          <span className="sr-only">{item.name}</span>
+          <item.icon className="w-6 h-6" aria-hidden="true" />
+        </a>
+      ))}
+    </div>
+  </div>
+</div>
 
       {/* Estilos */}
       <style jsx>{`
