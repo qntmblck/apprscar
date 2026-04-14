@@ -57,7 +57,7 @@ export default function Contacto() {
               name: 'Transportes SCAR',
               url: 'https://scartransportes.cl',
               email: 'contacto@scartransportes.cl',
-              telephone: '+56 9 4467 1205',
+              telephone: '+56 9 6106 8999',
             },
             mainEntity: [
               {

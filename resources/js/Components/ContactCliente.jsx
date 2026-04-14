@@ -74,7 +74,7 @@ export default function ContactCliente() {
                   </dt>
                   <dd>
                     <a href="tel:+56944671205" className="hover:text-white">
-                      +56 9 4467 1205
+                      +56 9 6106 8999
                     </a>
                   </dd>
                 </div>
