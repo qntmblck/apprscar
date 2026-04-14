@@ -2,7 +2,7 @@ export default function CallButton() {
     return (
       <div className="fixed bottom-4 left-4 z-50">
         <a
-          href="tel:+56944671205"
+          href="tel:+5696106899"
           className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg hover:bg-blue-700 transition text-sm"
         >
           <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
