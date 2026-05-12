@@ -1,9 +1,13 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
     return (
         <div className="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0">
+            <Head>
+                <meta name="robots" content="noindex,nofollow" />
+                <meta name="googlebot" content="noindex,nofollow" />
+            </Head>
             <div>
     <Link href="/">
         <ApplicationLogo className="w-64 sm:w-72 lg:w-80" />

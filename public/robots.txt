@@ -1,2 +1,14 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /cliente/
+Disallow: /colaborador/
+Disallow: /conductor/
+Disallow: /dashboard
+Disallow: /fletes
+Disallow: /login-success
+Disallow: /profile
+Disallow: /redirect-by-role
+Disallow: /super/
+Disallow: /usuarios
+
+Sitemap: https://scartransportes.cl/sitemap.xml

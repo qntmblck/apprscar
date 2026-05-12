@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react'
+import SEO from '@/Components/SEO'
 import Header from '@/Components/Header'
 import Hero from '@/Components/Hero'
 import Clients from '@/Components/Clients'
@@ -10,6 +10,73 @@ import Footer from '@/Components/Footer'
 import WhatsAppChat from '@/Components/WhatsAppChat'
 import CallButton from '@/Components/CallButton'
 import { useEffect } from 'react'
+
+const siteUrl = 'https://scartransportes.cl'
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': `${siteUrl}/#organization`,
+  name: 'Transportes SCAR',
+  url: siteUrl,
+  logo: `${siteUrl}/img/logoscar.png`,
+  image: `${siteUrl}/img/dashboard/truck.jpg`,
+  email: 'contacto@scartransportes.cl',
+  telephone: '+56961068999',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Sta. Rosa de Santiago & Cam. Uno',
+    addressLocality: 'Batuco, Lampa',
+    addressRegion: 'Región Metropolitana',
+    addressCountry: 'CL',
+  },
+  areaServed: {
+    '@type': 'Country',
+    name: 'Chile',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+56961068999',
+    contactType: 'customer service',
+    email: 'contacto@scartransportes.cl',
+    areaServed: 'CL',
+    availableLanguage: 'es',
+  },
+  description:
+    'Empresa chilena de transporte de carga por carretera, distribución y logística B2B con cobertura nacional.',
+}
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${siteUrl}/#website`,
+  name: 'Transportes SCAR',
+  url: siteUrl,
+  publisher: {
+    '@id': `${siteUrl}/#organization`,
+  },
+  inLanguage: 'es-CL',
+}
+
+const homeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${siteUrl}/#webpage`,
+  url: siteUrl,
+  name: 'Transporte de carga y distribución para empresas en Chile | Transportes SCAR',
+  description:
+    'Transportes SCAR entrega servicios de transporte de carga, distribución y logística B2B en Chile, con cobertura nacional y control operacional.',
+  isPartOf: {
+    '@id': `${siteUrl}/#website`,
+  },
+  about: {
+    '@id': `${siteUrl}/#organization`,
+  },
+  primaryImageOfPage: {
+    '@type': 'ImageObject',
+    url: `${siteUrl}/img/dashboard/truck.jpg`,
+  },
+  inLanguage: 'es-CL',
+}
 
 export default function Welcome() {
   useEffect(() => {
@@ -28,7 +95,13 @@ export default function Welcome() {
 
     return (
     <>
-      <Head title="Transportes SCAR | Tu carga, nuestra misión" />
+      <SEO
+        title="Transporte de carga y distribución en Chile | Transportes SCAR"
+        description="Empresa de transporte de carga, distribución y logística B2B en Chile. Transportes SCAR coordina fletes, rutas y operaciones con cobertura nacional."
+        canonical="/"
+        image="/img/dashboard/truck.jpg"
+        jsonLd={[organizationSchema, websiteSchema, homeSchema]}
+      />
 
       <div className="bg-white overflow-x-hidden leading-none">
         <Header />

@@ -10,6 +10,68 @@ import WhatsAppChat from '@/Components/WhatsAppChat'
 import CallButton from '@/Components/CallButton'
 import { useEffect, useState } from 'react'
 
+const siteUrl = 'https://scartransportes.cl'
+const contactSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  '@id': `${siteUrl}/contacto#webpage`,
+  name: 'Contacto - Transportes SCAR',
+  url: `${siteUrl}/contacto`,
+  description:
+    'Contacto oficial de Transportes SCAR para cotizar fletes, postular como conductor o integrar una flota colaboradora.',
+  inLanguage: 'es-CL',
+  about: {
+    '@type': 'Organization',
+    '@id': `${siteUrl}/#organization`,
+    name: 'Transportes SCAR',
+    url: siteUrl,
+    email: 'contacto@scartransportes.cl',
+    telephone: '+56961068999',
+  },
+  mainEntity: [
+    {
+      '@type': 'Service',
+      name: 'Cotización de fletes',
+      serviceType: 'Transporte de carga y distribución',
+      areaServed: 'Chile',
+      provider: { '@id': `${siteUrl}/#organization` },
+    },
+    {
+      '@type': 'Service',
+      name: 'Postulación de conductores',
+      serviceType: 'Postulación para servicios de transporte y distribución',
+      areaServed: 'Chile',
+      provider: { '@id': `${siteUrl}/#organization` },
+    },
+    {
+      '@type': 'Service',
+      name: 'Integración de flota',
+      serviceType: 'Colaboración B2B con transportistas y flotas',
+      areaServed: 'Chile',
+      provider: { '@id': `${siteUrl}/#organization` },
+    },
+  ],
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Inicio',
+      item: siteUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Contacto',
+      item: `${siteUrl}/contacto`,
+    },
+  ],
+}
+
 export default function Contacto() {
   const getInitialTab = () => {
     const hash = window.location.hash
@@ -37,50 +99,11 @@ export default function Contacto() {
   return (
     <div className="bg-white">
       <SEO
-        title="Contacto | Transportes SCAR — Cotiza fletes, postula como conductor o integra tu flota"
+        title="Contacto Transportes SCAR | Cotiza fletes o integra tu flota"
         description="Contacto oficial de Transportes SCAR. Cotiza transporte y distribución, postula como conductor con CV o integra tu flota como colaborador. Respuesta rápida por portal."
         canonical="/contacto"
-        image="/img/og/contacto.jpg"
-      />
-
-      {/* JSON-LD (SEO) */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'ContactPage',
-            name: 'Contacto - Transportes SCAR',
-            url: 'https://scartransportes.cl/contacto',
-            about: {
-              '@type': 'Organization',
-              name: 'Transportes SCAR',
-              url: 'https://scartransportes.cl',
-              email: 'contacto@scartransportes.cl',
-              telephone: '+56 9 6106 8999',
-            },
-            mainEntity: [
-              {
-                '@type': 'Service',
-                name: 'Cotización de fletes',
-                areaServed: 'Chile',
-                provider: { '@type': 'Organization', name: 'Transportes SCAR' },
-              },
-              {
-                '@type': 'Service',
-                name: 'Postulación de conductores',
-                areaServed: 'Chile',
-                provider: { '@type': 'Organization', name: 'Transportes SCAR' },
-              },
-              {
-                '@type': 'Service',
-                name: 'Integración de flota (colaboradores)',
-                areaServed: 'Chile',
-                provider: { '@type': 'Organization', name: 'Transportes SCAR' },
-              },
-            ],
-          }),
-        }}
+        image="/img/mano.jpg"
+        jsonLd={[contactSchema, breadcrumbSchema]}
       />
 
       <Header />

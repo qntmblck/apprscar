@@ -8,6 +8,9 @@
 
     {{-- 2. Evita el zoom en móviles al enfocar inputs de 16px --}}
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#0c1e3a">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="/favicon.ico" sizes="any">
 
     {{-- 3. Título dinámico con Inertia --}}
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
