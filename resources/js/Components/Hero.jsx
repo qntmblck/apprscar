@@ -55,7 +55,13 @@ export default function Hero() {
         animate={controls}
         className="relative z-10 w-full max-w-4xl px-6 lg:px-16 text-center"
       >
-        <SectionBadge className="mb-4">
+        <SectionBadge
+          color="#e0f7ff"
+          dotColor="#38bdf8"
+          backgroundOpacity={0.18}
+          borderOpacity={0.42}
+          className="mb-4 shadow-[0_0_28px_rgba(0,148,217,0.35)] backdrop-blur-md"
+        >
           Transporte regional · Logística B2B · Cobertura nacional
         </SectionBadge>
 

@@ -14,24 +14,29 @@ function hexToRgb(hex) {
 export default function SectionBadge({
   children,
   color = '#0094d9',
+  dotColor,
+  backgroundOpacity = 0.10,
+  borderOpacity = 0.24,
   className = '',
 }) {
   const rgb = hexToRgb(color)
+  const resolvedDotColor = dotColor || color
+  const dotRgb = hexToRgb(resolvedDotColor)
 
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-widest ${className}`}
       style={{
         color,
-        backgroundColor: `rgba(${rgb}, 0.10)`,
-        borderColor: `rgba(${rgb}, 0.24)`,
+        backgroundColor: `rgba(${rgb}, ${backgroundOpacity})`,
+        borderColor: `rgba(${rgb}, ${borderOpacity})`,
       }}
     >
       <span
         className="h-1.5 w-1.5 rounded-full animate-pulse"
         style={{
-          backgroundColor: color,
-          boxShadow: `0 0 14px rgba(${rgb}, 0.55)`,
+          backgroundColor: resolvedDotColor,
+          boxShadow: `0 0 14px rgba(${dotRgb}, 0.55)`,
         }}
         aria-hidden="true"
       />

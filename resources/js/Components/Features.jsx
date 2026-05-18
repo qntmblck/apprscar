@@ -71,7 +71,7 @@ export default function Features() {
   return (
     <section
       id="servicios"
-      className="relative py-16 sm:py-20 overflow-hidden"
+      className="relative overflow-hidden pb-16 pt-12 sm:pb-20 sm:pt-14"
       style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0c1e3a 60%, #080f1e 100%)' }}
       aria-labelledby="features-title"
       itemScope
@@ -97,33 +97,34 @@ export default function Features() {
           transition={{ duration: 0.65, ease: 'easeOut' }}
           className="mb-10"
         >
-          <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-5 lg:gap-10">
+          <div className="text-center translate-y-3 sm:translate-y-4">
+            <SectionBadge className="mb-3 sm:mb-4">
+              Método · Control · Evidencia
+            </SectionBadge>
+          </div>
+
+          <div className="mt-0 grid grid-cols-1 items-center gap-6 lg:grid-cols-[0.8fr_1.1fr_1.1fr] lg:gap-10">
+            <div className="flex items-center justify-center lg:justify-start">
+              <img
+                src="/img/logoscar.webp"
+                alt="Logo Transportes SCAR"
+                className="h-28 w-[16.75rem] object-fill drop-shadow-[0_18px_45px_rgba(0,148,217,0.28)] sm:h-40 sm:w-[20.25rem] lg:h-48 lg:w-[26.25rem]"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+
             <div>
-              <SectionBadge className="mb-3">
-                Método · Control · Evidencia
-              </SectionBadge>
               <h2
                 id="features-title"
-                className="text-2xl sm:text-4xl font-semibold tracking-tight text-white text-center text-balance lg:pr-2"
+                className="text-center text-2xl font-semibold tracking-tight text-white text-balance sm:text-4xl lg:text-left"
               >
                 Método operativo: estándares, control y evidencia
               </h2>
             </div>
 
-            <div className="flex items-center justify-center">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-[#0094d9]/10 border border-[#0094d9]/20 flex items-center justify-center">
-                <img
-                  src="/img/logoscar.webp"
-                  alt="Logo Transportes SCAR"
-                  className="h-20 sm:h-28 w-auto"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            </div>
-
             <p
-              className="text-sm sm:text-base leading-6 sm:leading-7 text-slate-300 text-justify [hyphens:auto] lg:pl-2"
+              className="text-sm leading-6 text-slate-300 text-justify [hyphens:auto] sm:text-base sm:leading-7 lg:pl-2"
               style={{ textAlignLast: 'left' }}
             >
               Convertimos la operación en un sistema claro: estándares, responsables, KPI y respaldo documental.
