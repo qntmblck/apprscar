@@ -1,6 +1,5 @@
 // resources/js/Components/ContactCliente.jsx
 import { Link, usePage } from '@inertiajs/react'
-import { BuildingOffice2Icon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
 import SectionBadge from './SectionBadge'
 
 export default function ContactCliente() {
@@ -33,37 +32,8 @@ export default function ContactCliente() {
                 usar el portal SCAR para registrar tu solicitud.
               </p>
 
-              <dl className="mt-10 space-y-4 text-base text-white/80" aria-label="Datos de contacto">
-                <div className="flex gap-x-4">
-                  <dt className="flex-shrink-0" aria-hidden="true">
-                    <BuildingOffice2Icon className="h-6 w-6 text-[#0094d9]" />
-                  </dt>
-                  <dd>Sta. Rosa de Santiago &amp; Cam. Uno, Lampa</dd>
-                </div>
-                <div className="flex gap-x-4">
-                  <dt className="flex-shrink-0" aria-hidden="true">
-                    <PhoneIcon className="h-6 w-6 text-[#0094d9]" />
-                  </dt>
-                  <dd>
-                    <a href="tel:+56961068999" className="hover:text-white">
-                      +56 9 6106 8999
-                    </a>
-                  </dd>
-                </div>
-                <div className="flex gap-x-4">
-                  <dt className="flex-shrink-0" aria-hidden="true">
-                    <EnvelopeIcon className="h-6 w-6 text-[#0094d9]" />
-                  </dt>
-                  <dd>
-                    <a href="mailto:contacto@scartransportes.cl" className="hover:text-white">
-                      contacto@scartransportes.cl
-                    </a>
-                  </dd>
-                </div>
-              </dl>
-
               {/* SEO / marketing */}
-              <p className="mt-6 text-xs text-white/70">
+              <p className="mt-8 text-xs text-white/70">
                 Servicio orientado a <span className="font-semibold text-white">transporte y distribución</span> con foco
                 en cumplimiento, planificación y trazabilidad. Cotiza por portal para respuesta más rápida.
               </p>

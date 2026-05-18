@@ -1,4 +1,31 @@
 import { useEffect, useState } from 'react'
+import { BuildingOffice2Icon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
+
+const contactItems = [
+  {
+    label: 'Dirección',
+    value: 'Sta. Rosa de Santiago & Cam. Uno, Batuco, Lampa',
+    icon: BuildingOffice2Icon,
+  },
+  {
+    label: 'Teléfono',
+    value: '+56 9 6106 8999 Laura',
+    href: 'tel:+56961068999',
+    icon: PhoneIcon,
+  },
+  {
+    label: 'Teléfono',
+    value: '+56 9 4902 3562 Pablo',
+    href: 'tel:+56949023562',
+    icon: PhoneIcon,
+  },
+  {
+    label: 'Correo',
+    value: 'contacto@scartransportes.cl',
+    href: 'mailto:contacto@scartransportes.cl',
+    icon: EnvelopeIcon,
+  },
+]
 
 const socialLinks = [
   {
@@ -154,11 +181,26 @@ export default function Footer() {
         Empresa nacional dedicada al transporte de carga, comprometida con la seguridad, cumplimiento y eficiencia. Construimos alianzas confiables en todo Chile.
       </p>
 
-      <div className="mt-8 space-y-2 text-sm">
-        <p>📍 <span className="text-indigo-300 font-semibold">Dirección:</span> Sta. Rosa de Santiago & Cam. Uno, Batuco, Lampa</p>
-        <p>📞 <span className="text-indigo-300 font-semibold">Teléfono:</span> <a href="tel:+56961068999" className="hover:underline">+56 9 6106 8999 Laura</a></p>
-        <p>📞 <span className="text-indigo-300 font-semibold">Teléfono:</span> <a href="tel:+56949023562" className="hover:underline">+56 9 4902 3562 Pablo</a></p>
-        <p>📧 <span className="text-indigo-300 font-semibold">Correo:</span> <a href="mailto:contacto@scartransportes.cl" className="hover:underline">contacto@scartransportes.cl</a></p>
+      <div className="mt-8 space-y-3 text-sm text-white">
+        {contactItems.map((item) => {
+          const Icon = item.icon
+          const content = item.href ? (
+            <a href={item.href} className="hover:text-[#38bdf8] hover:underline">
+              {item.value}
+            </a>
+          ) : (
+            item.value
+          )
+
+          return (
+            <p key={item.label} className="flex items-start justify-center gap-3">
+              <Icon className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#0094d9]" aria-hidden="true" />
+              <span>
+                <span className="font-semibold text-indigo-300">{item.label}:</span> {content}
+              </span>
+            </p>
+          )
+        })}
       </div>
     </div>
 
@@ -178,7 +220,7 @@ export default function Footer() {
   {/* Línea inferior y RRSS */}
   <div className="mt-16 border-t border-indigo-500 pt-6 flex flex-col md:flex-row items-center justify-between">
     <p className="text-sm text-white font-semibold">
-      © 2024 Transportes SCAR SpA. Todos los derechos reservados.
+      © 2026 Transportes SCAR SpA. Todos los derechos reservados.
     </p>
     <div className="mt-4 md:mt-0 flex space-x-6">
       {socialLinks.map((item) => (

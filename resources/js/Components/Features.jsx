@@ -97,21 +97,23 @@ export default function Features() {
           transition={{ duration: 0.65, ease: 'easeOut' }}
           className="mb-10"
         >
-          <div className="text-center translate-y-3 sm:translate-y-4">
+          <div className="text-center -translate-y-2 sm:-translate-y-1 lg:translate-y-4">
             <SectionBadge className="mb-3 sm:mb-4">
               Método · Control · Evidencia
             </SectionBadge>
           </div>
 
-          <div className="mt-0 grid grid-cols-1 items-center gap-6 lg:grid-cols-[0.8fr_1.1fr_1.1fr] lg:gap-10">
-            <div className="flex items-center justify-center lg:justify-start">
-              <img
-                src="/img/logoscar.webp"
-                alt="Logo Transportes SCAR"
-                className="h-28 w-[16.75rem] object-fill drop-shadow-[0_18px_45px_rgba(0,148,217,0.28)] sm:h-40 sm:w-[20.25rem] lg:h-48 lg:w-[26.25rem]"
-                loading="lazy"
-                decoding="async"
-              />
+          <div className="mt-8 grid grid-cols-1 items-center gap-6 sm:mt-10 lg:mt-0 lg:grid-cols-[0.8fr_1.1fr_1.1fr] lg:gap-10">
+            <div className="flex -translate-y-4 items-center justify-center sm:-translate-y-5 md:-translate-y-6 lg:translate-y-0 lg:justify-start">
+              <div className="h-80 w-80 max-h-[86vw] max-w-[86vw] overflow-hidden rounded-full drop-shadow-[0_18px_45px_rgba(0,148,217,0.28)] sm:h-[26rem] sm:w-[26rem] md:h-[34rem] md:w-[34rem] lg:h-60 lg:w-60 xl:h-64 xl:w-64 2xl:h-72 2xl:w-72">
+                <img
+                  src="/img/logoscar.webp"
+                  alt="Logo Transportes SCAR"
+                  className="h-full w-full scale-[1.08] object-cover object-center"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
             </div>
 
             <div>

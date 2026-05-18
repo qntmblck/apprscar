@@ -152,10 +152,18 @@ export default function Clients() {
   const renderLogo = (client, index, duplicate = false) => (
     <div
       key={`${duplicate ? 'duplicate' : 'main'}-${client.name}-${index}`}
-      className="flex shrink-0 items-center justify-center grayscale-[60%] opacity-90 transition duration-300 select-none"
+      className="client-logo-item flex shrink-0 items-center justify-center grayscale-[60%] opacity-90 transition duration-300 select-none"
       style={{
-        width: `${client.width + 28}px`,
-        height: `${client.height + 10}px`,
+        '--logo-width': `${client.width}px`,
+        '--logo-height': `${client.height}px`,
+        '--item-width': `${client.width + 28}px`,
+        '--item-height': `${client.height + 10}px`,
+        '--logo-width-mobile': `${client.width * 0.52}px`,
+        '--logo-height-mobile': `${client.height * 0.58}px`,
+        '--item-width-mobile': `${(client.width + 28) * 0.52}px`,
+        '--item-height-mobile': `${(client.height + 10) * 0.58}px`,
+        '--logo-offset-x': `${client.offsetX}px`,
+        '--logo-offset-y': `${client.offsetY}px`,
       }}
     >
       <img
@@ -166,12 +174,7 @@ export default function Clients() {
         decoding="async"
         width={client.width}
         height={client.height}
-        className="pointer-events-none object-contain mx-auto"
-        style={{
-          width: `${client.width}px`,
-          height: `${client.height}px`,
-          transform: `translate(${client.offsetX}px, ${client.offsetY}px)`,
-        }}
+        className="client-logo-image pointer-events-none object-contain mx-auto"
       />
     </div>
   )
@@ -192,20 +195,49 @@ export default function Clients() {
           .clients-marquee-track {
             will-change: transform;
           }
+
+          .client-logo-item {
+            width: var(--item-width);
+            height: var(--item-height);
+          }
+
+          .client-logo-image {
+            width: var(--logo-width);
+            height: var(--logo-height);
+            transform: translate(var(--logo-offset-x), var(--logo-offset-y));
+          }
+
+          @media (max-width: 639px) {
+            .client-logo-item {
+              width: var(--item-width-mobile);
+              height: var(--item-height-mobile);
+            }
+
+            .client-logo-image {
+              width: var(--logo-width-mobile);
+              height: var(--logo-height-mobile);
+              transform: none;
+            }
+
+            .clients-marquee-segment {
+              gap: 1.35rem;
+              padding-right: 1.35rem;
+            }
+          }
         `}
       </style>
 
       <div ref={viewportRef} className="clients-marquee-viewport relative w-full overflow-hidden select-none">
         <div ref={trackRef} className="clients-marquee-track flex w-max items-center select-none">
-          <div ref={segmentRef} className="flex shrink-0 items-center gap-16 pr-16">
+          <div ref={segmentRef} className="clients-marquee-segment flex shrink-0 items-center gap-16 pr-16">
             {clients.map((client, index) => renderLogo(client, index))}
           </div>
 
-          <div className="flex shrink-0 items-center gap-16 pr-16" aria-hidden="true">
+          <div className="clients-marquee-segment flex shrink-0 items-center gap-16 pr-16" aria-hidden="true">
             {clients.map((client, index) => renderLogo(client, index, true))}
           </div>
 
-          <div className="flex shrink-0 items-center gap-16 pr-16" aria-hidden="true">
+          <div className="clients-marquee-segment flex shrink-0 items-center gap-16 pr-16" aria-hidden="true">
             {clients.map((client, index) => renderLogo(client, index, true))}
           </div>
         </div>
