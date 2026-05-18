@@ -45,7 +45,7 @@ export default function ContactCliente() {
                     <PhoneIcon className="h-6 w-6 text-[#0094d9]" />
                   </dt>
                   <dd>
-                    <a href="tel:+56944671205" className="hover:text-white">
+                    <a href="tel:+56961068999" className="hover:text-white">
                       +56 9 6106 8999
                     </a>
                   </dd>

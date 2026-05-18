@@ -32,7 +32,7 @@ export default function WhatsAppChat() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [closed])
 
-  const phone = '56944671205'
+  const phone = '56961068999'
 
   const handleSend = () => {
     const encoded = encodeURIComponent(message || 'Hola, quisiera más información')
