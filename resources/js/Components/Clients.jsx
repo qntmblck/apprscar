@@ -37,9 +37,26 @@ export default function Clients() {
     const segment = segmentRef.current
     if (!scroller || !segment) return
 
+    const measureSegmentWidth = () => {
+      const width = segment.scrollWidth || segment.offsetWidth
+      if (!width) return false
+
+      segmentWidthRef.current = width
+      return true
+    }
+
     const setCenterPosition = () => {
-      segmentWidthRef.current = segment.offsetWidth
+      if (!measureSegmentWidth()) return
       scroller.scrollLeft = segmentWidthRef.current * centerCopyIndex
+    }
+
+    const updateMeasurements = () => {
+      const previousWidth = segmentWidthRef.current
+      if (!measureSegmentWidth()) return
+
+      if (!previousWidth || scroller.scrollLeft < segmentWidthRef.current) {
+        scroller.scrollLeft = segmentWidthRef.current * centerCopyIndex
+      }
     }
 
     const animateScroll = (timestamp) => {
@@ -58,18 +75,42 @@ export default function Clients() {
       autoFrameRef.current = requestAnimationFrame(animateScroll)
     }
 
+    const logoImages = Array.from(segment.querySelectorAll('img'))
+    const handleAssetReady = () => requestAnimationFrame(updateMeasurements)
+
+    logoImages.forEach((image) => {
+      if (!image.complete) {
+        image.addEventListener('load', handleAssetReady, { once: true })
+        image.addEventListener('error', handleAssetReady, { once: true })
+      }
+    })
+
+    const resizeObserver = new ResizeObserver(updateMeasurements)
+    resizeObserver.observe(segment)
+
     const frame = requestAnimationFrame(() => {
       setCenterPosition()
       autoFrameRef.current = requestAnimationFrame(animateScroll)
     })
+
+    const fontsReady = document.fonts?.ready
+    fontsReady?.then(handleAssetReady).catch(() => {})
+
     window.addEventListener('resize', setCenterPosition)
+    window.addEventListener('load', handleAssetReady, { once: true })
 
     return () => {
       cancelAnimationFrame(frame)
       if (autoFrameRef.current) {
         cancelAnimationFrame(autoFrameRef.current)
       }
+      resizeObserver.disconnect()
+      logoImages.forEach((image) => {
+        image.removeEventListener('load', handleAssetReady)
+        image.removeEventListener('error', handleAssetReady)
+      })
       window.removeEventListener('resize', setCenterPosition)
+      window.removeEventListener('load', handleAssetReady)
     }
   }, [])
 
@@ -78,7 +119,7 @@ export default function Clients() {
     const segment = segmentRef.current
     if (!scroller || !segment || isRepositioningRef.current) return
 
-    const segmentWidth = segmentWidthRef.current || segment.offsetWidth
+    const segmentWidth = segmentWidthRef.current || segment.scrollWidth || segment.offsetWidth
     if (!segmentWidth) return
 
     const leftBoundary = segmentWidth
