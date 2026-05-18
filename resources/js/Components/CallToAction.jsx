@@ -15,7 +15,7 @@ export default function CallToAction() {
     <section
       id="cta"
       ref={ref}
-      className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a] py-16 sm:py-24 text-white"
+      className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] via-[#183577] to-[#0c1e3a] py-16 sm:py-24 text-white"
       aria-labelledby="cta-title"
       itemScope
       itemType="https://schema.org/Service"

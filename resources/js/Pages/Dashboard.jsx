@@ -1,16 +1,70 @@
-// resources/js/Pages/Dashboard.jsx
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Link, useForm, usePage } from '@inertiajs/react'
-import { PhotoIcon } from '@heroicons/react/24/solid'
+import { useState } from 'react'
+import {
+  TruckIcon, UserGroupIcon, BuildingOfficeIcon,
+  CheckCircleIcon, XCircleIcon, BellAlertIcon,
+  ArrowRightIcon,
+} from '@heroicons/react/24/outline'
+import { DocumentArrowUpIcon } from '@heroicons/react/24/solid'
+
+const TIPO_LABEL = {
+  conductor:   'postulación como conductor',
+  transporte:  'solicitud de transporte',
+  colaborador: 'solicitud de integración de flota',
+}
+
+const TABS = [
+  { key: 'conductor',   label: 'Conductor',   icon: TruckIcon },
+  { key: 'transporte',  label: 'Transporte',  icon: UserGroupIcon },
+  { key: 'colaborador', label: 'Colaborador', icon: BuildingOfficeIcon },
+]
+
+function InputField({ label, error, children }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-300 mb-1">{label}</label>
+      {children}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+    </div>
+  )
+}
+
+function DarkInput({ value, onChange, placeholder, type = 'text', min, ...rest }) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      min={min}
+      className="w-full rounded-xl bg-white/[0.05] border border-[#0094d9]/20 text-slate-200 placeholder-slate-500 px-3 py-2 text-sm focus:outline-none focus:border-[#0094d9]/50 focus:bg-white/[0.08] transition-colors"
+      {...rest}
+    />
+  )
+}
+
+function DarkTextarea({ value, onChange, placeholder, rows = 3 }) {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full rounded-xl bg-white/[0.05] border border-[#0094d9]/20 text-slate-200 placeholder-slate-500 px-3 py-2 text-sm focus:outline-none focus:border-[#0094d9]/50 focus:bg-white/[0.08] transition-colors"
+    />
+  )
+}
 
 export default function Dashboard() {
-    const { props } = usePage()
-    const user = props.auth?.user || {}
-    const roles = props.auth?.roles || []
-    const flash = props.flash || {}
-
+  const { props } = usePage()
+  const user = props.auth?.user || {}
+  const roles = props.auth?.roles || []
+  const flash = props.flash || {}
+  const notifications = props.solicitudNotifications || []
 
   const hasRole = roles.length > 0
+  const [activeTab, setActiveTab] = useState('conductor')
 
   const getDashboardUrl = () => {
     if (roles.includes('superadmin')) return '/super/dashboard'
@@ -21,545 +75,268 @@ export default function Dashboard() {
     return '/dashboard'
   }
 
-  // Form: Postulación Conductor
   const postulacion = useForm({
-    phone: '',
-    city: '',
-    license_type: '',
-    experience_years: '',
-    cv_file: null,
-    notes: '',
+    phone: '', city: '', license_type: '', experience_years: '', cv_file: null, notes: '',
   })
 
-  // Form: Solicitud Transporte
   const solicitud = useForm({
-    origin: '',
-    destination: '',
-    cargo_type: '',
-    cargo_weight_kg: '',
-    pickup_date: '',
-    description: '',
-    contact_phone: '',
-    contact_email: user.email || '',
+    origin: '', destination: '', cargo_type: '', cargo_weight_kg: '',
+    pickup_date: '', description: '', contact_phone: '', contact_email: user.email || '',
   })
 
-  // Form: Solicitud Colaborador (Integración de flota)
   const colaborador = useForm({
-    company_name: '',
-    contact_name: '',
-    email: user.email || '',
-    phone: '',
-    fleet_size: '',
-    fleet_types: '',
-    coverage: '',
-    message: '',
+    company_name: '', contact_name: '', email: user.email || '',
+    phone: '', fleet_size: '', fleet_types: '', coverage: '', message: '',
   })
 
   return (
     <AuthenticatedLayout>
-      <div className="max-w-6xl mx-auto p-6 sm:p-8 relative">
-        {/* Botón a dashboard por rol (solo si tiene rol) */}
-        {hasRole && (
-          <Link
-            href={getDashboardUrl()}
-            className="absolute right-6 top-6 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 transition"
-          >
-            Ir a mi panel →
-          </Link>
-        )}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold text-[#0094d9] uppercase tracking-widest mb-1">Portal</p>
+            <h1 className="text-2xl font-extrabold text-white">Bienvenido, {user.name?.split(' ')[0]}</h1>
+            <p className="text-sm text-slate-400 mt-0.5">{user.email}</p>
+          </div>
+          {hasRole && (
+            <Link
+              href={getDashboardUrl()}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#0094d9]/20 hover:bg-[#0094d9]/30 border border-[#0094d9]/30 text-[#0094d9] hover:text-white text-xs font-semibold px-4 py-2 transition-all"
+            >
+              Ir a mi panel <ArrowRightIcon className="w-3.5 h-3.5" />
+            </Link>
+          )}
+        </div>
 
         {/* Flash messages */}
         {flash.success && (
-          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 text-green-800 px-4 py-2">
-            {flash.success}
-          </div>
-        )}
-        {flash.info && (
-          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 px-4 py-2">
-            {flash.info}
+          <div className="flex items-center gap-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 text-sm">
+            <CheckCircleIcon className="w-4 h-4 shrink-0" />{flash.success}
           </div>
         )}
         {flash.error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 text-red-800 px-4 py-2">
-            {flash.error}
+          <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm">
+            <XCircleIcon className="w-4 h-4 shrink-0" />{flash.error}
           </div>
         )}
 
-        {/* Contenedor principal - alto contraste */}
-        <div className="rounded-xl bg-white shadow-md ring-1 ring-gray-200">
-          <div className="p-6 sm:p-8 border-b border-gray-100">
-            <h1 className="text-2xl font-bold text-gray-900">Bienvenido, {user.name}</h1>
-
-            {!hasRole ? (
-              <p className="mt-2 text-sm text-gray-700 max-w-3xl">
-                Tu cuenta aún no tiene un rol asignado. Puedes <b>postular como conductor</b>,{' '}
-                <b>solicitar un servicio de transporte</b> o <b>postular como colaborador (integrar flota)</b>. Si ya
-                perteneces a SCAR y necesitas acceso, contáctanos.
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-gray-700">
-                Accede a tu panel según tu rol para gestionar fletes y operación.
-              </p>
-            )}
-          </div>
-
-          {!hasRole && (
-            <div className="p-6 sm:p-8 space-y-8">
-              {/* Grid 2 columnas: Conductor + Transporte */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* --- Postulación a conductor --- */}
-                <section id="postulacion-conductor" className="rounded-xl border border-gray-200">
-                  <div className="p-5 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-900">Postulación a Conductor</h2>
-                    <p className="mt-1 text-sm text-gray-700">
-                      Completa tus datos y adjunta tu CV. Revisaremos tu postulación y te contactaremos.
-                    </p>
-                  </div>
-
-                  <form
-                    className="p-5 space-y-5"
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      postulacion.post('/postulaciones/conductor', { forceFormData: true })
-                    }}
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Teléfono</label>
-                        <input
-                          name="phone"
-                          value={postulacion.data.phone}
-                          onChange={(e) => postulacion.setData('phone', e.target.value)}
-                          placeholder="+56 9..."
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {postulacion.errors.phone && (
-                          <p className="mt-1 text-xs text-red-600">{postulacion.errors.phone}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Ciudad base</label>
-                        <input
-                          name="city"
-                          value={postulacion.data.city}
-                          onChange={(e) => postulacion.setData('city', e.target.value)}
-                          placeholder="Talca, Santiago..."
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {postulacion.errors.city && (
-                          <p className="mt-1 text-xs text-red-600">{postulacion.errors.city}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Licencia</label>
-                        <input
-                          name="license_type"
-                          value={postulacion.data.license_type}
-                          onChange={(e) => postulacion.setData('license_type', e.target.value)}
-                          placeholder="A2 / A4 / A5..."
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {postulacion.errors.license_type && (
-                          <p className="mt-1 text-xs text-red-600">{postulacion.errors.license_type}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Años de experiencia</label>
-                        <input
-                          name="experience_years"
-                          type="number"
-                          min="0"
-                          value={postulacion.data.experience_years}
-                          onChange={(e) => postulacion.setData('experience_years', e.target.value)}
-                          placeholder="0"
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {postulacion.errors.experience_years && (
-                          <p className="mt-1 text-xs text-red-600">{postulacion.errors.experience_years}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Upload CV */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">CV (PDF/DOC/DOCX)</label>
-                      <div className="mt-2 rounded-lg border border-dashed border-gray-300 px-4 py-6">
-                        <div className="flex items-center gap-3">
-                          <PhotoIcon className="h-7 w-7 text-gray-400" />
-                          <div className="text-sm text-gray-700">
-                            <label
-                              htmlFor="cv-upload"
-                              className="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer"
-                            >
-                              Subir archivo
-                            </label>
-                            <input
-                              id="cv-upload"
-                              type="file"
-                              accept=".pdf,.doc,.docx"
-                              className="sr-only"
-                              onChange={(e) => postulacion.setData('cv_file', e.target.files?.[0] || null)}
-                            />
-                            <span className="ml-2 text-gray-600">o arrastra y suelta aquí</span>
-                            <div className="mt-1 text-xs text-gray-500">Máx. 5MB</div>
-                            {postulacion.data.cv_file && (
-                              <div className="mt-2 text-xs text-gray-700">
-                                Archivo seleccionado: <b>{postulacion.data.cv_file.name}</b>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {postulacion.errors.cv_file && (
-                          <p className="mt-2 text-xs text-red-600">{postulacion.errors.cv_file}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">Comentarios</label>
-                      <textarea
-                        name="notes"
-                        rows={3}
-                        value={postulacion.data.notes}
-                        onChange={(e) => postulacion.setData('notes', e.target.value)}
-                        placeholder="Disponibilidad, rutas, tipo de camión, etc."
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {postulacion.errors.notes && (
-                        <p className="mt-1 text-xs text-red-600">{postulacion.errors.notes}</p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => postulacion.reset()}
-                        className="text-sm font-semibold text-gray-700 hover:text-gray-900"
-                      >
-                        Limpiar
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={postulacion.processing}
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 disabled:opacity-60"
-                      >
-                        {postulacion.processing ? 'Enviando...' : 'Enviar postulación'}
-                      </button>
-                    </div>
-                  </form>
-                </section>
-
-                {/* --- Solicitud de transporte --- */}
-                <section className="rounded-xl border border-gray-200">
-                  <div className="p-5 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-900">Solicitar transporte</h2>
-                    <p className="mt-1 text-sm text-gray-700">
-                      Indica origen, destino y detalles de la carga. Te contactaremos para coordinar.
-                    </p>
-                  </div>
-
-                  <form
-                    className="p-5 space-y-5"
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      solicitud.post('/solicitudes/transporte')
-                    }}
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Origen</label>
-                        <input
-                          name="origin"
-                          value={solicitud.data.origin}
-                          onChange={(e) => solicitud.setData('origin', e.target.value)}
-                          placeholder="Ciudad / dirección"
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {solicitud.errors.origin && (
-                          <p className="mt-1 text-xs text-red-600">{solicitud.errors.origin}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Destino</label>
-                        <input
-                          name="destination"
-                          value={solicitud.data.destination}
-                          onChange={(e) => solicitud.setData('destination', e.target.value)}
-                          placeholder="Ciudad / dirección"
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {solicitud.errors.destination && (
-                          <p className="mt-1 text-xs text-red-600">{solicitud.errors.destination}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Tipo de carga</label>
-                        <input
-                          name="cargo_type"
-                          value={solicitud.data.cargo_type}
-                          onChange={(e) => solicitud.setData('cargo_type', e.target.value)}
-                          placeholder="Paletizada, granel, maquinaria..."
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {solicitud.errors.cargo_type && (
-                          <p className="mt-1 text-xs text-red-600">{solicitud.errors.cargo_type}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Peso aprox. (kg)</label>
-                        <input
-                          name="cargo_weight_kg"
-                          type="number"
-                          min="0"
-                          value={solicitud.data.cargo_weight_kg}
-                          onChange={(e) => solicitud.setData('cargo_weight_kg', e.target.value)}
-                          placeholder="1000"
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {solicitud.errors.cargo_weight_kg && (
-                          <p className="mt-1 text-xs text-red-600">{solicitud.errors.cargo_weight_kg}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Fecha de retiro (opcional)</label>
-                        <input
-                          name="pickup_date"
-                          type="date"
-                          value={solicitud.data.pickup_date}
-                          onChange={(e) => solicitud.setData('pickup_date', e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {solicitud.errors.pickup_date && (
-                          <p className="mt-1 text-xs text-red-600">{solicitud.errors.pickup_date}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900">Teléfono de contacto</label>
-                        <input
-                          name="contact_phone"
-                          value={solicitud.data.contact_phone}
-                          onChange={(e) => solicitud.setData('contact_phone', e.target.value)}
-                          placeholder="+56 9..."
-                          className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                        />
-                        {solicitud.errors.contact_phone && (
-                          <p className="mt-1 text-xs text-red-600">{solicitud.errors.contact_phone}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">Descripción</label>
-                      <textarea
-                        name="description"
-                        rows={4}
-                        value={solicitud.data.description}
-                        onChange={(e) => solicitud.setData('description', e.target.value)}
-                        placeholder="Dimensiones, cuidados, horario, referencias..."
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {solicitud.errors.description && (
-                        <p className="mt-1 text-xs text-red-600">{solicitud.errors.description}</p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => solicitud.reset()}
-                        className="text-sm font-semibold text-gray-700 hover:text-gray-900"
-                      >
-                        Limpiar
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={solicitud.processing}
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 disabled:opacity-60"
-                      >
-                        {solicitud.processing ? 'Enviando...' : 'Enviar solicitud'}
-                      </button>
-                    </div>
-                  </form>
-                </section>
-              </div>
-
-              {/* --- Solicitud Colaborador (Integración de flota) --- */}
-              <section id="solicitud-colaborador" className="rounded-xl border border-gray-200">
-                <div className="p-5 border-b border-gray-100">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Convertirse en Colaborador (Integrar flota)
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-700">
-                    Si cuentas con camiones/ramplas/furgones y quieres operar con SCAR, completa este formulario.
-                    Evaluamos alianzas B2B de mediano y largo plazo.
+        {/* Notificaciones de solicitudes procesadas */}
+        {notifications.length > 0 && (
+          <div className="space-y-3">
+            {notifications.map((n, i) => (
+              <div
+                key={i}
+                className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${
+                  n.status === 'approved'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-red-500/10 border-red-500/30 text-red-300'
+                }`}
+              >
+                <BellAlertIcon className="w-4 h-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">
+                    {n.status === 'approved'
+                      ? `✅ Tu ${TIPO_LABEL[n.tipo]} fue aprobada`
+                      : `❌ Tu ${TIPO_LABEL[n.tipo]} fue revisada y no pudo avanzar`}
                   </p>
+                  {n.admin_notes && <p className="mt-1 opacity-80 text-xs">{n.admin_notes}</p>}
+                  {n.status === 'approved' && hasRole && (
+                    <Link href={getDashboardUrl()} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2">
+                      Ir a mi panel <ArrowRightIcon className="w-3 h-3" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Formularios solo si no tiene rol */}
+        {!hasRole && (
+          <div className="bg-white/[0.02] border border-[#0094d9]/15 rounded-2xl overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#0094d9]/15">
+              <p className="text-sm text-slate-300">
+                Tu cuenta aún no tiene un rol asignado. Completa una de las solicitudes a continuación para sumarte al equipo SCAR.
+              </p>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-[#0094d9]/15">
+              {TABS.map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-all ${
+                    activeTab === key
+                      ? 'text-[#0094d9] border-b-2 border-[#0094d9] bg-[#0094d9]/5'
+                      : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 hidden sm:block" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab: Conductor */}
+            {activeTab === 'conductor' && (
+              <form
+                className="p-6 space-y-5"
+                onSubmit={(e) => { e.preventDefault(); postulacion.post('/postulaciones/conductor', { forceFormData: true }) }}
+              >
+                <div>
+                  <h2 className="text-base font-bold text-white">Postulación a Conductor</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Adjunta tu CV y completa tus datos. Revisaremos tu postulación y te contactaremos.</p>
                 </div>
 
-                <form
-                  className="p-5 space-y-5"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    colaborador.post(route('contacto.colaborador'), {
-                      onSuccess: () => colaborador.reset(),
-                    })
-                  }}
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-gray-900">Empresa / Razón social</label>
-                      <input
-                        name="company_name"
-                        value={colaborador.data.company_name}
-                        onChange={(e) => colaborador.setData('company_name', e.target.value)}
-                        placeholder="Ej: Transportes Ejemplo SpA"
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.company_name && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.company_name}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InputField label="Teléfono" error={postulacion.errors.phone}>
+                    <DarkInput value={postulacion.data.phone} onChange={e => postulacion.setData('phone', e.target.value)} placeholder="+56 9..." />
+                  </InputField>
+                  <InputField label="Ciudad base" error={postulacion.errors.city}>
+                    <DarkInput value={postulacion.data.city} onChange={e => postulacion.setData('city', e.target.value)} placeholder="Talca, Santiago..." />
+                  </InputField>
+                  <InputField label="Tipo de licencia" error={postulacion.errors.license_type}>
+                    <DarkInput value={postulacion.data.license_type} onChange={e => postulacion.setData('license_type', e.target.value)} placeholder="A2 / A4 / A5..." />
+                  </InputField>
+                  <InputField label="Años de experiencia" error={postulacion.errors.experience_years}>
+                    <DarkInput type="number" min="0" value={postulacion.data.experience_years} onChange={e => postulacion.setData('experience_years', e.target.value)} placeholder="0" />
+                  </InputField>
+                </div>
+
+                <InputField label="CV (PDF/DOC/DOCX)" error={postulacion.errors.cv_file}>
+                  <label className="flex items-center gap-3 w-full rounded-xl bg-white/[0.05] border border-dashed border-[#0094d9]/30 px-4 py-4 cursor-pointer hover:border-[#0094d9]/50 hover:bg-white/[0.08] transition-colors">
+                    <DocumentArrowUpIcon className="h-6 w-6 text-[#0094d9]/60 shrink-0" />
+                    <div className="text-sm">
+                      <span className="font-semibold text-[#0094d9]">Subir archivo</span>
+                      <span className="text-slate-400 ml-1">o arrastra aquí · Máx. 5MB</span>
+                      {postulacion.data.cv_file && (
+                        <div className="mt-1 text-xs text-emerald-400">✓ {postulacion.data.cv_file.name}</div>
                       )}
                     </div>
+                    <input type="file" accept=".pdf,.doc,.docx" className="sr-only" onChange={e => postulacion.setData('cv_file', e.target.files?.[0] || null)} />
+                  </label>
+                </InputField>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">Nombre de contacto</label>
-                      <input
-                        name="contact_name"
-                        value={colaborador.data.contact_name}
-                        onChange={(e) => colaborador.setData('contact_name', e.target.value)}
-                        placeholder="Nombre y apellido"
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.contact_name && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.contact_name}</p>
-                      )}
-                    </div>
+                <InputField label="Comentarios" error={postulacion.errors.notes}>
+                  <DarkTextarea value={postulacion.data.notes} onChange={e => postulacion.setData('notes', e.target.value)} placeholder="Disponibilidad, rutas, tipo de camión, etc." />
+                </InputField>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">Teléfono</label>
-                      <input
-                        name="phone"
-                        value={colaborador.data.phone}
-                        onChange={(e) => colaborador.setData('phone', e.target.value)}
-                        placeholder="+56 9..."
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.phone && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.phone}</p>
-                      )}
-                    </div>
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <button type="button" onClick={() => postulacion.reset()} className="text-sm text-slate-400 hover:text-slate-200 transition-colors">Limpiar</button>
+                  <button type="submit" disabled={postulacion.processing} className="rounded-xl bg-[#0094d9] hover:bg-[#00a0f0] disabled:opacity-50 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#0094d9]/20 transition-all">
+                    {postulacion.processing ? 'Enviando…' : 'Enviar postulación'}
+                  </button>
+                </div>
+              </form>
+            )}
 
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-gray-900">Correo</label>
-                      <input
-                        name="email"
-                        type="email"
-                        value={colaborador.data.email}
-                        onChange={(e) => colaborador.setData('email', e.target.value)}
-                        placeholder="nombre@empresa.cl"
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.email && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.email}</p>
-                      )}
-                    </div>
+            {/* Tab: Transporte */}
+            {activeTab === 'transporte' && (
+              <form
+                className="p-6 space-y-5"
+                onSubmit={(e) => { e.preventDefault(); solicitud.post('/solicitudes/transporte') }}
+              >
+                <div>
+                  <h2 className="text-base font-bold text-white">Solicitar Transporte</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Indica origen, destino y detalles de la carga. Te contactaremos para coordinar.</p>
+                </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">Tamaño de flota</label>
-                      <input
-                        name="fleet_size"
-                        value={colaborador.data.fleet_size}
-                        onChange={(e) => colaborador.setData('fleet_size', e.target.value)}
-                        placeholder="Ej: 5, 12, 40"
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.fleet_size && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.fleet_size}</p>
-                      )}
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InputField label="Origen" error={solicitud.errors.origin}>
+                    <DarkInput value={solicitud.data.origin} onChange={e => solicitud.setData('origin', e.target.value)} placeholder="Ciudad / dirección" />
+                  </InputField>
+                  <InputField label="Destino" error={solicitud.errors.destination}>
+                    <DarkInput value={solicitud.data.destination} onChange={e => solicitud.setData('destination', e.target.value)} placeholder="Ciudad / dirección" />
+                  </InputField>
+                  <InputField label="Tipo de carga" error={solicitud.errors.cargo_type}>
+                    <DarkInput value={solicitud.data.cargo_type} onChange={e => solicitud.setData('cargo_type', e.target.value)} placeholder="Paletizada, granel, maquinaria..." />
+                  </InputField>
+                  <InputField label="Peso aprox. (kg)" error={solicitud.errors.cargo_weight_kg}>
+                    <DarkInput type="number" min="0" value={solicitud.data.cargo_weight_kg} onChange={e => solicitud.setData('cargo_weight_kg', e.target.value)} placeholder="1000" />
+                  </InputField>
+                  <InputField label="Fecha de retiro (opcional)" error={solicitud.errors.pickup_date}>
+                    <DarkInput type="date" value={solicitud.data.pickup_date} onChange={e => solicitud.setData('pickup_date', e.target.value)} />
+                  </InputField>
+                  <InputField label="Teléfono de contacto" error={solicitud.errors.contact_phone}>
+                    <DarkInput value={solicitud.data.contact_phone} onChange={e => solicitud.setData('contact_phone', e.target.value)} placeholder="+56 9..." />
+                  </InputField>
+                </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900">Tipos de equipos</label>
-                      <input
-                        name="fleet_types"
-                        value={colaborador.data.fleet_types}
-                        onChange={(e) => colaborador.setData('fleet_types', e.target.value)}
-                        placeholder="Rampla, camión 3/4, furgón..."
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.fleet_types && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.fleet_types}</p>
-                      )}
-                    </div>
+                <InputField label="Descripción" error={solicitud.errors.description}>
+                  <DarkTextarea rows={4} value={solicitud.data.description} onChange={e => solicitud.setData('description', e.target.value)} placeholder="Dimensiones, cuidados, horario, referencias..." />
+                </InputField>
 
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-gray-900">Cobertura / rutas</label>
-                      <input
-                        name="coverage"
-                        value={colaborador.data.coverage}
-                        onChange={(e) => colaborador.setData('coverage', e.target.value)}
-                        placeholder="Regiones, troncales, última milla..."
-                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                      />
-                      {colaborador.errors.coverage && (
-                        <p className="mt-1 text-xs text-red-600">{colaborador.errors.coverage}</p>
-                      )}
-                    </div>
-                  </div>
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <button type="button" onClick={() => solicitud.reset()} className="text-sm text-slate-400 hover:text-slate-200 transition-colors">Limpiar</button>
+                  <button type="submit" disabled={solicitud.processing} className="rounded-xl bg-[#0094d9] hover:bg-[#00a0f0] disabled:opacity-50 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#0094d9]/20 transition-all">
+                    {solicitud.processing ? 'Enviando…' : 'Enviar solicitud'}
+                  </button>
+                </div>
+              </form>
+            )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900">Detalles operativos</label>
-                    <textarea
-                      name="message"
-                      rows={4}
-                      value={colaborador.data.message}
-                      onChange={(e) => colaborador.setData('message', e.target.value)}
-                      placeholder="Disponibilidad, experiencia, documentación, tipo de servicio, observaciones..."
-                      className="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
-                    />
-                    {colaborador.errors.message && (
-                      <p className="mt-1 text-xs text-red-600">{colaborador.errors.message}</p>
-                    )}
-                  </div>
+            {/* Tab: Colaborador */}
+            {activeTab === 'colaborador' && (
+              <form
+                className="p-6 space-y-5"
+                onSubmit={(e) => { e.preventDefault(); colaborador.post('/solicitudes/colaborador', { onSuccess: () => colaborador.reset() }) }}
+              >
+                <div>
+                  <h2 className="text-base font-bold text-white">Integrar Flota como Colaborador</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Si cuentas con camiones/ramplas/furgones y quieres operar con SCAR, completa este formulario.</p>
+                </div>
 
-                  <div className="flex items-center justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={() => colaborador.reset()}
-                      className="text-sm font-semibold text-gray-700 hover:text-gray-900"
-                    >
-                      Limpiar
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={colaborador.processing}
-                      className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 disabled:opacity-60"
-                    >
-                      {colaborador.processing ? 'Enviando...' : 'Enviar solicitud'}
-                    </button>
-                  </div>
-                </form>
-              </section>
-            </div>
-          )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InputField label="Empresa / Razón social" error={colaborador.errors.company_name}>
+                    <DarkInput value={colaborador.data.company_name} onChange={e => colaborador.setData('company_name', e.target.value)} placeholder="Transportes Ejemplo SpA" />
+                  </InputField>
+                  <InputField label="Nombre de contacto" error={colaborador.errors.contact_name}>
+                    <DarkInput value={colaborador.data.contact_name} onChange={e => colaborador.setData('contact_name', e.target.value)} placeholder="Nombre y apellido" />
+                  </InputField>
+                  <InputField label="Teléfono" error={colaborador.errors.phone}>
+                    <DarkInput value={colaborador.data.phone} onChange={e => colaborador.setData('phone', e.target.value)} placeholder="+56 9..." />
+                  </InputField>
+                  <InputField label="Correo" error={colaborador.errors.email}>
+                    <DarkInput type="email" value={colaborador.data.email} onChange={e => colaborador.setData('email', e.target.value)} placeholder="nombre@empresa.cl" />
+                  </InputField>
+                  <InputField label="Tamaño de flota" error={colaborador.errors.fleet_size}>
+                    <DarkInput value={colaborador.data.fleet_size} onChange={e => colaborador.setData('fleet_size', e.target.value)} placeholder="5, 12, 40..." />
+                  </InputField>
+                  <InputField label="Tipos de equipos" error={colaborador.errors.fleet_types}>
+                    <DarkInput value={colaborador.data.fleet_types} onChange={e => colaborador.setData('fleet_types', e.target.value)} placeholder="Rampla, camión 3/4, furgón..." />
+                  </InputField>
+                  <InputField label="Cobertura / rutas" error={colaborador.errors.coverage}>
+                    <DarkInput value={colaborador.data.coverage} onChange={e => colaborador.setData('coverage', e.target.value)} placeholder="Regiones, troncales, última milla..." />
+                  </InputField>
+                </div>
 
-          {/* Soporte simple y real */}
-          <div className="p-6 sm:p-8 border-t border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">Soporte</h3>
-            <p className="mt-1 text-sm text-gray-700">
-              Si necesitas ayuda con tu cuenta o tu solicitud, escríbenos:
-              <a href="mailto:contacto@scartransportes.cl" className="ml-1 text-indigo-600 hover:underline">
-                contacto@scartransportes.cl
-              </a>
-            </p>
+                <InputField label="Detalles operativos" error={colaborador.errors.message}>
+                  <DarkTextarea rows={4} value={colaborador.data.message} onChange={e => colaborador.setData('message', e.target.value)} placeholder="Disponibilidad, experiencia, documentación, tipo de servicio..." />
+                </InputField>
+
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <button type="button" onClick={() => colaborador.reset()} className="text-sm text-slate-400 hover:text-slate-200 transition-colors">Limpiar</button>
+                  <button type="submit" disabled={colaborador.processing} className="rounded-xl bg-[#0094d9] hover:bg-[#00a0f0] disabled:opacity-50 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#0094d9]/20 transition-all">
+                    {colaborador.processing ? 'Enviando…' : 'Enviar solicitud'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* Si ya tiene rol, mensaje de redirección */}
+        {hasRole && notifications.length === 0 && (
+          <div className="bg-white/[0.02] border border-[#0094d9]/15 rounded-2xl p-6 text-center">
+            <p className="text-slate-400 text-sm mb-3">Accede a tu panel para gestionar fletes y operación.</p>
+            <Link href={getDashboardUrl()} className="inline-flex items-center gap-2 rounded-xl bg-[#0094d9] hover:bg-[#00a0f0] px-5 py-2.5 text-sm font-semibold text-white transition-all">
+              Ir a mi panel <ArrowRightIcon className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
       </div>
     </AuthenticatedLayout>
   )

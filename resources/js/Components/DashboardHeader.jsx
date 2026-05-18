@@ -10,7 +10,6 @@ export default function DashboardHeader() {
   const user = props.auth?.user
   const roles = props.auth?.roles || []
 
-  // Genera iniciales a partir de user.name
   const initials = useMemo(() => {
     if (!user?.name) return null
     const parts = user.name.trim().split(' ')
@@ -23,43 +22,59 @@ export default function DashboardHeader() {
   const navigation = getNavigation(roles)
   const userNavigation = [
     { name: 'Perfil', href: '/profile', method: 'get' },
-    { name: 'Salir', href: '/logout', method: 'post' },
+    { name: 'Salir',  href: '/logout',  method: 'post' },
   ]
 
   const [activeItem, setActiveItem] = useState('')
   useEffect(() => {
     const currentPath = window.location.pathname
-    const current = navigation.find((item) =>
-      currentPath.startsWith(item.href)
-    )
+    const current = navigation.find((item) => currentPath.startsWith(item.href))
     if (current) setActiveItem(current.name)
   }, [navigation])
 
   const isActive = (name) => activeItem === name
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-t from-white via-[#0c1e3aa0] to-[#0c1e3a] shadow-md">
+    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3a]/90 to-transparent shadow-md">
+
+      {/* Particles — same as public header */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <svg className="absolute w-full h-full animate-pulse opacity-60 blur-[0.5px] mix-blend-screen">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <circle
+              key={i}
+              cx={`${(i * 4.2) % 100}%`}
+              cy={`${(i * 7.3) % 100}%`}
+              r={1}
+              fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
+              fillOpacity="0.4"
+            />
+          ))}
+        </svg>
+      </div>
+
       <div className="relative mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8 justify-between">
-        {/* Logo */}
+
+        {/* Logo — same as public header */}
         <div className="flex-shrink-0">
           <Link href={getDashboardUrl(roles)}>
             <img
-              className="h-6 sm:h-6 md:h-5 lg:h-7 w-auto mt-1"
-              src="/img/scar3.png"
+              className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto mt-1"
+              src="/img/scar.webp"
               alt="Transportes SCAR"
             />
           </Link>
         </div>
 
         {/* Navegación desktop */}
-        <div className="hidden lg:flex gap-x-4 items-center">
+        <div className="hidden lg:flex gap-x-1 items-center">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
                 isActive(item.name)
-                  ? 'bg-[#003f8c] text-white shadow ring-2 ring-[#0094d9]'
+                  ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
                   : 'text-white hover:text-[#0094d9] hover:bg-white/10'
               }`}
             >
@@ -68,26 +83,30 @@ export default function DashboardHeader() {
           ))}
         </div>
 
-        {/* Perfil desktop */}
-        <div className="hidden lg:flex">
-          <Menu as="div" className="relative ml-4 shrink-0">
-            <MenuButton className="flex items-center justify-center h-8 w-8 rounded-full bg-white ring-2 ring-white/20 overflow-hidden">
+        {/* Avatar desktop */}
+        <div className="hidden lg:flex items-center gap-3">
+          <Menu as="div" className="relative shrink-0">
+            <MenuButton className="flex items-center justify-center h-8 w-8 rounded-full bg-[#0094d9]/20 border-2 border-[#0094d9]/40 hover:border-[#0094d9] transition-colors overflow-hidden">
               {initials ? (
-                <span className="font-medium text-sm text-gray-700">
-                  {initials}
-                </span>
+                <span className="font-bold text-sm text-white">{initials}</span>
               ) : (
-                <UserIcon className="h-5 w-5 text-gray-500" />
+                <UserIcon className="h-4 w-4 text-slate-300" />
               )}
             </MenuButton>
-            <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
+            <MenuItems className="absolute right-0 z-50 mt-2 w-44 origin-top-right rounded-xl bg-[#0c1e3a] border border-[#0094d9]/20 shadow-xl shadow-black/40 overflow-hidden">
+              {user && (
+                <div className="px-4 py-2.5 border-b border-[#0094d9]/15">
+                  <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+                  <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                </div>
+              )}
               {userNavigation.map((item) => (
                 <MenuItem key={item.name}>
                   <Link
                     href={item.href}
                     method={item.method}
                     as="button"
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#0094d9]/10 transition-colors"
                   >
                     {item.name}
                   </Link>
@@ -97,34 +116,30 @@ export default function DashboardHeader() {
           </Menu>
         </div>
 
-        {/* Botón burger móvil */}
+        {/* Burger móvil */}
         <div className="flex lg:hidden">
           {!mobileMenuOpen && (
-            <button
-              type="button"
-              className="p-2 text-white"
-              onClick={() => setMobileMenuOpen(true)}
-            >
+            <button type="button" className="p-2 text-white" onClick={() => setMobileMenuOpen(true)}>
               <Bars3Icon className="h-6 w-6" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Menú móvil con fondo semitransparente */}
+      {/* Menú móvil */}
       {mobileMenuOpen && (
         <div className="absolute top-0 left-0 z-60 w-full px-4 py-1">
-          <div className="bg-white bg-opacity-50 shadow-md rounded px-2 py-1 flex items-center justify-between space-x-1">
-            <div className="flex space-x-4 overflow-x-auto">
+          <div className="bg-[#0c1e3a]/95 backdrop-blur border border-[#0094d9]/20 rounded-xl shadow-xl px-3 py-2 flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1.5 overflow-x-auto">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-semibold transition-all duration-200 ${
+                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-200 ${
                     isActive(item.name)
                       ? 'bg-[#003f8c] text-white ring-1 ring-[#0094d9]/50'
-                      : 'text-gray-700 hover:text-[#003f8c] hover:bg-gray-100'
+                      : 'text-slate-200 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   {item.name}
@@ -137,18 +152,14 @@ export default function DashboardHeader() {
                   method={item.method}
                   as="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-semibold text-gray-700 hover:text-[#003f8c] hover:bg-gray-100 transition-all duration-200"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-200"
                 >
                   {item.name}
                 </Link>
               ))}
             </div>
-            <button
-              type="button"
-              className="p-2 text-gray-500 flex-shrink-0"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <XMarkIcon className="h-6 w-6" />
+            <button type="button" className="p-1.5 text-slate-400 hover:text-white flex-shrink-0" onClick={() => setMobileMenuOpen(false)}>
+              <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -159,6 +170,7 @@ export default function DashboardHeader() {
 
 function getNavigation(roles) {
   const navigation = []
+  navigation.push({ name: 'Inicio', href: '/' })
   if (roles.includes('superadmin') || roles.includes('admin')) {
     navigation.push({ name: 'Servicios', href: '/fletes' })
   }

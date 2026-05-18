@@ -37,7 +37,7 @@ class PagoController extends Controller
 
             // 2) Preparar variables para la vista
             $periodo    = Carbon::now()->format('Y-m');
-            $logoPath   = public_path('img/scar3.png');
+            $logoPath   = public_path('img/scar3.webp');
             $logoBase64 = file_exists($logoPath)
                 ? base64_encode(file_get_contents($logoPath))
                 : '';
@@ -100,7 +100,7 @@ class PagoController extends Controller
 
             // 2) Preparar variables para la vista de liquidación
             $periodo    = Carbon::now()->format('Y-m');
-            $logoPath   = public_path('img/scar3.png');
+            $logoPath   = public_path('img/scar3.webp');
             $logoBase64 = file_exists($logoPath)
                 ? base64_encode(file_get_contents($logoPath))
                 : '';

@@ -4,11 +4,23 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\SolicitudTransporte;
 
 class ClienteDashboardController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Dashboards/ClienteDashboard');
+        $userId = auth()->id();
+
+        $solicitudStatus = SolicitudTransporte::where('user_id', $userId)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->latest('approved_at')
+            ->first(['status', 'admin_notes']);
+
+        return Inertia::render('Dashboards/ClienteDashboard', [
+            'solicitudStatus' => $solicitudStatus
+                ? ['status' => $solicitudStatus->status, 'admin_notes' => $solicitudStatus->admin_notes]
+                : null,
+        ]);
     }
 }

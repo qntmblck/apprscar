@@ -1,4 +1,3 @@
-// Features.jsx
 import {
   ShieldCheckIcon,
   ClockIcon,
@@ -71,40 +70,59 @@ export default function Features() {
   return (
     <section
       id="servicios"
-      className="bg-gradient-to-br from-[#0c1e3a] via-[#0c1e3aa0] to-[#102546] py-5 sm:py-7"
+      className="relative py-16 sm:py-20 overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0c1e3a 60%, #080f1e 100%)' }}
       aria-labelledby="features-title"
       itemScope
       itemType="https://schema.org/Service"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Grid overlay */}
+      <div
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,148,217,0.12) 1px, transparent 0)',
+          backgroundSize: '28px 28px',
+        }}
+      />
+
+      {/* Glow */}
+      <div className="absolute top-0 left-1/3 w-80 h-80 rounded-full bg-[#0094d9]/10 blur-[120px] pointer-events-none" />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           ref={ref}
           initial={{ opacity: 0, x: reduceMotion ? 0 : -42 }}
           animate={controls}
           transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="mb-7 sm:mb-9"
+          className="mb-10"
         >
-          {/* 2) Bloque horizontal (título | logo | párrafo) */}
           <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-5 lg:gap-10">
-            <h2
-              id="features-title"
-              className="text-2xl sm:text-4xl font-semibold tracking-tight text-white text-center text-balance lg:pr-2"
-            >
-              Método operativo: estándares, control y evidencia
-            </h2>
+            <div>
+              <p className="text-xs font-semibold text-[#0094d9] uppercase tracking-widest mb-3">
+                Método · Control · Evidencia
+              </p>
+              <h2
+                id="features-title"
+                className="text-2xl sm:text-4xl font-semibold tracking-tight text-white text-center text-balance lg:pr-2"
+              >
+                Método operativo: estándares, control y evidencia
+              </h2>
+            </div>
 
             <div className="flex items-center justify-center">
-              <img
-                src="/img/logoscar.png"
-                alt="Logo Transportes SCAR"
-                className="h-20 sm:h-28 lg:h-32 w-auto"
-                loading="lazy"
-                decoding="async"
-              />
+              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-[#0094d9]/10 border border-[#0094d9]/20 flex items-center justify-center">
+                <img
+                  src="/img/logoscar.webp"
+                  alt="Logo Transportes SCAR"
+                  className="h-20 sm:h-28 w-auto"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
             </div>
 
             <p
-              className="text-sm sm:text-base leading-6 sm:leading-7 text-gray-300 text-justify [hyphens:auto] lg:pl-2"
+              className="text-sm sm:text-base leading-6 sm:leading-7 text-slate-300 text-justify [hyphens:auto] lg:pl-2"
               style={{ textAlignLast: 'left' }}
             >
               Convertimos la operación en un sistema claro: estándares, responsables, KPI y respaldo documental.
@@ -121,7 +139,7 @@ export default function Features() {
           variants={containerVariants}
           initial="hidden"
           animate={inView ? 'show' : 'hidden'}
-          className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-7"
+          className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           role="list"
           aria-label="Características del servicio"
         >
@@ -130,20 +148,20 @@ export default function Features() {
               key={feature.name}
               variants={itemVariants}
               role="listitem"
-              className="flex flex-col items-start"
+              className="bg-white/[0.03] border border-[#0094d9]/20 rounded-2xl p-6 hover:border-[#0094d9]/40 hover:bg-white/[0.05] transition-all duration-300"
               itemScope
               itemType="https://schema.org/PropertyValue"
               itemProp="hasOfferCatalog"
             >
               <dt className="text-sm sm:text-base font-semibold text-white" itemProp="name">
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500 shadow-sm ring-1 ring-white/10">
-                  <feature.icon className="h-5 w-5 text-white" aria-hidden="true" />
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#0094d9]/10 border border-[#0094d9]/20">
+                  <feature.icon className="h-5 w-5 text-[#0094d9]" aria-hidden="true" />
                 </div>
                 {feature.name}
               </dt>
 
               <dd
-                className="mt-1 text-sm leading-6 text-gray-300 text-justify [hyphens:auto]"
+                className="mt-2 text-sm leading-6 text-slate-400 text-justify [hyphens:auto]"
                 style={{ textAlignLast: 'left' }}
                 itemProp="value"
               >

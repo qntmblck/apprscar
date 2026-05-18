@@ -8,28 +8,28 @@ const items = [
     title: 'ACHS Virtual & Gestión',
     description:
       'Soporte en seguridad y salud ocupacional, capacitación y cultura preventiva para equipos en operación.',
-    image: '/img/achs.png',
+    image: '/img/achs.webp',
     alt: 'ACHS Virtual y Gestión - seguridad, salud ocupacional y capacitación',
   },
   {
     title: 'Subcontrataley',
     description:
       'Control normativo y respaldo documental para gestión de subcontratación, trazabilidad y cumplimiento laboral.',
-    image: '/img/subcontrataley.png',
+    image: '/img/subcontrataley.webp',
     alt: 'Subcontrataley - cumplimiento laboral y trazabilidad documental',
   },
   {
     title: 'Maquinaria para Construcción',
     description:
       'Acceso a equipos y proveedores estratégicos para ampliar capacidad y respuesta operativa cuando el proyecto lo exige.',
-    image: '/img/santaema.png',
+    image: '/img/santaema.webp',
     alt: 'Maquinaria para construcción - apoyo operativo y disponibilidad de equipos',
   },
   {
     title: 'Red de operadores asociados',
     description:
       'Convenios con operadores y flotas complementarias para continuidad, soporte local y flexibilidad en picos de demanda.',
-    image: '/img/al.jpeg',
+    image: '/img/al.webp',
     alt: 'Red de operadores asociados - continuidad operativa y soporte local',
   },
 ]
@@ -97,7 +97,7 @@ export default function Alliances() {
           variants={containerVariants}
           initial="hidden"
           animate={inView ? 'show' : 'hidden'}
-          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           role="list"
           aria-label="Alianzas estratégicas"
         >

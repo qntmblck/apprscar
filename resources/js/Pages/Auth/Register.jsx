@@ -124,7 +124,7 @@ export default function Register() {
           href={route('google.redirect')}
           className="w-full flex items-center justify-center gap-3 bg-[#0c1e3a] hover:bg-[#132b54] text-white font-semibold py-2 rounded-md transition-all duration-200"
         >
-          <img src="/img/gmail.png?v=2" alt="SCAR" className="h-5 w-5" />
+          <img src="/img/gmail.webp?v=2" alt="SCAR" className="h-5 w-5" />
           Registrarse con Google
         </a>
       </div>

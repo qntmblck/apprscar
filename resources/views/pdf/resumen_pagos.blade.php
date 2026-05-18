@@ -90,7 +90,7 @@
   <table class="header-table">
     <tr>
       <td style="text-align:left;">
-        <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Scar Logo" style="height:45px;">
+        <img src="data:image/webp;base64,{{ $logoBase64 }}" alt="Scar Logo" style="height:45px;">
       </td>
       <td style="text-align:right;">
         <table class="header-summary" style="margin-top:12px; margin-left:auto; margin-right:0;">

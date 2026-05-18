@@ -15,13 +15,11 @@ export default function ContactCliente() {
       itemScope
       itemType="https://schema.org/Service"
     >
-      {/* Alineado EXACTO a ContactColaborador */}
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
-        {/* Card oscura (paleta del resto) con layout alineado */}
-        <div className="rounded-xl bg-white/5 ring-1 ring-white/15 p-6 sm:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="max-w-xl">
-              <p className="text-xs font-semibold tracking-widest uppercase text-indigo-200">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
+        <div className="w-full rounded-xl bg-white/5 ring-1 ring-white/15 p-6 sm:p-8">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold tracking-widest uppercase text-[#0094d9]">
                 Clientes · Cotización
               </p>
 
@@ -34,43 +32,16 @@ export default function ContactCliente() {
                 usar el portal SCAR para registrar tu solicitud.
               </p>
 
-              <div className="mt-8 rounded-xl bg-white/5 ring-1 ring-white/15 p-5">
-                <h3 className="text-lg font-semibold text-white">Qué debes ingresar</h3>
-                <ul className="mt-3 space-y-2 text-white/80 list-disc list-inside">
-                  <li>Origen y destino.</li>
-                  <li>Tipo de carga y observaciones.</li>
-                  <li>Peso/volumen aproximado (si aplica).</li>
-                  <li>Fecha de retiro (opcional).</li>
-                </ul>
-
-                <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                  <Link
-                    href={ctaHref}
-                    className="rounded-md bg-indigo-500 hover:bg-indigo-400 px-4 py-2 text-sm font-semibold text-white shadow transition"
-                  >
-                    {user ? 'Ir al portal y solicitar' : 'Crear cuenta para solicitar'}
-                  </Link>
-                  {!user && (
-                    <Link
-                      href="/login"
-                      className="rounded-md bg-white/10 hover:bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 transition"
-                    >
-                      Iniciar sesión
-                    </Link>
-                  )}
-                </div>
-              </div>
-
               <dl className="mt-10 space-y-4 text-base text-white/80" aria-label="Datos de contacto">
                 <div className="flex gap-x-4">
                   <dt className="flex-shrink-0" aria-hidden="true">
-                    <BuildingOffice2Icon className="h-6 w-6 text-indigo-300" />
+                    <BuildingOffice2Icon className="h-6 w-6 text-[#0094d9]" />
                   </dt>
                   <dd>Sta. Rosa de Santiago &amp; Cam. Uno, Lampa</dd>
                 </div>
                 <div className="flex gap-x-4">
                   <dt className="flex-shrink-0" aria-hidden="true">
-                    <PhoneIcon className="h-6 w-6 text-indigo-300" />
+                    <PhoneIcon className="h-6 w-6 text-[#0094d9]" />
                   </dt>
                   <dd>
                     <a href="tel:+56944671205" className="hover:text-white">
@@ -80,7 +51,7 @@ export default function ContactCliente() {
                 </div>
                 <div className="flex gap-x-4">
                   <dt className="flex-shrink-0" aria-hidden="true">
-                    <EnvelopeIcon className="h-6 w-6 text-indigo-300" />
+                    <EnvelopeIcon className="h-6 w-6 text-[#0094d9]" />
                   </dt>
                   <dd>
                     <a href="mailto:contacto@scartransportes.cl" className="hover:text-white">
@@ -102,7 +73,32 @@ export default function ContactCliente() {
               <meta itemProp="areaServed" content="Chile" />
             </div>
 
+            <div className="rounded-xl bg-white/5 ring-1 ring-white/15 p-5 sm:p-6">
+              <h3 className="text-lg font-semibold text-white">Qué debes ingresar</h3>
+              <ul className="mt-3 space-y-2 text-white/80 list-disc list-inside">
+                <li>Origen y destino.</li>
+                <li>Tipo de carga y observaciones.</li>
+                <li>Peso/volumen aproximado (si aplica).</li>
+                <li>Fecha de retiro (opcional).</li>
+              </ul>
 
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <Link
+                  href={ctaHref}
+                  className="rounded-xl bg-[#0094d9] hover:bg-[#00a0f0] px-4 py-2 text-center text-sm font-semibold text-white shadow transition"
+                >
+                  {user ? 'Ir al portal y solicitar' : 'Crear cuenta para solicitar'}
+                </Link>
+                {!user && (
+                  <Link
+                    href="/login"
+                    className="rounded-xl bg-white/5 border border-white/10 hover:bg-white/15 px-4 py-2 text-center text-sm font-semibold text-white ring-1 ring-white/20 transition"
+                  >
+                    Iniciar sesión
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

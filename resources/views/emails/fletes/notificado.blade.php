@@ -41,7 +41,7 @@
 
     <!-- Header con logo -->
     <div class="header">
-      <img src="{{ asset('img/scar3.png') }}" alt="Transportes SCAR">
+      <img src="{{ asset('img/scar3.webp') }}" alt="Transportes SCAR">
     </div>
 
     <!-- Cuerpo -->

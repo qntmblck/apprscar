@@ -82,18 +82,18 @@ export default function FiltrosBar({
   }
 
   return (
-    <div className="sticky top-[56px] z-20 bg-white border-b border-gray-200 overflow-visible">
+    <div className="sticky top-[56px] z-20 overflow-visible" style={{ background: 'rgba(10,22,40,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,148,217,0.18)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-x-2 overflow-x-auto">
 
         {/* Limpiar filtros */}
         <button
           onClick={() => window.location.href = '/fletes'}
-          className="inline-flex items-center p-1 bg-white border-b-2 border-transparent rounded hover:border-gray-300"
+          className="inline-flex items-center p-1.5 bg-white/[0.05] border border-transparent rounded-lg hover:border-[#0094d9]/30 transition-colors"
         >
           <ArrowPathIcon
             className={classNames(
-              hasFilters ? 'text-red-600' : 'text-gray-300',
-              'h-5 w-5 hover:text-gray-600'
+              hasFilters ? 'text-red-400' : 'text-slate-500',
+              'h-5 w-5 hover:text-slate-300'
             )}
           />
         </button>
@@ -108,7 +108,7 @@ export default function FiltrosBar({
             setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')
           }
         >
-          <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+          <div className="w-44 max-h-[480px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10">
             {clientesList.map(c => (
               <CheckboxItem
                 key={c.id}
@@ -136,7 +136,7 @@ export default function FiltrosBar({
           <div
             onClick={e => e.stopPropagation()}
             onMouseDown={e => e.stopPropagation()}
-            className="w-48 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100 z-50"
+            className="w-48 max-h-[480px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10 z-50"
           >
             <div className="p-2">
               <input
@@ -146,7 +146,7 @@ export default function FiltrosBar({
                 onChange={handleDestSearch}
                 onClick={e => e.stopPropagation()}
                 onMouseDown={e => e.stopPropagation()}
-                className="w-full px-2 py-1 text-base border rounded focus:outline-none"
+                className="w-full px-2 py-1 text-sm bg-white/[0.05] border border-[#0094d9]/20 text-slate-200 placeholder-slate-500 rounded-lg focus:outline-none focus:border-[#0094d9]/50"
               />
             </div>
 
@@ -157,7 +157,7 @@ export default function FiltrosBar({
                   return (
                     <div
                       key={d.id}
-                      className="flex items-center justify-between px-3 py-2 text-base cursor-pointer hover:bg-gray-100"
+                      className="flex items-center justify-between px-3 py-2 text-sm text-slate-200 cursor-pointer hover:bg-[#0094d9]/10"
                     >
                       <span>{d.nombre}</span>
                       <button
@@ -182,12 +182,12 @@ export default function FiltrosBar({
                   key={d.id}
                   onClick={() => {
                     handleToggleMultiSelect('destino_ids', d.id)
-                    setDestInput('')            // sólo al seleccionar, limpiamos
+                    setDestInput('')
                     setLocalSuggestions([])
                     setActiveTab('')
                     get('/fletes', { preserveState: true, data })
                   }}
-                  className="px-3 py-2 text-base text-gray-700 cursor-pointer hover:bg-gray-100"
+                  className="px-3 py-2 text-sm text-slate-300 cursor-pointer hover:bg-[#0094d9]/10 hover:text-white"
                 >
                   {d.nombre}
                 </div>
@@ -207,7 +207,7 @@ export default function FiltrosBar({
             setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
           }
         >
-          <div className="w-48 max-h-[580px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+          <div className="w-48 max-h-[580px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10">
             {colaboradores.map(col => (
               <CheckboxItem
                 key={`col-${col.id}`}
@@ -241,7 +241,7 @@ export default function FiltrosBar({
             setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
           }
         >
-          <div className="w-44 max-h-[480px] overflow-auto bg-white shadow-lg rounded divide-y divide-gray-100">
+          <div className="w-44 max-h-[480px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10">
             {tractos.map(t => (
               <CheckboxItem
                 key={t.id}
@@ -259,9 +259,9 @@ export default function FiltrosBar({
             onClick={onCrear}
             className={classNames(
               hasDest && hasClient
-                ? 'bg-green-700 hover:bg-green-800 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed',
-              'inline-flex items-center p-1 rounded'
+                ? 'bg-emerald-600/80 hover:bg-emerald-600 text-white border border-emerald-500/40'
+                : 'bg-white/[0.04] text-slate-600 cursor-not-allowed border border-white/10',
+              'inline-flex items-center p-1.5 rounded-lg transition-colors'
             )}
           >
             <FolderPlusIcon className="h-5 w-5" />
@@ -278,7 +278,7 @@ export default function FiltrosBar({
             setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')
           }
         >
-          <div className="w-64 bg-white p-2 shadow-lg rounded z-50 text-xs sm:text-sm">
+          <div className="w-64 bg-[#0a1628] border border-[#0094d9]/20 p-2 shadow-xl rounded-xl z-50 text-xs sm:text-sm text-slate-300">
             <DayPicker
               mode="range"
               selected={range}
@@ -326,9 +326,9 @@ export default function FiltrosBar({
             }
             className={classNames(
               activeTab === 'Rendición'
-                ? 'border-violet-500'
-                : 'border-transparent hover:border-violet-300',
-              'inline-flex items-center bg-white p-1 border-b-2 rounded'
+                ? 'border-[#0094d9] bg-[#0094d9]/10'
+                : 'border-transparent hover:border-[#0094d9]/30',
+              'inline-flex items-center bg-white/[0.05] p-1.5 border rounded-lg transition-colors'
             )}
           >
             {!data.rendicion_estado && (
@@ -342,45 +342,15 @@ export default function FiltrosBar({
             )}
           </button>
           <PortalDropdown isOpen={activeTab === 'Rendición'} type="Rendición">
-            <div className="w-32 bg-white shadow-lg rounded divide-y divide-gray-100">
-              <button
-                onClick={() => {
-                  setData('rendicion_estado', '')
-                  setActiveTab('')
-                  get('/fletes', { preserveState: true, data })
-                }}
-                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-              >
-                <LockClosedIcon className="h-5 w-5 text-gray-500 mr-2" />
-                Todas
+            <div className="w-36 bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10 overflow-hidden">
+              <button onClick={() => { setData('rendicion_estado', ''); setActiveTab(''); get('/fletes', { preserveState: true, data }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
+                <LockClosedIcon className="h-4 w-4 text-slate-400 mr-2" />Todas
               </button>
-              <button
-                onClick={() => {
-                  setData('rendicion_estado', 'Activo')
-                  setActiveTab('')
-                  get('/fletes', {
-                    preserveState: true,
-                    data: { ...data, rendicion_estado: 'Activo' },
-                  })
-                }}
-                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-              >
-                <LockOpenIcon className="h-5 w-5 text-green-600 mr-2" />
-                Activo
+              <button onClick={() => { setData('rendicion_estado', 'Activo'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, rendicion_estado: 'Activo' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
+                <LockOpenIcon className="h-4 w-4 text-emerald-400 mr-2" />Activo
               </button>
-              <button
-                onClick={() => {
-                  setData('rendicion_estado', 'Cerrado')
-                  setActiveTab('')
-                  get('/fletes', {
-                    preserveState: true,
-                    data: { ...data, rendicion_estado: 'Cerrado' },
-                  })
-                }}
-                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-              >
-                <LockClosedIcon className="h-5 w-5 text-red-600 mr-2" />
-                Cerrado
+              <button onClick={() => { setData('rendicion_estado', 'Cerrado'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, rendicion_estado: 'Cerrado' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
+                <LockClosedIcon className="h-4 w-4 text-red-400 mr-2" />Cerrado
               </button>
             </div>
           </PortalDropdown>
@@ -395,9 +365,9 @@ export default function FiltrosBar({
             }
             className={classNames(
               activeTab === 'Notificación'
-                ? 'border-violet-500'
-                : 'border-transparent hover:border-violet-300',
-              'inline-flex items-center bg-white p-1 border-b-2 rounded'
+                ? 'border-[#0094d9] bg-[#0094d9]/10'
+                : 'border-transparent hover:border-[#0094d9]/30',
+              'inline-flex items-center bg-white/[0.05] p-1.5 border rounded-lg transition-colors'
             )}
           >
             {!data.notificar_estado && (
@@ -411,45 +381,15 @@ export default function FiltrosBar({
             )}
           </button>
           <PortalDropdown isOpen={activeTab === 'Notificación'} type="Notificación">
-            <div className="w-32 bg-white shadow-lg rounded divide-y divide-gray-100">
-              <button
-                onClick={() => {
-                  setData('notificar_estado', '')
-                  setActiveTab('')
-                  get('/fletes', { preserveState: true, data })
-                }}
-                className="flex items-center px-3 py-2 hover:bg-gray-100 w-full"
-              >
-                <EnvelopeIcon className="h-5 w-5 text-gray-500 mr-2" />
-                Todas
+            <div className="w-40 bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10 overflow-hidden">
+              <button onClick={() => { setData('notificar_estado', ''); setActiveTab(''); get('/fletes', { preserveState: true, data }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
+                <EnvelopeIcon className="h-4 w-4 text-slate-400 mr-2" />Todas
               </button>
-              <button
-                onClick={() => {
-                  setData('notificar_estado', 'Sin Notificar')
-                  setActiveTab('')
-                  get('/fletes', {
-                    preserveState: true,
-                    data: { ...data, notificar_estado: 'Sin Notificar' },
-                  })
-                }}
-                className="flex items-center:px-3 py-2 hover:bg-gray-100 w-full"
-              >
-                <EnvelopeOpenIcon className="h-5 w-5 text-green-600 mr-2" />
-                Sin Notificar
+              <button onClick={() => { setData('notificar_estado', 'Sin Notificar'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, notificar_estado: 'Sin Notificar' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
+                <EnvelopeOpenIcon className="h-4 w-4 text-emerald-400 mr-2" />Sin Notificar
               </button>
-              <button
-                onClick={() => {
-                  setData('notificar_estado', 'Notificado')
-                  setActiveTab('')
-                  get('/fletes', {
-                    preserveState: true,
-                    data: { ...data, notificar_estado: 'Notificado' },
-                  })
-                }}
-                className="flex items-center:px-3 py-2 hover:bg-gray-100 w-full"
-              >
-                <EnvelopeIcon className="h-5 w-5 text-black mr-2" />
-                Notificado
+              <button onClick={() => { setData('notificar_estado', 'Notificado'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, notificar_estado: 'Notificado' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
+                <EnvelopeIcon className="h-4 w-4 text-[#0094d9] mr-2" />Notificado
               </button>
             </div>
           </PortalDropdown>
@@ -467,13 +407,15 @@ function FiltroBoton({ icon: Icon, isActive, hasSelection = false, onClick, chil
         data-toggle-type={label}
         onClick={onClick}
         className={classNames(
-          isActive ? 'border-violet-500' : 'border-transparent hover:border-violet-300',
-          'inline-flex items-center bg-white p-1 border-b-2 rounded'
+          isActive
+            ? 'border-[#0094d9] bg-[#0094d9]/10'
+            : 'border-transparent hover:border-[#0094d9]/30',
+          'inline-flex items-center bg-white/[0.05] p-1.5 border rounded-lg transition-colors'
         )}
       >
         <Icon
           className={classNames(
-            isActive || hasSelection ? 'text-violet-600' : 'text-gray-500',
+            isActive || hasSelection ? 'text-[#0094d9]' : 'text-slate-400',
             'h-5 w-5'
           )}
         />
@@ -490,8 +432,8 @@ function CheckboxItem({ label, checked, onClick, className }) {
     <div
       onClick={onClick}
       className={classNames(
-        checked && 'bg-gray-100',
-        'flex items-center px-3 py-2 text-xs sm:text-sm text-gray-700 cursor-pointer',
+        checked ? 'bg-[#0094d9]/10 text-white' : 'text-slate-300 hover:bg-[#0094d9]/5 hover:text-white',
+        'flex items-center px-3 py-2 text-xs sm:text-sm cursor-pointer transition-colors',
         className
       )}
     >
@@ -499,7 +441,7 @@ function CheckboxItem({ label, checked, onClick, className }) {
         type="checkbox"
         checked={checked}
         readOnly
-        className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+        className="h-4 w-4 accent-[#0094d9] border-slate-600 rounded"
       />
       <span className="ml-2 truncate">{label}</span>
     </div>

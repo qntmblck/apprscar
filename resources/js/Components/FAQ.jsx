@@ -1,5 +1,3 @@
-// resources/js/Components/FAQ.jsx
-
 const faqs = [
   {
     id: 1,
@@ -31,20 +29,38 @@ const faqs = [
     answer:
       'Sí. Trabajamos con procesos y herramientas de trazabilidad para informar el estado del servicio y coordinar hitos operativos según el tipo de operación.',
   },
+  {
+    id: 6,
+    question: '¿Qué datos ayudan a responder más rápido?',
+    answer:
+      'Origen, destino, tipo de carga, volumen aproximado, fecha estimada y cualquier restricción operativa. Con esa información podemos orientar mejor la solicitud.',
+  },
 ]
 
 export default function FAQ() {
   return (
     <section
       id="faq"
-      className="relative isolate overflow-hidden bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]"
+      className="relative isolate overflow-hidden py-16 sm:py-20"
+      style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0c1e3a 60%, #060d1b 100%)' }}
       aria-labelledby="faq-title"
       itemScope
       itemType="https://schema.org/FAQPage"
     >
-      {/* Alineado a ContactColaborador: max-w-6xl / px / py */}
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-16 sm:py-20 relative z-10">
-        <p className="text-xs font-semibold tracking-widest uppercase text-indigo-200">
+      {/* Grid overlay */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,148,217,0.12) 1px, transparent 0)',
+          backgroundSize: '28px 28px',
+        }}
+      />
+
+      {/* Glow */}
+      <div className="absolute top-1/2 right-0 w-80 h-80 rounded-full bg-[#0094d9]/8 blur-[120px] pointer-events-none" />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8">
+        <p className="text-xs font-semibold tracking-widest uppercase text-[#0094d9]">
           Ayuda · Información y soporte
         </p>
 
@@ -52,18 +68,17 @@ export default function FAQ() {
           Preguntas frecuentes
         </h2>
 
-        <p className="mt-4 max-w-3xl text-base leading-7 text-white/80">
+        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-400">
           Resolvemos dudas comunes sobre cotización de fletes, postulación de conductores e integración de flota. Si
           tienes un caso específico, contáctanos por el formulario correspondiente o por WhatsApp.
         </p>
 
-        {/* Cards alineadas con el look & feel del resto */}
         <div className="mt-10">
-          <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {faqs.map((faq) => (
               <div
                 key={faq.id}
-                className="rounded-xl bg-white/5 ring-1 ring-white/15 p-6"
+                className="bg-white/[0.03] border border-[#0094d9]/20 rounded-2xl p-6 hover:border-[#0094d9]/40 hover:bg-white/[0.05] transition-all duration-300"
                 itemScope
                 itemProp="mainEntity"
                 itemType="https://schema.org/Question"
@@ -72,7 +87,7 @@ export default function FAQ() {
                   {faq.question}
                 </dt>
                 <dd
-                  className="mt-2 text-sm leading-6 text-white/75"
+                  className="mt-3 text-sm leading-6 text-slate-400"
                   itemScope
                   itemProp="acceptedAnswer"
                   itemType="https://schema.org/Answer"
@@ -84,30 +99,14 @@ export default function FAQ() {
           </dl>
         </div>
 
-        {/* Micro-CTA SEO/marketing (sin romper diseño) */}
-        <div className="mt-10 rounded-xl bg-white/5 ring-1 ring-white/15 p-6">
-          <p className="text-sm text-white/80">
+        <div className="mt-6 bg-white/[0.03] border border-[#0094d9]/20 rounded-2xl p-6">
+          <p className="text-sm text-slate-400">
             <span className="font-semibold text-white">Tip:</span> para cotizar más rápido, envía{' '}
-            <span className="font-semibold text-white">origen</span>, <span className="font-semibold text-white">destino</span>,{' '}
-            <span className="font-semibold text-white">tipo de carga</span> y <span className="font-semibold text-white">ventana horaria</span>.
+            <span className="font-semibold text-[#0094d9]">origen</span>, <span className="font-semibold text-[#0094d9]">destino</span>,{' '}
+            <span className="font-semibold text-[#0094d9]">tipo de carga</span> y <span className="font-semibold text-[#0094d9]">ventana horaria</span>.
           </p>
         </div>
       </div>
-
-      {/* Fondo decorativo sutil (igual paleta) */}
-      <svg
-        viewBox="0 0 1024 1024"
-        aria-hidden="true"
-        className="absolute left-1/2 top-1/2 -z-10 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(closest-side,white,transparent)]"
-      >
-        <circle r={512} cx={512} cy={512} fill="url(#scar-gradient)" fillOpacity="0.55" />
-        <defs>
-          <radialGradient id="scar-gradient">
-            <stop stopColor="#4f46e5" />
-            <stop offset={1} stopColor="#312e81" />
-          </radialGradient>
-        </defs>
-      </svg>
     </section>
   )
 }

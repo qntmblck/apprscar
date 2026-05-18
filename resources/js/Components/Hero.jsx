@@ -1,20 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { motion, useAnimation, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 
 export default function Hero() {
-  const [attachment, setAttachment] = useState('scroll')
   const controls = useAnimation()
   const reduceMotion = useReducedMotion()
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.3 })
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const updateAttachment = () => setAttachment(window.innerWidth >= 1024 ? 'fixed' : 'scroll')
-    updateAttachment()
-    window.addEventListener('resize', updateAttachment)
-    return () => window.removeEventListener('resize', updateAttachment)
-  }, [])
 
   useEffect(() => {
     if (!inView) return
@@ -29,18 +20,30 @@ export default function Hero() {
   return (
     <section
       id="inicio"
-      className="relative flex items-center justify-center text-white py-20 sm:py-32 min-h-[65vh] sm:min-h-[80vh] bg-center bg-cover bg-no-repeat"
+      className="relative flex items-center justify-center text-white py-20 sm:py-32 min-h-[65vh] sm:min-h-[80vh] bg-center bg-cover bg-no-repeat bg-scroll lg:bg-fixed"
       style={{
-        backgroundImage: "url('/img/dashboard/truck.jpg')",
-        backgroundAttachment: attachment,
+        backgroundImage: "url('/img/dashboard/truck.webp')",
       }}
       aria-labelledby="hero-title"
       itemScope
       itemType="https://schema.org/LocalBusiness"
     >
-      <div className="absolute inset-0 bg-black bg-opacity-50 sm:bg-opacity-60" />
+      {/* Overlay oscuro con gradiente hacia azul navy */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#060d1b]/80 via-[#0c1e3a]/70 to-[#060d1b]/80" />
 
-      {/* SEO estructurado ligero */}
+      {/* Grid overlay sutil */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,148,217,0.3) 1px, transparent 0)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+
+      {/* Glow orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-[#0094d9]/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-[#003f8c]/20 blur-[100px] pointer-events-none" />
+
       <meta itemProp="name" content="Transportes SCAR" />
       <meta itemProp="areaServed" content="Chile" />
       <meta itemProp="serviceType" content="Transporte de carga por carretera" />
@@ -51,46 +54,41 @@ export default function Hero() {
         animate={controls}
         className="relative z-10 w-full max-w-4xl px-6 lg:px-16 text-center"
       >
+        <p className="text-xs font-semibold text-[#0094d9] uppercase tracking-widest mb-4">
+          Transporte regional · Logística B2B · Cobertura nacional
+        </p>
 
         <motion.h1
           id="hero-title"
           whileHover={reduceMotion ? undefined : { scale: 1.03 }}
           transition={{ type: 'spring', stiffness: 60, damping: 12 }}
-          className="text-3xl sm:text-5xl font-bold tracking-tight"
+          className="text-3xl sm:text-5xl font-bold tracking-tight text-white"
         >
           Transporte de carga y distribución para empresas en Chile
         </motion.h1>
 
-
         <motion.p
           whileHover={reduceMotion ? undefined : { scale: 1.01 }}
           transition={{ type: 'spring', stiffness: 60, damping: 12 }}
-          className="mt-6 text-base sm:text-lg leading-relaxed text-gray-200"
+          className="mt-6 text-base sm:text-lg leading-relaxed text-slate-300"
           itemProp="description"
         >
           Tu carga, nuestra misión. Más de 25 años de experiencia en transporte de carga por carretera en Chile, con
           cobertura de Arica a Punta Arenas.
         </motion.p>
 
-        {/* Señal SEO discreta (no redundante) */}
-        <p className="mt-3 text-xs font-semibold tracking-widest uppercase text-indigo-200">
-          Transporte regional · Logística B2B · Cobertura nacional
-        </p>
-
-        {/* ✅ Solo 1 botón */}
         <div className="mt-10 flex justify-center">
           <motion.a
             whileHover={reduceMotion ? undefined : { scale: 1.07 }}
             transition={{ type: 'spring', stiffness: 80, damping: 10 }}
             href="/contacto#clientes"
-            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-indigo-500 transition"
+            className="inline-flex items-center justify-center rounded-xl bg-[#0094d9] px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#0094d9]/30 hover:bg-[#00a0f0] transition-all duration-300"
             aria-label="Cotizar servicio de transporte de carga"
           >
             Cotizar servicio →
           </motion.a>
         </div>
 
-        {/* SEO extra invisible (variaciones de búsqueda) */}
         <span className="sr-only">
           Empresa de transporte de carga para empresas. Transporte por carretera, transporte regional y distribución
           nacional en Chile. Cotización de fletes B2B.
@@ -99,4 +97,3 @@ export default function Hero() {
     </section>
   )
 }
-

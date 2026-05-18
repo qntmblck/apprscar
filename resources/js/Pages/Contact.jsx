@@ -102,7 +102,8 @@ export default function Contacto() {
         title="Contacto Transportes SCAR | Cotiza fletes o integra tu flota"
         description="Contacto oficial de Transportes SCAR. Cotiza transporte y distribución, postula como conductor con CV o integra tu flota como colaborador. Respuesta rápida por portal."
         canonical="/contacto"
-        image="/img/mano.jpg"
+        image="/img/mano.webp"
+        preloadImage
         jsonLd={[contactSchema, breadcrumbSchema]}
       />
 
@@ -110,7 +111,7 @@ export default function Contacto() {
 
       <section
         className="relative bg-[#0c1e3a] text-white py-28 sm:py-36 px-6 text-center overflow-hidden bg-center bg-cover"
-        style={{ backgroundImage: "url('/img/mano.jpg')" }}
+        style={{ backgroundImage: "url('/img/mano.webp')" }}
         aria-label="Encabezado de contacto"
       >
         <div className="absolute inset-0 bg-black/60" />
@@ -195,12 +196,12 @@ export default function Contacto() {
           </p>
         </div>
 
-        <svg className="absolute bottom-0 left-0 w-full text-white" viewBox="0 0 1440 100" preserveAspectRatio="none">
-          <path fill="#1e3a8a" d="M0,0 C480,100 960,0 1440,100 L1440,100 L0,100 Z"></path>
+        <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 100" preserveAspectRatio="none">
+          <path fill="#1e3a8a" d="M0,0 C480,0 960,100 1440,100 L1440,100 L0,100 Z" />
         </svg>
       </section>
 
-      <section className="min-h-[420px]">
+      <section className="min-h-[420px] bg-[#1e3a8a]">
         {activeTab === 'clientes' && (
           <section id="clientes" role="tabpanel" aria-labelledby="tab-clientes">
             <ContactCliente />
@@ -219,8 +220,6 @@ export default function Contacto() {
           </section>
         )}
       </section>
-
-      <div className="h-8 bg-gradient-to-b from-[#1e3a8a] to-[#0c1e3a]" />
 
       <FAQ />
       <Footer />

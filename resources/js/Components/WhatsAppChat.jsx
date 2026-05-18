@@ -79,12 +79,12 @@ export default function WhatsAppChat() {
             Hola 👋 ¿En qué podemos ayudarte?
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-hidden">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-xs"
+              className="flex-1 min-w-0 rounded-md border border-gray-300 px-2 py-1 text-xs"
               placeholder="Escribe tu mensaje"
             />
             <button
@@ -92,7 +92,7 @@ export default function WhatsAppChat() {
                 e.stopPropagation()
                 handleSend()
               }}
-              className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-md hover:bg-green-600"
+              className="shrink-0 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-md hover:bg-green-600"
               type="button"
             >
               Enviar

@@ -22,6 +22,7 @@ use App\Http\Controllers\ConductorDashboardController;
 use App\Http\Controllers\ColaboradorDashboardController;
 use App\Http\Controllers\UserController;
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FleteController;
 use App\Http\Controllers\FleteConductorController;
 use App\Http\Controllers\FleteBatchController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\AdicionalController;
 use App\Http\Controllers\PostulacionConductorController;
 use App\Http\Controllers\SolicitudTransporteController;
 use App\Http\Controllers\SolicitudColaboradorController;
+use App\Http\Controllers\SolicitudAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,7 +74,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', fn () => Inertia::render('Dashboard'))
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -164,17 +166,14 @@ Route::middleware(['auth', 'role:superadmin|admin'])->prefix('admin')->group(fun
         return Inertia::render('Admin/Solicitudes/Index');
     })->name('admin.solicitudes.index');
 
-    Route::patch('/postulaciones-conductor/{id}/status', function () {
-        abort(501);
-    })->name('admin.postulaciones_conductor.status');
+    Route::patch('/postulaciones-conductor/{id}/status', [SolicitudAdminController::class, 'updateConductor'])
+        ->name('admin.postulaciones_conductor.status');
 
-    Route::patch('/solicitudes-transporte/{id}/status', function () {
-        abort(501);
-    })->name('admin.solicitudes_transporte.status');
+    Route::patch('/solicitudes-transporte/{id}/status', [SolicitudAdminController::class, 'updateTransporte'])
+        ->name('admin.solicitudes_transporte.status');
 
-    Route::patch('/solicitudes-colaborador/{id}/status', function () {
-        abort(501);
-    })->name('admin.solicitudes_colaborador.status');
+    Route::patch('/solicitudes-colaborador/{id}/status', [SolicitudAdminController::class, 'updateColaborador'])
+        ->name('admin.solicitudes_colaborador.status');
 });
 
 /*

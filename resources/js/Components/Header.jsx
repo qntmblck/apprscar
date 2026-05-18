@@ -64,7 +64,7 @@ export default function Header() {
           >
             <img
               className="h-6 sm:h-6 md:h-7 lg:h-10 w-auto mt-2"
-              src="/img/scar.png"
+              src="/img/scar.webp"
               alt="Transportes SCAR"
             />
           </button>
@@ -99,46 +99,53 @@ export default function Header() {
 
         {/* Botón burger móvil */}
         <div className="flex lg:hidden mt-1">
-          <button
-            type="button"
-            className="p-2 text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-            ) : (
+          {!mobileMenuOpen && (
+            <button
+              type="button"
+              className="p-2 text-white"
+              onClick={() => setMobileMenuOpen(true)}
+            >
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-            )}
-          </button>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Menú móvil */}
+      {/* Menú móvil — overlay sobre el header */}
       {mobileMenuOpen && (
-        <div className="lg:hidden animate-slide-down bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-[#0c1e3a] px-6 pb-4 pt-2">
-          <div className="flex flex-wrap gap-2 justify-center items-center text-center">
-            {navigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                  isActive(item.target)
-                    ? 'bg-[#003f8c] text-white shadow ring-1 ring-[#0094d9]'
-                    : 'text-white hover:text-[#0094d9] hover:bg-white/10'
-                }`}
+        <div className="absolute top-0 left-0 z-60 w-full px-4 py-1">
+          <div className="bg-[#0c1e3a]/95 backdrop-blur border border-[#0094d9]/20 rounded-xl shadow-xl px-3 py-2 flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1.5 overflow-x-auto">
+              {navigation.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-200 ${
+                    isActive(item.target)
+                      ? 'bg-[#003f8c] text-white ring-1 ring-[#0094d9]/50'
+                      : 'text-slate-200 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {item.name}
+                </a>
+              ))}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  window.location.href = '/redirect-by-role'
+                }}
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold bg-gradient-to-r from-[#0094d9] to-[#003f8c] text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition-all duration-200"
               >
-                {item.name}
-              </a>
-            ))}
+                {user ? 'Mi Panel →' : 'Ingresar →'}
+              </button>
+            </div>
             <button
-              onClick={() => {
-                setMobileMenuOpen(false)
-                window.location.href = '/redirect-by-role'
-              }}
-              className="rounded-md bg-gradient-to-r from-[#0094d9] to-[#003f8c] px-4 py-2 text-sm font-semibold text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition"
+              type="button"
+              className="p-1.5 text-slate-400 hover:text-white flex-shrink-0"
+              onClick={() => setMobileMenuOpen(false)}
             >
-              {user ? 'Mi Panel →' : 'Ingresar →'}
+              <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
         </div>

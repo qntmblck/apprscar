@@ -3,7 +3,7 @@ import { Head, usePage } from '@inertiajs/react'
 
 const DEFAULT_SITE_URL = 'https://scartransportes.cl'
 const DEFAULT_SITE_NAME = 'Transportes SCAR'
-const DEFAULT_IMAGE = '/img/dashboard/truck.jpg'
+const DEFAULT_IMAGE = '/img/dashboard/truck.webp'
 
 const isLocalUrl = (url) => /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(url)
 
@@ -17,6 +17,7 @@ export default function SEO({
   siteName = DEFAULT_SITE_NAME,
   locale = 'es_CL',
   jsonLd,
+  preloadImage = false,
 }) {
   const { props } = usePage()
 
@@ -59,6 +60,10 @@ export default function SEO({
 
       {resolvedCanonical && (
         <link rel="canonical" href={resolvedCanonical} />
+      )}
+
+      {preloadImage && imagePath && !imagePath.startsWith('http') && (
+        <link rel="preload" as="image" href={imagePath} type="image/webp" fetchPriority="high" />
       )}
 
       {/* Open Graph */}

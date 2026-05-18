@@ -3,6 +3,7 @@ import Header from '@/Components/Header'
 import Hero from '@/Components/Hero'
 import Clients from '@/Components/Clients'
 import Features from '@/Components/Features'
+import ConsolidadoCargas from '@/Components/ConsolidadoCargas'
 import Statistics from '@/Components/Statistics'
 import Alliances from '@/Components/Alliances'
 import CallToAction from '@/Components/CallToAction'
@@ -18,8 +19,8 @@ const organizationSchema = {
   '@id': `${siteUrl}/#organization`,
   name: 'Transportes SCAR',
   url: siteUrl,
-  logo: `${siteUrl}/img/logoscar.png`,
-  image: `${siteUrl}/img/dashboard/truck.jpg`,
+  logo: `${siteUrl}/img/logoscar.webp`,
+  image: `${siteUrl}/img/dashboard/truck.webp`,
   email: 'contacto@scartransportes.cl',
   telephone: '+56961068999',
   address: {
@@ -73,9 +74,34 @@ const homeSchema = {
   },
   primaryImageOfPage: {
     '@type': 'ImageObject',
-    url: `${siteUrl}/img/dashboard/truck.jpg`,
+    url: `${siteUrl}/img/dashboard/truck.webp`,
   },
   inLanguage: 'es-CL',
+}
+
+function WaveTransition({ gradient, fill, path, height = 96 }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="relative overflow-hidden"
+      style={{
+        height: `${height}px`,
+        background: gradient,
+        lineHeight: 0,
+        marginTop: '-2px',
+        marginBottom: '-2px',
+      }}
+    >
+      <svg
+        className="absolute inset-0 block h-full w-full"
+        preserveAspectRatio="none"
+        viewBox="0 0 1440 100"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path fill={fill} d={path} />
+      </svg>
+    </div>
+  )
 }
 
 export default function Welcome() {
@@ -99,66 +125,53 @@ export default function Welcome() {
         title="Transporte de carga y distribución en Chile | Transportes SCAR"
         description="Empresa de transporte de carga, distribución y logística B2B en Chile. Transportes SCAR coordina fletes, rutas y operaciones con cobertura nacional."
         canonical="/"
-        image="/img/dashboard/truck.jpg"
+        image="/img/dashboard/truck.webp"
+        preloadImage
         jsonLd={[organizationSchema, websiteSchema, homeSchema]}
       />
 
-      <div className="bg-white overflow-x-hidden leading-none">
+      <div className="overflow-x-hidden leading-none" style={{ background: '#060d1b' }}>
         <Header />
 
-        <main className="overflow-hidden leading-none antialiased bg-white">
+        <main className="overflow-hidden leading-none antialiased" style={{ background: '#060d1b' }}>
           <Hero />
-
-          {/* Separador curvo (Hero → Clients) */}
-          <div className="bg-white -mt-[1px]">
-            <svg
-              className="w-full block leading-none"
-              preserveAspectRatio="none"
-              viewBox="0 0 1440 60"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path fill="#0c1e3a" d="M0,0 C480,60 960,0 1440,60 L1440,0 L0,0 Z" />
-            </svg>
-          </div>
 
           <Clients />
 
+          <WaveTransition
+            fill="white"
+            height={98}
+            gradient="linear-gradient(180deg, #ffffff 0%, #ffffff 34%, #d9eaff 55%, #1c4b84 82%, #0a1628 100%)"
+            path="M0,48 C360,18 1080,74 1440,48 L1440,-4 L0,-4 Z"
+          />
+
           <Features />
 
-          {/* Separador superior: Features → Statistics */}
-<div className="-mt-[1px] h-10 w-full bg-gradient-to-b from-[#354256] via-[#d5e5ff] to-[#eef2ff]" />
-
-
+          <ConsolidadoCargas />
 
           <Statistics />
-          {/* Separador inferior: Statistics → Alliances */}
-<div className="-mt-[1px] h-10 w-full bg-gradient-to-b from-[#eef2ff] via-[#f5f7fb] to-white" />
 
+          <WaveTransition
+            fill="#1e3a8a"
+            height={92}
+            gradient="linear-gradient(180deg, #1e3a8a 0%, #2f62ba 34%, #88b8ef 62%, #eef6ff 84%, #ffffff 100%)"
+            path="M0,48 C360,16 1080,78 1440,48 L1440,-4 L0,-4 Z"
+          />
 
           <Alliances />
 
-          {/* Separador curvo: de fondo blanco a CTA azul */}
-<div className="bg-white">
-  <svg
-    className="w-full h-[60px] block leading-none"
-    viewBox="0 0 1440 60"
-    xmlns="http://www.w3.org/2000/svg"
-    preserveAspectRatio="none"
-  >
-    <path
-      fill="#1e3a8a"
-      d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z"
-    />
-  </svg>
-</div>
+          <WaveTransition
+            fill="white"
+            height={92}
+            gradient="linear-gradient(180deg, #ffffff 0%, #ffffff 30%, #dcecff 54%, #456fc0 82%, #1e3a8a 100%)"
+            path="M0,48 C360,78 1080,16 1440,48 L1440,-4 L0,-4 Z"
+          />
 
-<div className="-mt-[1px] relative z-10">
-  <CallToAction />
-</div>
+          <CallToAction />
         </main>
 
-      <WhatsAppChat />
-      <CallButton />
+        <WhatsAppChat />
+        <CallButton />
         <Footer />
       </div>
     </>
