@@ -21,12 +21,15 @@ const clients = [
 
 const loopCopies = 5
 const centerCopyIndex = Math.floor(loopCopies / 2)
+const autoScrollSpeed = 38
 
 export default function Clients() {
   const scrollerRef = useRef(null)
   const segmentRef = useRef(null)
   const segmentWidthRef = useRef(0)
   const isRepositioningRef = useRef(false)
+  const autoFrameRef = useRef(null)
+  const lastAutoScrollTimeRef = useRef(0)
   const dragRef = useRef({ active: false, startX: 0, startScrollLeft: 0 })
 
   useEffect(() => {
@@ -39,11 +42,33 @@ export default function Clients() {
       scroller.scrollLeft = segmentWidthRef.current * centerCopyIndex
     }
 
-    const frame = requestAnimationFrame(setCenterPosition)
+    const animateScroll = (timestamp) => {
+      if (!lastAutoScrollTimeRef.current) {
+        lastAutoScrollTimeRef.current = timestamp
+      }
+
+      const elapsed = timestamp - lastAutoScrollTimeRef.current
+      lastAutoScrollTimeRef.current = timestamp
+
+      if (!dragRef.current.active && segmentWidthRef.current) {
+        scroller.scrollLeft += (autoScrollSpeed * elapsed) / 1000
+        keepScrollInfinite()
+      }
+
+      autoFrameRef.current = requestAnimationFrame(animateScroll)
+    }
+
+    const frame = requestAnimationFrame(() => {
+      setCenterPosition()
+      autoFrameRef.current = requestAnimationFrame(animateScroll)
+    })
     window.addEventListener('resize', setCenterPosition)
 
     return () => {
       cancelAnimationFrame(frame)
+      if (autoFrameRef.current) {
+        cancelAnimationFrame(autoFrameRef.current)
+      }
       window.removeEventListener('resize', setCenterPosition)
     }
   }, [])
@@ -151,7 +176,7 @@ export default function Clients() {
     <section id="clientes" className="bg-white pt-10 pb-2 px-6 sm:px-8 -mt-[1px]">
       <div
         ref={scrollerRef}
-        className="overflow-x-auto scrollbar-hide cursor-grab select-none active:cursor-grabbing"
+        className="overflow-x-auto scrollbar-hide cursor-grab select-none touch-pan-y active:cursor-grabbing"
         onScroll={keepScrollInfinite}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
