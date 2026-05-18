@@ -7,6 +7,7 @@ import {
 import { motion, useAnimation, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { useEffect } from 'react'
+import SectionBadge from './SectionBadge'
 
 const features = [
   {
@@ -98,9 +99,9 @@ export default function Features() {
         >
           <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-5 lg:gap-10">
             <div>
-              <p className="text-xs font-semibold text-[#0094d9] uppercase tracking-widest mb-3">
+              <SectionBadge className="mb-3">
                 Método · Control · Evidencia
-              </p>
+              </SectionBadge>
               <h2
                 id="features-title"
                 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white text-center text-balance lg:pr-2"

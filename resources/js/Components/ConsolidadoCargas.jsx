@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { Link } from '@inertiajs/react'
+import SectionBadge from './SectionBadge'
 import {
   CubeIcon,
   ArrowPathIcon,
@@ -74,10 +75,9 @@ export default function ConsolidadoCargas() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-widest bg-[#0094d9]/10 text-[#0094d9] border border-[#0094d9]/20 mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0094d9] animate-pulse" />
+          <SectionBadge className="mb-4">
             Nuevo servicio
-          </span>
+          </SectionBadge>
           <h2
             id="consolidado-title"
             className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight"
@@ -117,12 +117,12 @@ export default function ConsolidadoCargas() {
           className="mt-12 text-center"
         >
           <Link
-            href="/contacto#clientes"
+            href="/contacto#colaboradores"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-white text-sm
                        bg-gradient-to-r from-[#0094d9] to-[#003f8c] hover:from-[#00a0f0] hover:to-[#004ba8]
                        transition-all shadow-lg shadow-[#0094d9]/20 hover:shadow-[#0094d9]/30"
           >
-            Cotizar consolidado de cargas
+            Únete como Colaborador
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>

@@ -1,3 +1,5 @@
+import SectionBadge from './SectionBadge'
+
 const faqs = [
   {
     id: 1,
@@ -60,9 +62,9 @@ export default function FAQ() {
       <div className="absolute top-1/2 right-0 w-80 h-80 rounded-full bg-[#0094d9]/8 blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#0094d9]">
+        <SectionBadge>
           Ayuda · Información y soporte
-        </p>
+        </SectionBadge>
 
         <h2 id="faq-title" className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
           Preguntas frecuentes

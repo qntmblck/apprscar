@@ -2,6 +2,7 @@
 
 import { useInView } from 'react-intersection-observer'
 import { useEffect, useState } from 'react'
+import SectionBadge from './SectionBadge'
 
 export default function CallToAction() {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 })
@@ -26,9 +27,9 @@ export default function CallToAction() {
         }`}
       >
         <div className="relative isolate px-4 sm:px-8 text-center z-10">
-          <p className="text-xs font-semibold tracking-widest uppercase text-indigo-200">
+          <SectionBadge color="#c7d2fe">
             Diagnóstico · Diseño · Puesta en marcha
-          </p>
+          </SectionBadge>
 
           <h2 id="cta-title" className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
             Conversemos tu operación y definamos el mejor esquema

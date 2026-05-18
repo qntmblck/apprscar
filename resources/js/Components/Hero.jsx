@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { motion, useAnimation, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import SectionBadge from './SectionBadge'
 
 export default function Hero() {
   const controls = useAnimation()
@@ -54,9 +55,9 @@ export default function Hero() {
         animate={controls}
         className="relative z-10 w-full max-w-4xl px-6 lg:px-16 text-center"
       >
-        <p className="text-xs font-semibold text-[#0094d9] uppercase tracking-widest mb-4">
+        <SectionBadge className="mb-4">
           Transporte regional · Logística B2B · Cobertura nacional
-        </p>
+        </SectionBadge>
 
         <motion.h1
           id="hero-title"

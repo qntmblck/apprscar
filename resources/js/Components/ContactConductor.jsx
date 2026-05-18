@@ -1,5 +1,6 @@
 // resources/js/Components/ContactConductor.jsx
 import { Link, usePage } from '@inertiajs/react'
+import SectionBadge from './SectionBadge'
 
 export default function ContactConductor() {
   const { props } = usePage()
@@ -16,9 +17,9 @@ export default function ContactConductor() {
         <div className="w-full rounded-xl bg-white/5 ring-1 ring-white/15 p-6 sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase text-[#0094d9]">
+              <SectionBadge>
                 Conductores · Portal de postulación
-              </p>
+              </SectionBadge>
 
               <h2 id="conductores-title" className="mt-2 text-3xl sm:text-4xl font-semibold">
                 Postula con CV

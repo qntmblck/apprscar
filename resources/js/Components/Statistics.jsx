@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
+import SectionBadge from './SectionBadge'
 
 const statsData = [
   {
@@ -96,9 +97,9 @@ export default function Statistics() {
           animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         }`}
       >
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#0094d9]">
+        <SectionBadge color="#38bdf8">
           Métricas · Cumplimiento · Cobertura
-        </p>
+        </SectionBadge>
 
         <h2
           id="stats-title"

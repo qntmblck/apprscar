@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { motion, useAnimation, useReducedMotion } from 'framer-motion'
 import Flashcard from './Flashcard'
+import SectionBadge from './SectionBadge'
 
 const items = [
   {
@@ -78,9 +79,9 @@ export default function Alliances() {
           transition={{ duration: 0.75, ease: 'easeOut' }}
           className="text-center mb-12"
         >
-          <p className="text-xs font-semibold tracking-widest uppercase text-indigo-700">
+          <SectionBadge color="#3730a3">
             Partners · Cumplimiento · Continuidad
-          </p>
+          </SectionBadge>
 
           <h2 id="alliances-title" className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">
             Alianzas que fortalecen la operación
