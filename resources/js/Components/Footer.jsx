@@ -178,7 +178,8 @@ export default function Footer() {
     <div className="flex flex-col justify-center items-center text-center">
       <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Transportes SCAR</h2>
       <p className="mt-6 max-w-2xl text-sm leading-6 text-white font-semibold">
-        Empresa nacional dedicada al transporte de carga, comprometida con la seguridad, cumplimiento y eficiencia. Construimos alianzas confiables en todo Chile.
+        Transporte de carga, cargas consolidadas y distribución B2B con enfoque en seguridad, cumplimiento y continuidad.
+        Ayudamos a decidir mejor cada ruta con datos claros, respaldo operacional y cobertura nacional.
       </p>
 
       <div className="mt-8 space-y-3 text-sm text-white">

@@ -3,39 +3,39 @@ import SectionBadge from './SectionBadge'
 const faqs = [
   {
     id: 1,
-    question: '¿Cómo puedo cotizar un servicio de transporte?',
+    question: '¿Cómo puedo cotizar transporte de carga?',
     answer:
-      'La forma más rápida es solicitar tu cotización desde el portal SCAR (cliente). Si lo prefieres, también puedes escribirnos por correo o WhatsApp con origen, destino y tipo de carga.',
+      'La forma más rápida es solicitarlo desde el portal SCAR. Envía origen, destino, volumen, tipo de carga y ventana horaria para evaluar si conviene flete dedicado, carga consolidada o distribución programada.',
   },
   {
     id: 2,
-    question: '¿Qué tipo de carga transportan?',
+    question: '¿Qué es una carga consolidada?',
     answer:
-      'Transportamos carga general, palletizada y servicios de distribución. La disponibilidad puede variar según ruta, ventana horaria y requisitos operativos.',
+      'Es una solución para cargas parciales que no requieren un camión completo. Agrupamos volúmenes compatibles en una ruta planificada para mejorar costo, capacidad y continuidad.',
   },
   {
     id: 3,
-    question: '¿Cómo puedo postular como conductor o transportista asociado?',
+    question: '¿Cuándo conviene consolidado y cuándo flete dedicado?',
     answer:
-      'Si eres conductor, postula con CV desde el portal. Si cuentas con flota y quieres integrarte como colaborador B2B, completa el formulario de integración de flota.',
+      'El consolidado conviene cuando el volumen es parcial y la ventana permite coordinación. El flete dedicado conviene cuando la carga exige prioridad, control exclusivo, ruta directa o una ventana estricta.',
   },
   {
     id: 4,
-    question: '¿Dónde están ubicados y qué cobertura tienen?',
+    question: '¿Qué tipo de carga transportan?',
     answer:
-      'Nuestra base operativa está en Lampa (Región Metropolitana). Operamos principalmente a nivel nacional según planificación, demanda y compatibilidad por ruta.',
+      'Trabajamos con carga general, palletizada y distribución B2B. Cada solicitud se revisa según ruta, manipulación, volumen, restricciones operativas y documentación requerida.',
   },
   {
     id: 5,
-    question: '¿Ofrecen seguimiento de carga?',
+    question: '¿Tienen cobertura nacional?',
     answer:
-      'Sí. Trabajamos con procesos y herramientas de trazabilidad para informar el estado del servicio y coordinar hitos operativos según el tipo de operación.',
+      'Sí. Nuestra base está en Lampa, Región Metropolitana, y coordinamos operaciones a nivel nacional según disponibilidad, ruta, demanda y compatibilidad de carga.',
   },
   {
     id: 6,
-    question: '¿Qué datos ayudan a responder más rápido?',
+    question: '¿Cómo puedo postular o integrar mi flota?',
     answer:
-      'Origen, destino, tipo de carga, volumen aproximado, fecha estimada y cualquier restricción operativa. Con esa información podemos orientar mejor la solicitud.',
+      'Si eres conductor, postula con CV desde el portal. Si cuentas con camiones, ramplas o furgones, completa la solicitud de colaborador para evaluar cobertura, disponibilidad y estándares operativos.',
   },
 ]
 
@@ -63,16 +63,16 @@ export default function FAQ() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8">
         <SectionBadge>
-          Ayuda · Información y soporte
+          Decisiones claras · Cotización · Soporte
         </SectionBadge>
 
         <h2 id="faq-title" className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
-          Preguntas frecuentes
+          Preguntas frecuentes sobre transporte y carga consolidada
         </h2>
 
         <p className="mt-4 max-w-3xl text-base leading-7 text-slate-400">
-          Resolvemos dudas comunes sobre cotización de fletes, postulación de conductores e integración de flota. Si
-          tienes un caso específico, contáctanos por el formulario correspondiente o por WhatsApp.
+          Resolvemos las dudas que suelen frenar una solicitud: qué datos entregar, cuándo conviene consolidar carga,
+          cómo evaluar cobertura y cómo integrarse a la red operativa de SCAR.
         </p>
 
         <div className="mt-10">
@@ -103,9 +103,10 @@ export default function FAQ() {
 
         <div className="mt-6 bg-white/[0.03] border border-[#0094d9]/20 rounded-2xl p-6">
           <p className="text-sm text-slate-400">
-            <span className="font-semibold text-white">Tip:</span> para cotizar más rápido, envía{' '}
+            <span className="font-semibold text-white">Tip:</span> para una respuesta más precisa, envía{' '}
             <span className="font-semibold text-[#0094d9]">origen</span>, <span className="font-semibold text-[#0094d9]">destino</span>,{' '}
-            <span className="font-semibold text-[#0094d9]">tipo de carga</span> y <span className="font-semibold text-[#0094d9]">ventana horaria</span>.
+            <span className="font-semibold text-[#0094d9]">volumen</span>, <span className="font-semibold text-[#0094d9]">tipo de carga</span> y{' '}
+            <span className="font-semibold text-[#0094d9]">ventana horaria</span>.
           </p>
         </div>
       </div>

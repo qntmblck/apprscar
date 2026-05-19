@@ -43,7 +43,7 @@ const organizationSchema = {
     availableLanguage: 'es',
   },
   description:
-    'Empresa chilena de transporte de carga por carretera, distribución y logística B2B con cobertura nacional.',
+    'Empresa chilena de transporte de carga, cargas consolidadas, distribución B2B y logística por carretera con cobertura nacional, trazabilidad y control operativo.',
 }
 
 const websiteSchema = {
@@ -65,7 +65,7 @@ const homeSchema = {
   url: siteUrl,
   name: 'Transporte de carga y distribución para empresas en Chile | Transportes SCAR',
   description:
-    'Transportes SCAR entrega servicios de transporte de carga, distribución y logística B2B en Chile, con cobertura nacional y control operacional.',
+    'Transportes SCAR coordina transporte de carga, cargas consolidadas, fletes dedicados y distribución B2B en Chile con cobertura nacional, seguridad documental y control operacional.',
   isPartOf: {
     '@id': `${siteUrl}/#website`,
   },
@@ -77,31 +77,6 @@ const homeSchema = {
     url: `${siteUrl}/img/dashboard/truck.webp`,
   },
   inLanguage: 'es-CL',
-}
-
-function WaveTransition({ gradient, fill, path, height = 96 }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="relative overflow-hidden"
-      style={{
-        height: `${height}px`,
-        background: gradient,
-        lineHeight: 0,
-        marginTop: '-2px',
-        marginBottom: '-2px',
-      }}
-    >
-      <svg
-        className="absolute inset-0 block h-full w-full"
-        preserveAspectRatio="none"
-        viewBox="0 0 1440 100"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path fill={fill} d={path} />
-      </svg>
-    </div>
-  )
 }
 
 export default function Welcome() {
@@ -122,28 +97,21 @@ export default function Welcome() {
     return (
     <>
       <SEO
-        title="Transporte de carga y distribución en Chile | Transportes SCAR"
-        description="Empresa de transporte de carga, distribución y logística B2B en Chile. Transportes SCAR coordina fletes, rutas y operaciones con cobertura nacional."
+        title="Transporte de carga y distribución para empresas en Chile | Transportes SCAR"
+        description="Cotiza transporte de carga, cargas consolidadas, fletes dedicados y distribución B2B en Chile. SCAR coordina rutas nacionales con trazabilidad, seguridad y control operativo."
         canonical="/"
         image="/img/dashboard/truck.webp"
         preloadImage
         jsonLd={[organizationSchema, websiteSchema, homeSchema]}
       />
 
-      <div className="overflow-x-hidden leading-none" style={{ background: '#060d1b' }}>
+      <div className="overflow-x-hidden bg-[#060d1b] leading-none">
         <Header />
 
-        <main className="overflow-hidden leading-none antialiased" style={{ background: '#060d1b' }}>
+        <main className="overflow-hidden bg-white leading-none antialiased">
           <Hero />
 
           <Clients />
-
-          <WaveTransition
-            fill="white"
-            height={98}
-            gradient="linear-gradient(180deg, #ffffff 0%, #ffffff 34%, #d9eaff 55%, #1c4b84 82%, #0a1628 100%)"
-            path="M0,48 C360,18 1080,74 1440,48 L1440,-4 L0,-4 Z"
-          />
 
           <Features />
 
@@ -151,21 +119,7 @@ export default function Welcome() {
 
           <Statistics />
 
-          <WaveTransition
-            fill="#1e3a8a"
-            height={92}
-            gradient="linear-gradient(180deg, #1e3a8a 0%, #2f62ba 34%, #88b8ef 62%, #eef6ff 84%, #ffffff 100%)"
-            path="M0,48 C360,16 1080,78 1440,48 L1440,-4 L0,-4 Z"
-          />
-
           <Alliances />
-
-          <WaveTransition
-            fill="white"
-            height={92}
-            gradient="linear-gradient(180deg, #ffffff 0%, #ffffff 30%, #dcecff 54%, #456fc0 82%, #1e3a8a 100%)"
-            path="M0,48 C360,78 1080,16 1440,48 L1440,-4 L0,-4 Z"
-          />
 
           <CallToAction />
         </main>

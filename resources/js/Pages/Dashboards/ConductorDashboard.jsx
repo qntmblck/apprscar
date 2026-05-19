@@ -80,7 +80,7 @@ export default function ConductorDashboard() {
             {
               icon: TruckIcon,
               title: 'Mis fletes',
-              desc: 'Consulta tus rutas asignadas, fechas de salida y entregas pendientes.',
+              desc: 'Consulta rutas asignadas, ventanas, datos del equipo y entregas pendientes.',
               href: '/conductor/fletes',
               color: 'blue',
             },
@@ -94,7 +94,7 @@ export default function ConductorDashboard() {
             {
               icon: PhoneIcon,
               title: 'Soporte',
-              desc: 'Contacta al equipo de operaciones en caso de problemas en ruta.',
+              desc: 'Contacta al equipo de operaciones ante contingencias, cambios o dudas en ruta.',
               href: 'tel:+56961068999',
               color: 'amber',
               external: true,
@@ -130,9 +130,9 @@ export default function ConductorDashboard() {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { icon: CheckCircleIcon, step: '1', label: 'Ver flete asignado', desc: 'Revisa destino, fecha de salida y datos del tracto.', color: 'text-[#0094d9]' },
+              { icon: CheckCircleIcon, step: '1', label: 'Revisar asignación', desc: 'Confirma destino, ventana, tracto, rampla y datos del servicio.', color: 'text-[#0094d9]' },
               { icon: TruckIcon,       step: '2', label: 'Registrar en ruta',  desc: 'Sube diesel, gastos y documentación durante el viaje.', color: 'text-emerald-400' },
-              { icon: ExclamationTriangleIcon, step: '3', label: 'Cerrar rendición', desc: 'Confirma entrega y cierra el viaje con el comprobante.', color: 'text-amber-400' },
+              { icon: ExclamationTriangleIcon, step: '3', label: 'Cerrar respaldo', desc: 'Confirma entrega y cierra el viaje con evidencia documental.', color: 'text-amber-400' },
             ].map(({ icon: Icon, step, label, desc, color }) => (
               <div key={step} className="flex gap-3">
                 <div className={`${color} w-8 h-8 rounded-full bg-black/20 border border-current/30 flex items-center justify-center shrink-0 text-xs font-bold`}>

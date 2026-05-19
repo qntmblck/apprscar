@@ -143,7 +143,7 @@ export default function SuperDashboard() {
 
   return (
     <AuthenticatedLayout>
-      <Head title="SuperAdmin Dashboard" />
+      <Head title="Panel SuperAdmin" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
@@ -153,7 +153,7 @@ export default function SuperDashboard() {
             <p className="text-xs font-semibold text-[#0094d9] uppercase tracking-widest mb-1 flex items-center gap-1.5">
               <ShieldCheckIcon className="w-3.5 h-3.5" /> SuperAdmin
             </p>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white">Panel de Control</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white">Panel de control</h1>
           </div>
           {totalPendientes > 0 && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">

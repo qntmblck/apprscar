@@ -21,20 +21,20 @@ export default function ContactColaborador() {
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
             <div>
               <SectionBadge>
-                Colaboradores · Integración
+                Colaboradores · Capacidad complementaria
               </SectionBadge>
 
               <h2 id="colaboradores-title" className="mt-2 text-3xl sm:text-4xl font-semibold">
-                Describe tu Flota
+                Integra tu flota a una operación con demanda organizada
               </h2>
 
               <p className="mt-4 text-white/80">
-                Si operas camiones, ramplas o furgones y buscas continuidad operacional, completa la solicitud desde el
-                portal SCAR. Así podemos evaluar cobertura, capacidad y estándares de cumplimiento.
+                Si operas camiones, ramplas o furgones, cuéntanos cobertura, disponibilidad y estándares de trabajo. Así
+                evaluamos rutas compatibles, continuidad y participación en servicios dedicados o consolidados.
               </p>
 
               <p className="mt-6 text-xs text-white/70">
-                Canal orientado a alianzas B2B. Si prefieres, escribe a{' '}
+                Canal orientado a alianzas B2B con trazabilidad, cumplimiento y coordinación operacional. Si prefieres, escribe a{' '}
                 <a className="text-[#0094d9] hover:underline" href="mailto:contacto@scartransportes.cl">
                   contacto@scartransportes.cl
                 </a>
@@ -43,12 +43,12 @@ export default function ContactColaborador() {
             </div>
 
             <div className="rounded-xl bg-white/5 ring-1 ring-white/15 p-5 sm:p-6">
-              <h3 className="text-lg font-semibold">Qué se evalúa</h3>
+              <h3 className="text-lg font-semibold">Qué evaluamos</h3>
               <ul className="mt-2 space-y-2 text-white/80 list-disc list-inside">
                 <li>Tamaño y tipo de flota</li>
                 <li>Cobertura (rutas/regiones)</li>
                 <li>Disponibilidad y tiempos de respuesta</li>
-                <li>Documentación y seguridad operacional</li>
+                <li>Documentación, seguridad y cumplimiento</li>
               </ul>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

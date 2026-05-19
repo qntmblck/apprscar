@@ -13,7 +13,7 @@
     <link rel="icon" href="/favicon.ico" sizes="any">
 
     {{-- 3. Título dinámico con Inertia --}}
-    <title inertia>{{ config('app.name', 'Laravel') }}</title>
+    <title inertia>{{ config('app.name', 'Transportes SCAR') }}</title>
 
     {{-- 4. Ziggy (inserta tus rutas de Laravel en JS) --}}
     @routes

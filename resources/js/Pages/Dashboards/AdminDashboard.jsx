@@ -42,14 +42,14 @@ export default function AdminDashboard() {
           <h1 className="text-2xl md:text-3xl font-extrabold text-white">
             Hola, {user?.name?.split(' ')[0] || 'Admin'} 👋
           </h1>
-          <p className="mt-1 text-sm text-slate-400">Gestiona operaciones, usuarios y reportes desde este panel.</p>
+          <p className="mt-1 text-sm text-slate-400">Gestiona fletes, usuarios, trazabilidad y reportes para sostener decisiones operativas con evidencia.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <Card
             icon={TruckIcon}
             title="Fletes operacionales"
-            desc="Supervisa los fletes en curso, asigna conductores, tractos y ramplas. Controla estados y trazabilidad."
+            desc="Supervisa fletes en curso, asigna conductores, tractos y ramplas. Controla estados, hitos y trazabilidad."
             href="/fletes"
             color="blue"
           />
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
           <Card
             icon={ChartBarIcon}
             title="Reportes operacionales"
-            desc="Accede a estadísticas históricas, exporta Excel y genera liquidaciones de pagos por período."
+            desc="Accede a información histórica, exporta respaldos y genera liquidaciones con criterios consistentes."
             href="/fletes"
             color="amber"
           />
@@ -81,9 +81,9 @@ export default function AdminDashboard() {
             <ul className="space-y-2 text-xs text-slate-400">
               {[
                 'Crear y asignar nuevos fletes',
-                'Actualizar estados operacionales',
+                'Actualizar estados e hitos operacionales',
                 'Registrar gastos, diesel y rendiciones',
-                'Exportar reportes en Excel/PDF',
+                'Exportar respaldos en Excel/PDF',
                 'Gestionar liquidaciones de conductores',
               ].map(b => (
                 <li key={b} className="flex items-center gap-2">

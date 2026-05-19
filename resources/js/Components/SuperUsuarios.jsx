@@ -52,7 +52,7 @@ export default function SuperUsuarios({ auth, users, roles }) {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar nombre o email"
+              placeholder="Buscar nombre o correo"
               className="rounded-md border-gray-700 bg-gray-800 text-white p-2 text-sm w-64"
             />
           </div>
@@ -63,7 +63,7 @@ export default function SuperUsuarios({ auth, users, roles }) {
             <thead>
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-white">Nombre</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Email</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Correo</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-white">Roles</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-white">Acción</th>
               </tr>

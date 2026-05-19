@@ -1,181 +1,140 @@
 import {
-  ShieldCheckIcon,
-  ClockIcon,
-  UserGroupIcon,
   ChartBarIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline'
-import { motion, useAnimation, useReducedMotion } from 'framer-motion'
-import { useInView } from 'react-intersection-observer'
-import { useEffect } from 'react'
 import SectionBadge from './SectionBadge'
 
 const features = [
   {
-    name: 'Levantamiento y diseño del servicio',
+    name: 'Cotiza con claridad desde el inicio',
     description:
-      'Traducimos tu operación (origen/destino, ventanas, volúmenes, restricciones) en parámetros claros de ruta, capacidad y niveles de servicio.',
+      'Nos cuentas origen, destino, volumen y urgencia; te orientamos hacia la alternativa que conviene para tu carga.',
     icon: UserGroupIcon,
-    keywords: 'cotización, levantamiento, requerimientos, operación, distribución',
+    keywords: 'cotización, carga consolidada, flete dedicado, requerimientos, distribución',
   },
   {
-    name: 'Protocolos, seguridad y continuidad',
+    name: 'Carga protegida y respaldada',
     description:
-      'Aplicamos procedimientos estandarizados y equipos capacitados para responder ante contingencias, sostener continuidad y cumplir SLA.',
+      'Operamos con criterios preventivos, documentación y equipos preparados para reducir riesgos durante el trayecto.',
     icon: ShieldCheckIcon,
-    keywords: 'seguridad, protocolos, contingencias, estándar, cumplimiento',
+    keywords: 'seguridad, protocolos, contingencias, documentación, cumplimiento',
   },
   {
-    name: 'Coordinación trazable y control operacional',
+    name: 'Seguimiento sin incertidumbre',
     description:
-      'Definimos responsables, hitos y puntos de control para reducir ambigüedad, evitar reprocesos y mantener visibilidad con KPI.',
+      'Te entregamos puntos de avance y responsables claros para saber qué está pasando con tu carga cuando importa.',
     icon: ChartBarIcon,
-    keywords: 'coordinación, trazabilidad, control, información, KPI',
+    keywords: 'coordinación, trazabilidad, control operacional, información, KPI',
   },
   {
-    name: 'Menos latencia, más eficiencia',
+    name: 'Menos vueltas para decidir',
     description:
-      'Optimizamos flujos y asignación de recursos para bajar tiempos de respuesta y acelerar decisiones en terreno y backoffice.',
+      'Comparamos costo, plazo, capacidad y nivel de control para que elijas con seguridad, sin sobredimensionar el servicio.',
     icon: ClockIcon,
-    keywords: 'tiempo de respuesta, automatización, SLA, eficiencia',
+    keywords: 'tiempo de respuesta, eficiencia, decisión logística, costos, planificación',
   },
 ]
 
+const processSteps = [
+  'Cuéntanos qué necesitas mover',
+  'Recibe una alternativa clara',
+  'Confirma ruta y condiciones',
+  'Haz seguimiento del avance',
+]
+
 export default function Features() {
-  const controls = useAnimation()
-  const reduceMotion = useReducedMotion()
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.2 })
-
-  useEffect(() => {
-    if (inView) controls.start({ opacity: 1, x: 0 })
-  }, [inView, controls])
-
-  const containerVariants = {
-    hidden: { opacity: 0, y: reduceMotion ? 0 : 10 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.55,
-        ease: 'easeOut',
-        staggerChildren: reduceMotion ? 0 : 0.06,
-        delayChildren: reduceMotion ? 0 : 0.02,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: reduceMotion ? 0 : 8, scale: reduceMotion ? 1 : 0.99 },
-    show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.38, ease: 'easeOut' } },
-  }
-
   return (
     <section
       id="servicios"
-      className="relative overflow-hidden pb-16 pt-12 sm:pb-20 sm:pt-14"
-      style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0c1e3a 60%, #080f1e 100%)' }}
+      className="relative overflow-hidden bg-[#071121] py-10 sm:py-12"
       aria-labelledby="features-title"
       itemScope
       itemType="https://schema.org/Service"
     >
-      {/* Grid overlay */}
       <div
-        className="absolute inset-0 opacity-30 pointer-events-none"
+        className="absolute inset-0 opacity-25"
         style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,148,217,0.12) 1px, transparent 0)',
-          backgroundSize: '28px 28px',
+          backgroundSize: '30px 30px',
         }}
       />
 
-      {/* Glow */}
-      <div className="absolute top-0 left-1/3 w-80 h-80 rounded-full bg-[#0094d9]/10 blur-[120px] pointer-events-none" />
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, x: reduceMotion ? 0 : -42 }}
-          animate={controls}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="mb-10"
-        >
-          <div className="text-center -translate-y-2 sm:-translate-y-1 lg:translate-y-4">
-            <SectionBadge className="mb-3 sm:mb-4">
-              Método · Control · Evidencia
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
+          <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.035] p-6 sm:p-7">
+            <SectionBadge className="mb-5">
+              Claridad · Respaldo · Continuidad
             </SectionBadge>
-          </div>
 
-          <div className="mt-8 grid grid-cols-1 items-center gap-6 sm:mt-10 lg:mt-0 lg:grid-cols-[0.8fr_1.1fr_1.1fr] lg:gap-10">
-            <div className="flex -translate-y-4 items-center justify-center sm:-translate-y-5 md:-translate-y-6 lg:translate-y-0 lg:justify-start">
-              <div className="h-80 w-80 max-h-[86vw] max-w-[86vw] overflow-hidden rounded-full drop-shadow-[0_18px_45px_rgba(0,148,217,0.28)] sm:h-[26rem] sm:w-[26rem] md:h-[34rem] md:w-[34rem] lg:h-60 lg:w-60 xl:h-64 xl:w-64 2xl:h-72 2xl:w-72">
-                <img
-                  src="/img/logoscar.webp"
-                  alt="Logo Transportes SCAR"
-                  className="h-full w-full scale-[1.08] object-cover object-center"
-                  loading="lazy"
-                  decoding="async"
-                />
+            <div className="flex flex-col gap-7 sm:flex-row sm:items-center lg:flex-col lg:items-start">
+              <img
+                src="/img/logoscar.webp"
+                alt="Logo Transportes SCAR"
+                className="aspect-square w-36 shrink-0 rounded-full object-cover drop-shadow-[0_18px_45px_rgba(0,148,217,0.24)] sm:w-40 lg:w-44"
+                loading="lazy"
+                decoding="async"
+              />
+
+              <div>
+                <h2 id="features-title" className="text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
+                  Un servicio pensado para que cotices con confianza
+                </h2>
+                <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
+                  Antes de mover tu carga aclaramos origen, destino, ventanas, volumen y restricciones. Así sabes qué
+                  se hará, cuándo ocurre y bajo qué condiciones se confirma cada avance.
+                </p>
               </div>
             </div>
 
-            <div>
-              <h2
-                id="features-title"
-                className="text-center text-2xl font-semibold tracking-tight text-white text-balance sm:text-4xl lg:text-left"
-              >
-                Método operativo: estándares, control y evidencia
-              </h2>
-            </div>
+            <ol className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-1" aria-label="Cómo trabajamos tu solicitud">
+              {processSteps.map((step, index) => (
+                <li key={step} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0094d9]/15 text-xs font-semibold text-[#38bdf8] ring-1 ring-[#0094d9]/25">
+                    {index + 1}
+                  </span>
+                  <span className="text-sm font-medium text-slate-200">{step}</span>
+                </li>
+              ))}
+            </ol>
 
-            <p
-              className="text-sm leading-6 text-slate-300 text-justify [hyphens:auto] sm:text-base sm:leading-7 lg:pl-2"
-              style={{ textAlignLast: 'left' }}
-            >
-              Convertimos la operación en un sistema claro: estándares, responsables, KPI y respaldo documental.
-              Así reducimos errores, mejoramos cumplimiento y sostenemos continuidad con visibilidad de punta a punta.
-            </p>
+            <meta itemProp="provider" content="Transportes SCAR" />
+            <meta itemProp="areaServed" content="Chile" />
+            <meta itemProp="serviceType" content="Transporte de carga consolidada y distribución con control operativo" />
           </div>
 
-          <meta itemProp="provider" content="Transportes SCAR" />
-          <meta itemProp="areaServed" content="Chile" />
-          <meta itemProp="serviceType" content="Transporte de carga y distribución con control operativo" />
-        </motion.div>
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={inView ? 'show' : 'hidden'}
-          className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          role="list"
-          aria-label="Características del servicio"
-        >
-          {features.map((feature) => (
-            <motion.div
-              key={feature.name}
-              variants={itemVariants}
-              role="listitem"
-              className="bg-white/[0.03] border border-[#0094d9]/20 rounded-2xl p-6 hover:border-[#0094d9]/40 hover:bg-white/[0.05] transition-all duration-300"
-              itemScope
-              itemType="https://schema.org/PropertyValue"
-              itemProp="hasOfferCatalog"
-            >
-              <dt className="text-sm sm:text-base font-semibold text-white" itemProp="name">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#0094d9]/10 border border-[#0094d9]/20">
-                  <feature.icon className="h-5 w-5 text-[#0094d9]" aria-hidden="true" />
-                </div>
-                {feature.name}
-              </dt>
-
-              <dd
-                className="mt-2 text-sm leading-6 text-slate-400 text-justify [hyphens:auto]"
-                style={{ textAlignLast: 'left' }}
-                itemProp="value"
+          <div className="grid h-full gap-4 sm:grid-cols-2 lg:auto-rows-fr">
+            {features.map((feature) => (
+              <article
+                key={feature.name}
+                className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.035] p-6 transition hover:border-[#0094d9]/40 hover:bg-white/[0.055]"
+                itemScope
+                itemType="https://schema.org/PropertyValue"
+                itemProp="hasOfferCatalog"
               >
-                {feature.description}
-              </dd>
-
-              <span className="sr-only">{feature.keywords}</span>
-            </motion.div>
-          ))}
-        </motion.div>
+                <feature.icon className="h-6 w-6 text-[#38bdf8]" aria-hidden="true" />
+                <h3 className="mt-5 text-base font-semibold text-white" itemProp="name">
+                  {feature.name}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-400" itemProp="value">
+                  {feature.description}
+                </p>
+                <p className="sr-only">{feature.keywords}</p>
+              </article>
+            ))}
+            <article className="flex h-full flex-col justify-center rounded-2xl border border-[#0094d9]/25 bg-[#0094d9]/10 p-6 sm:col-span-2">
+              <p className="flex flex-col gap-3 text-sm leading-6 text-slate-200 sm:flex-row sm:items-center">
+                <CheckCircleIcon className="h-5 w-5 shrink-0 text-[#38bdf8]" aria-hidden="true" />
+                <span>
+                  Te proponemos un servicio entendible desde el primer contacto: costo, plazo, capacidad y nivel de
+                  control claros antes de mover la carga.
+                </span>
+              </p>
+            </article>
+          </div>
+        </div>
       </div>
     </section>
   )

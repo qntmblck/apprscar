@@ -44,7 +44,7 @@ export default function Register() {
 
         {/* Email */}
         <div>
-          <InputLabel htmlFor="email" value="Email" />
+          <InputLabel htmlFor="email" value="Correo" />
           <TextInput
             id="email"
             type="email"
@@ -78,7 +78,7 @@ export default function Register() {
         <div>
           <InputLabel
             htmlFor="password_confirmation"
-            value="Confirmar Contraseña"
+            value="Confirmar contraseña"
           />
           <TextInput
             id="password_confirmation"

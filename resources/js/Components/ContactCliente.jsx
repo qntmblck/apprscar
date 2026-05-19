@@ -20,37 +20,37 @@ export default function ContactCliente() {
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
             <div>
               <SectionBadge>
-                Clientes · Cotización
+                Clientes · Cotización con contexto
               </SectionBadge>
 
               <h2 id="clientes-title" className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
-                Solicita tu Flete
+                Solicita transporte de carga
               </h2>
 
               <p className="mt-6 text-lg text-white/80">
-                Para cotizar un flete necesitamos origen, destino y descripción de la carga. La forma más rápida es
-                usar el portal SCAR para registrar tu solicitud.
+                Cuéntanos qué necesitas mover y en qué condiciones. Con origen, destino, volumen y ventana podemos
+                orientar si conviene carga consolidada, flete dedicado o distribución programada.
               </p>
 
               {/* SEO / marketing */}
               <p className="mt-8 text-xs text-white/70">
-                Servicio orientado a <span className="font-semibold text-white">transporte y distribución</span> con foco
-                en cumplimiento, planificación y trazabilidad. Cotiza por portal para respuesta más rápida.
+                Servicio orientado a <span className="font-semibold text-white">carga consolidada, fletes dedicados y distribución B2B</span> con foco
+                en trazabilidad, cumplimiento y planificación. Cotiza por portal para una evaluación más precisa.
               </p>
 
               {/* Schema.org */}
-              <meta itemProp="serviceType" content="Cotización de fletes y transporte" />
+              <meta itemProp="serviceType" content="Cotización de transporte de carga, carga consolidada y fletes dedicados" />
               <meta itemProp="provider" content="Transportes SCAR" />
               <meta itemProp="areaServed" content="Chile" />
             </div>
 
             <div className="rounded-xl bg-white/5 ring-1 ring-white/15 p-5 sm:p-6">
-              <h3 className="text-lg font-semibold text-white">Qué debes ingresar</h3>
+              <h3 className="text-lg font-semibold text-white">Datos que aceleran la respuesta</h3>
               <ul className="mt-3 space-y-2 text-white/80 list-disc list-inside">
                 <li>Origen y destino.</li>
                 <li>Tipo de carga y observaciones.</li>
-                <li>Peso/volumen aproximado (si aplica).</li>
-                <li>Fecha de retiro (opcional).</li>
+                <li>Peso, volumen o cantidad aproximada.</li>
+                <li>Ventana de retiro, entrega o prioridad.</li>
               </ul>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

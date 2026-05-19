@@ -18,7 +18,7 @@ const contactSchema = {
   name: 'Contacto - Transportes SCAR',
   url: `${siteUrl}/contacto`,
   description:
-    'Contacto oficial de Transportes SCAR para cotizar fletes, postular como conductor o integrar una flota colaboradora.',
+    'Contacto oficial de Transportes SCAR para cotizar transporte de carga, cargas consolidadas, fletes dedicados o integrar una flota colaboradora.',
   inLanguage: 'es-CL',
   about: {
     '@type': 'Organization',
@@ -31,8 +31,8 @@ const contactSchema = {
   mainEntity: [
     {
       '@type': 'Service',
-      name: 'Cotización de fletes',
-      serviceType: 'Transporte de carga y distribución',
+      name: 'Cotización de transporte de carga',
+      serviceType: 'Carga consolidada, fletes dedicados y distribución B2B',
       areaServed: 'Chile',
       provider: { '@id': `${siteUrl}/#organization` },
     },
@@ -99,8 +99,8 @@ export default function Contacto() {
   return (
     <div className="bg-white">
       <SEO
-        title="Contacto Transportes SCAR | Cotiza fletes o integra tu flota"
-        description="Contacto oficial de Transportes SCAR. Cotiza transporte y distribución, postula como conductor con CV o integra tu flota como colaborador. Respuesta rápida por portal."
+        title="Contacto Transportes SCAR | Cotiza carga consolidada, fletes o integra tu flota"
+        description="Cotiza transporte de carga, cargas consolidadas, fletes dedicados y distribución B2B con SCAR. También puedes postular como conductor o integrar tu flota colaboradora."
         canonical="/contacto"
         image="/img/mano.webp"
         preloadImage
@@ -118,7 +118,7 @@ export default function Contacto() {
         <div className="relative z-10 max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-bold">Contacto</h1>
           <p className="mt-4 text-lg sm:text-xl text-gray-200">
-            Elige tu caso: cotizar un flete, postular como conductor o integrar tu flota como colaborador.
+            Elige el camino correcto: cotizar una carga, postular como conductor o integrar tu flota a una red operativa con respaldo.
           </p>
 
           <div
@@ -138,12 +138,12 @@ export default function Contacto() {
                   ? 'bg-indigo-600 hover:bg-indigo-500'
                   : 'bg-white/10 ring-1 ring-white/20 hover:bg-white/15'
               }`}
-              aria-label="Ver cotización de fletes y servicios de transporte"
-              title="Cotizar flete y servicios de transporte"
+              aria-label="Ver cotización de transporte de carga, consolidado o flete dedicado"
+              title="Cotizar transporte de carga"
             >
-              Cotizar flete
+              Cotizar carga
               <span className="block text-[11px] font-normal text-white/80 mt-0.5">
-                Transporte y distribución · respuesta rápida
+                Consolidado · dedicado · distribución
               </span>
             </button>
 
@@ -183,16 +183,16 @@ export default function Contacto() {
               aria-label="Ver integración de flota y alianzas B2B"
               title="Integrar flota como colaborador"
             >
-              Integrar flota (B2B)
+              Integrar flota B2B
               <span className="block text-[11px] font-normal text-white/75 mt-0.5">
-                Colaboradores · camiones, ramplas y furgones
+                Camiones · ramplas · furgones
               </span>
             </button>
           </div>
 
           {/* SEO microcopy */}
           <p className="mt-6 text-sm text-white/70">
-            Transportes SCAR: transporte, distribución y operación organizada para clientes y partners.
+            SCAR ordena la decisión logística con datos: ruta, capacidad, ventana, documentación y nivel de control.
           </p>
         </div>
 

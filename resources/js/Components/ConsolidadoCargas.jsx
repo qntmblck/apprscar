@@ -1,133 +1,117 @@
-import { motion } from 'framer-motion'
-import { useInView } from 'react-intersection-observer'
 import { Link } from '@inertiajs/react'
-import SectionBadge from './SectionBadge'
 import {
-  CubeIcon,
   ArrowPathIcon,
-  ScaleIcon,
-  ClockIcon,
-  MapPinIcon,
+  ArrowRightIcon,
   CheckBadgeIcon,
+  ClockIcon,
+  CubeIcon,
+  MapPinIcon,
+  ScaleIcon,
 } from '@heroicons/react/24/outline'
+import SectionBadge from './SectionBadge'
 
 const ventajas = [
   {
     icon: ScaleIcon,
-    title: 'Reduce tu costo logístico',
-    desc: 'Comparte el camión con otras empresas. Solo pagas por el espacio y peso que realmente usas.',
+    title: 'Pagas por la capacidad que usas',
+    desc: 'Ideal para volúmenes parciales: compartes capacidad con cargas compatibles sin sobredimensionar el flete.',
   },
   {
     icon: ClockIcon,
-    title: 'Salidas programadas',
-    desc: 'Frecuencias fijas a los principales destinos del país. Tu carga sale aunque no llene un camión completo.',
+    title: 'Rutas y ventanas planificadas',
+    desc: 'Coordinamos salidas según ruta, demanda y prioridad para evitar esperas innecesarias por falta de volumen.',
   },
   {
     icon: MapPinIcon,
-    title: 'Cobertura nacional',
-    desc: 'Rutas consolidadas a las 16 regiones de Chile, con puntos de entrega acordados y trazabilidad de la carga.',
+    title: 'Cobertura nacional coordinada',
+    desc: 'Diseñamos el esquema según origen, destino, puntos de entrega y compatibilidad operacional en las 16 regiones.',
   },
   {
     icon: CheckBadgeIcon,
-    title: 'Gestión operacional completa',
-    desc: 'Nos encargamos del armado de carga, documentación, coordinación y seguimiento hasta entrega confirmada.',
+    title: 'Documentación y seguimiento',
+    desc: 'Ordenamos antecedentes, coordinación, hitos y confirmación de entrega para que la decisión no dependa de supuestos.',
   },
   {
     icon: ArrowPathIcon,
-    title: 'Flexibilidad de volúmenes',
-    desc: 'Desde una paleta hasta varias toneladas. Ideal para empresas con demanda variable o rutas de menor volumen.',
+    title: 'Escala sin perder control',
+    desc: 'Sirve para una paleta, varios bultos o demanda variable, manteniendo reglas claras de costo, plazo y capacidad.',
   },
   {
     icon: CubeIcon,
-    title: 'Carga segura y asegurada',
-    desc: 'Protocolo de embalaje, estiba controlada y cobertura de seguro para todo tipo de mercancía.',
+    title: 'Estiba, seguridad y control',
+    desc: 'Revisamos compatibilidad, embalaje, manipulación y respaldo para proteger la carga durante el trayecto.',
   },
 ]
 
+const suitability = [
+  'Cargas parciales o palletizadas',
+  'Rutas con ventana flexible',
+  'Empresas con demanda variable',
+]
+
 export default function ConsolidadoCargas() {
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
-
   return (
-    <section
-      id="consolidado"
-      ref={ref}
-      className="relative py-16 sm:py-20 overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #060d1b 0%, #0c1e3a 50%, #0a1628 100%)' }}
-      aria-labelledby="consolidado-title"
-    >
-      {/* Grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `linear-gradient(#0094d9 1px, transparent 1px), linear-gradient(90deg, #0094d9 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
-        }}
-      />
+    <section id="consolidado" className="bg-white py-16 sm:py-20" aria-labelledby="consolidado-title">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+          <div className="lg:sticky lg:top-24">
+            <SectionBadge color="#003f8c" backgroundOpacity={0.07} borderOpacity={0.18} className="mb-5">
+              Carga consolidada · Capacidad compartida · Rutas programadas
+            </SectionBadge>
 
-      {/* Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full bg-[#0094d9]/5 blur-[80px] pointer-events-none" />
+            <h2 id="consolidado-title" className="text-3xl font-semibold tracking-tight text-balance text-slate-950 sm:text-4xl">
+              Carga consolidada para empresas que no necesitan llenar un camión
+            </h2>
+            <p className="mt-5 text-base leading-7 text-slate-600">
+              Agrupamos volúmenes compatibles en rutas planificadas para bajar costo, mantener trazabilidad y evitar que tu
+              carga quede esperando por falta de volumen.
+            </p>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <SectionBadge className="mb-4">
-            Nuevo servicio
-          </SectionBadge>
-          <h2
-            id="consolidado-title"
-            className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight"
-          >
-            Consolidado de cargas
-          </h2>
-          <p className="mt-4 text-base text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Transporta tu mercancía de forma eficiente compartiendo capacidad con otras empresas.
-            La solución inteligente para volúmenes parciales con cobertura y control total.
-          </p>
-        </motion.div>
+            <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-sm font-semibold text-slate-950">Conviene cuando necesitas:</p>
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+                {suitability.map((item) => (
+                  <li key={item} className="flex gap-3">
+                    <CheckBadgeIcon className="mt-0.5 h-5 w-5 shrink-0 text-[#0094d9]" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {ventajas.map((v, i) => (
-            <motion.div
-              key={v.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.07 }}
-              className="group relative rounded-2xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm p-6 transition-all duration-300 hover:border-[#0094d9]/30"
-            >
-              <div className="mb-4 w-10 h-10 rounded-xl bg-[#0094d9]/10 border border-[#0094d9]/20 flex items-center justify-center group-hover:bg-[#0094d9]/20 transition-colors">
-                <v.icon className="w-5 h-5 text-[#0094d9]" />
-              </div>
-              <h3 className="text-sm font-bold text-white mb-2">{v.title}</h3>
-              <p className="text-sm text-gray-400 leading-relaxed">{v.desc}</p>
-            </motion.div>
-          ))}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+              <Link
+                href="/contacto#clientes"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0094d9] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00a0f0]"
+              >
+                Cotizar transporte
+                <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/contacto#colaboradores"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#003f8c]/15 bg-white px-5 py-3 text-sm font-semibold text-[#003f8c] transition hover:bg-[#eef7ff]"
+              >
+                Únete como Colaborador
+                <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {ventajas.map((ventaja) => (
+              <article
+                key={ventaja.title}
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0094d9]/35 hover:shadow-md"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0094d9]/10 text-[#0094d9] ring-1 ring-[#0094d9]/20">
+                  <ventaja.icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <h3 className="mt-5 text-base font-semibold text-slate-950">{ventaja.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{ventaja.desc}</p>
+              </article>
+            ))}
+          </div>
         </div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-12 text-center"
-        >
-          <Link
-            href="/contacto#colaboradores"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-white text-sm
-                       bg-gradient-to-r from-[#0094d9] to-[#003f8c] hover:from-[#00a0f0] hover:to-[#004ba8]
-                       transition-all shadow-lg shadow-[#0094d9]/20 hover:shadow-[#0094d9]/30"
-          >
-            Únete como Colaborador
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
-        </motion.div>
       </div>
     </section>
   )

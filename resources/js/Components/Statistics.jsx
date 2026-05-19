@@ -4,32 +4,32 @@ import SectionBadge from './SectionBadge'
 
 const statsData = [
   {
-    label: 'Empresas atendidas en los últimos 12 meses',
+    label: 'Empresas que ya confiaron en SCAR',
     value: 127,
     suffix: '',
     decimals: false,
-    sr: 'Empresas atendidas recientemente',
+    sr: 'Empresas atendidas durante los últimos 12 meses',
   },
   {
-    label: 'Índice de cumplimiento operativo',
+    label: 'Cumplimiento operativo estimado',
     value: 98.7,
     suffix: '%',
     decimals: true,
-    sr: 'Cumplimiento promedio',
+    sr: 'Cumplimiento promedio de servicios gestionados',
   },
   {
-    label: 'Cobertura activa',
+    label: 'Cobertura nacional coordinada',
     value: 16,
     suffix: ' regiones',
     decimals: false,
-    sr: 'Presencia operativa por región',
+    sr: 'Presencia operativa por regiones',
   },
   {
-    label: 'Personal operativo certificado',
+    label: 'Equipo operativo certificado',
     value: 100,
     suffix: '%',
     decimals: false,
-    sr: 'Equipo certificado',
+    sr: 'Personal con certificación operacional',
   },
 ]
 
@@ -64,100 +64,76 @@ function useCounter(target, decimals = false, trigger) {
 
 export default function Statistics() {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 })
-  const [animate, setAnimate] = useState(false)
-
-  useEffect(() => {
-    if (inView) setAnimate(true)
-  }, [inView])
 
   return (
     <section
       ref={ref}
       id="estadisticas"
-      className="relative py-20 px-6 overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #080f1e 0%, #0c1e3a 42%, #102a62 76%, #1e3a8a 100%)' }}
+      className="relative overflow-hidden bg-[#071121] py-16 sm:py-20"
       aria-labelledby="stats-title"
       itemScope
       itemType="https://schema.org/Organization"
     >
-      {/* Grid overlay */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#0094d9]/40 to-transparent" />
       <div
-        className="absolute inset-0 opacity-20 pointer-events-none"
+        className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,148,217,0.15) 1px, transparent 0)',
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,148,217,0.13) 1px, transparent 0)',
           backgroundSize: '32px 32px',
         }}
       />
 
-      {/* Glow orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#0094d9]/8 blur-[140px] pointer-events-none" />
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
+          <SectionBadge color="#38bdf8" className="mb-5">
+            Prueba operativa · Cobertura · Cumplimiento
+          </SectionBadge>
 
-      <div
-        className={`relative z-10 max-w-7xl mx-auto text-center transform transition-all duration-700 ${
-          animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-        }`}
-      >
-        <SectionBadge color="#38bdf8">
-          Métricas · Cumplimiento · Cobertura
-        </SectionBadge>
+          <div className="grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-start">
+            <div>
+              <h2 id="stats-title" className="text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
+                Confianza basada en operación real
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
+                La decisión logística mejora cuando hay evidencia. Estos indicadores resumen experiencia reciente,
+                cobertura activa y estándares de equipo para cotizar con más contexto y menos incertidumbre.
+              </p>
+              <p className="mt-6 max-w-2xl text-sm leading-6 text-slate-500">
+                Las cifras son referenciales y ayudan a dimensionar capacidad, respaldo y consistencia operacional. La
+                disponibilidad final depende de ruta, ventana, volumen y tipo de carga.
+              </p>
+            </div>
 
-        <h2
-          id="stats-title"
-          className="mt-2 text-3xl sm:text-4xl font-extrabold text-white tracking-tight"
-        >
-          Indicadores operativos
-        </h2>
+            <dl
+              className="grid grid-cols-2 gap-x-8 gap-y-10 sm:gap-y-12"
+              role="list"
+              aria-label="Indicadores de desempeño"
+              itemScope
+              itemType="https://schema.org/ItemList"
+            >
+              {statsData.map((stat, index) => {
+                const count = useCounter(stat.value, stat.decimals, inView)
 
-        <p className="mt-4 text-base sm:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
-          Datos orientativos que reflejan nivel de cumplimiento, cobertura activa y certificación operacional.
-          Transparencia y control para respaldar decisiones y planificación logística.
-        </p>
-
-        <dl
-          className="mt-14 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5"
-          role="list"
-          aria-label="Indicadores de desempeño"
-          itemScope
-          itemType="https://schema.org/ItemList"
-        >
-          {statsData.map((stat, i) => {
-            const count = useCounter(stat.value, stat.decimals, inView)
-
-            return (
-              <div
-                key={i}
-                className="bg-white/[0.03] border border-[#0094d9]/20 rounded-2xl p-6 hover:border-[#0094d9]/40 hover:bg-white/[0.05] transition-all duration-300 hover:-translate-y-1"
-                role="listitem"
-                itemProp="itemListElement"
-                itemScope
-                itemType="https://schema.org/ListItem"
-              >
-                <meta itemProp="position" content={i + 1} />
-
-                <dt className="text-sm font-semibold text-slate-400 leading-snug">
-                  {stat.label}
-                </dt>
-
-                <dd className="mt-4 text-3xl sm:text-4xl font-extrabold text-white tabular-nums">
-                  {Number(count).toLocaleString('es-CL')}
-                  <span className="text-[#0094d9]">{stat.suffix}</span>
-                </dd>
-
-                <p className="mt-2 text-xs text-slate-500">{stat.sr}</p>
-              </div>
-            )
-          })}
-        </dl>
-
-        <p className="mt-10 text-sm text-slate-500 max-w-4xl mx-auto leading-relaxed">
-          Métricas orientativas que reflejan capacidad operativa y estándares de servicio.
-          Para disponibilidad por ruta y cotizaciones específicas, contáctanos desde el portal.
-        </p>
+                return (
+                  <div key={stat.label} className="border-l border-[#0094d9]/30 pl-5" itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                    <meta itemProp="position" content={index + 1} />
+                    <dt className="text-sm leading-6 text-slate-400">{stat.label}</dt>
+                    <dd className="mt-3 text-4xl font-semibold tracking-tight text-white">
+                      {Number(count).toLocaleString('es-CL')}
+                      <span className="text-[#38bdf8]">{stat.suffix}</span>
+                    </dd>
+                    <p className="mt-2 text-xs text-slate-600">{stat.sr}</p>
+                  </div>
+                )
+              })}
+            </dl>
+          </div>
+        </div>
 
         <div className="sr-only" itemScope itemType="https://schema.org/LocalBusiness">
           <span itemProp="name">Transportes SCAR</span>
           <span itemProp="areaServed">Chile</span>
-          <span itemProp="serviceType">Logística B2B</span>
+          <span itemProp="serviceType">Carga consolidada, fletes dedicados y logística B2B</span>
         </div>
       </div>
     </section>

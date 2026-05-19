@@ -18,32 +18,32 @@ export default function ContactConductor() {
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
             <div>
               <SectionBadge>
-                Conductores · Portal de postulación
+                Conductores · Ruta profesional
               </SectionBadge>
 
               <h2 id="conductores-title" className="mt-2 text-3xl sm:text-4xl font-semibold">
-                Postula con CV
+                Postula con antecedentes claros
               </h2>
 
               <p className="mt-4 text-white/80">
-                La postulación se realiza desde el portal SCAR. Ahí podrás adjuntar tu CV y completar datos básicos para
-                acelerar la evaluación y el contacto.
+                Buscamos conductores que entiendan seguridad, puntualidad y documentación como parte del servicio. En el
+                portal podrás adjuntar tu CV y dejar datos clave para evaluar compatibilidad operativa.
               </p>
 
               {/* SEO copy (marketing) */}
               <p className="mt-6 text-xs text-white/70">
-                Transportes SCAR busca conductores para servicios de transporte y distribución. Postula con tu CV desde el
-                portal para acelerar la evaluación.
+                Transportes SCAR evalúa conductores para transporte de carga, distribución y rutas coordinadas. Postula
+                desde el portal para acelerar revisión y contacto.
               </p>
             </div>
 
             <div className="rounded-xl bg-white/5 ring-1 ring-white/15 p-5 sm:p-6">
-              <h3 className="text-lg font-semibold">Recomendado</h3>
+              <h3 className="text-lg font-semibold">Antecedentes recomendados</h3>
               <ul className="mt-2 space-y-2 text-white/80 list-disc list-inside">
                 <li>CV (PDF/DOC/DOCX)</li>
                 <li>Ciudad base y disponibilidad</li>
-                <li>Tipo de licencia A5</li>
-                <li>5 Años de experiencia</li>
+                <li>Tipo de licencia vigente</li>
+                <li>Experiencia en rutas o distribución</li>
               </ul>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

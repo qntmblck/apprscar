@@ -57,7 +57,7 @@ export default function ColaboradorDashboard() {
             {
               icon: TruckIcon,
               title: 'Fletes asignados',
-              desc: 'Revisa los fletes en los que participas como colaborador de flota.',
+              desc: 'Revisa rutas asignadas, ventanas, hitos y estado de los servicios en que participas.',
               href: '/fletes',
               color: 'indigo',
             },
@@ -92,15 +92,15 @@ export default function ColaboradorDashboard() {
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
           <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
             <CheckCircleIcon className="w-4 h-4 text-indigo-400" />
-            Tu alianza con SCAR
+            Tu alianza operativa con SCAR
           </h3>
           <ul className="space-y-2 text-xs text-slate-400">
             {[
-              'Integración a rutas nacionales de distribución B2B',
+              'Integración a rutas nacionales y servicios B2B',
               'Coordinación operacional con seguimiento de carga',
-              'Acceso a clientes de gran formato (retail, industria)',
-              'Protocolos estandarizados y respaldo documental',
-              'Crecimiento de flota con demanda sostenida',
+              'Participación en demanda dedicada o consolidada',
+              'Criterios de seguridad, cumplimiento y respaldo documental',
+              'Mayor continuidad cuando existe capacidad compatible',
             ].map(b => (
               <li key={b} className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />{b}
@@ -112,8 +112,8 @@ export default function ColaboradorDashboard() {
         {/* Solicitar integración */}
         <div className="bg-gradient-to-br from-indigo-500/10 to-[#003f8c]/10 border border-indigo-500/20 rounded-2xl p-6 text-center">
           <ClockIcon className="w-8 h-8 mx-auto mb-3 text-indigo-400/60" />
-          <p className="text-sm font-semibold text-white mb-1">¿Tienes más flota disponible?</p>
-          <p className="text-xs text-slate-400 mb-4">Envíanos una nueva solicitud de integración y amplía tu participación.</p>
+          <p className="text-sm font-semibold text-white mb-1">¿Tienes más capacidad disponible?</p>
+          <p className="text-xs text-slate-400 mb-4">Actualiza tu cobertura, equipos y disponibilidad para evaluar nuevas rutas compatibles.</p>
           <Link href="/contacto#colaboradores"
             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-semibold transition-all">
             Solicitar integración de flota

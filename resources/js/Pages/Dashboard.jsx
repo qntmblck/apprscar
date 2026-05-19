@@ -158,7 +158,7 @@ export default function Dashboard() {
           <div className="bg-white/[0.02] border border-[#0094d9]/15 rounded-2xl overflow-hidden">
             <div className="px-6 py-5 border-b border-[#0094d9]/15">
               <p className="text-sm text-slate-300">
-                Tu cuenta aún no tiene un rol asignado. Completa una de las solicitudes a continuación para sumarte al equipo SCAR.
+                Tu cuenta aún no tiene un rol asignado. Completa la solicitud que corresponda para que podamos orientar tu caso con datos claros.
               </p>
             </div>
 
@@ -187,8 +187,8 @@ export default function Dashboard() {
                 onSubmit={(e) => { e.preventDefault(); postulacion.post('/postulaciones/conductor', { forceFormData: true }) }}
               >
                 <div>
-                  <h2 className="text-base font-bold text-white">Postulación a Conductor</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Adjunta tu CV y completa tus datos. Revisaremos tu postulación y te contactaremos.</p>
+                  <h2 className="text-base font-bold text-white">Postulación a conductor</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Adjunta tu CV y completa antecedentes de licencia, experiencia y disponibilidad para evaluar compatibilidad operativa.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -221,7 +221,7 @@ export default function Dashboard() {
                 </InputField>
 
                 <InputField label="Comentarios" error={postulacion.errors.notes}>
-                  <DarkTextarea value={postulacion.data.notes} onChange={e => postulacion.setData('notes', e.target.value)} placeholder="Disponibilidad, rutas, tipo de camión, etc." />
+                  <DarkTextarea value={postulacion.data.notes} onChange={e => postulacion.setData('notes', e.target.value)} placeholder="Disponibilidad, rutas conocidas, experiencia, tipo de camión, etc." />
                 </InputField>
 
                 <div className="flex items-center justify-end gap-3 pt-1">
@@ -240,8 +240,8 @@ export default function Dashboard() {
                 onSubmit={(e) => { e.preventDefault(); solicitud.post('/solicitudes/transporte') }}
               >
                 <div>
-                  <h2 className="text-base font-bold text-white">Solicitar Transporte</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Indica origen, destino y detalles de la carga. Te contactaremos para coordinar.</p>
+                  <h2 className="text-base font-bold text-white">Solicitar transporte</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Indica origen, destino, volumen y ventana. Evaluaremos si conviene flete dedicado, carga consolidada o distribución programada.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -252,7 +252,7 @@ export default function Dashboard() {
                     <DarkInput value={solicitud.data.destination} onChange={e => solicitud.setData('destination', e.target.value)} placeholder="Ciudad / dirección" />
                   </InputField>
                   <InputField label="Tipo de carga" error={solicitud.errors.cargo_type}>
-                    <DarkInput value={solicitud.data.cargo_type} onChange={e => solicitud.setData('cargo_type', e.target.value)} placeholder="Paletizada, granel, maquinaria..." />
+                    <DarkInput value={solicitud.data.cargo_type} onChange={e => solicitud.setData('cargo_type', e.target.value)} placeholder="Paletizada, bultos, carga general..." />
                   </InputField>
                   <InputField label="Peso aprox. (kg)" error={solicitud.errors.cargo_weight_kg}>
                     <DarkInput type="number" min="0" value={solicitud.data.cargo_weight_kg} onChange={e => solicitud.setData('cargo_weight_kg', e.target.value)} placeholder="1000" />
@@ -266,7 +266,7 @@ export default function Dashboard() {
                 </div>
 
                 <InputField label="Descripción" error={solicitud.errors.description}>
-                  <DarkTextarea rows={4} value={solicitud.data.description} onChange={e => solicitud.setData('description', e.target.value)} placeholder="Dimensiones, cuidados, horario, referencias..." />
+                  <DarkTextarea rows={4} value={solicitud.data.description} onChange={e => solicitud.setData('description', e.target.value)} placeholder="Dimensiones, cuidados, horario, prioridad, restricciones o documentación..." />
                 </InputField>
 
                 <div className="flex items-center justify-end gap-3 pt-1">
@@ -285,8 +285,8 @@ export default function Dashboard() {
                 onSubmit={(e) => { e.preventDefault(); colaborador.post('/solicitudes/colaborador', { onSuccess: () => colaborador.reset() }) }}
               >
                 <div>
-                  <h2 className="text-base font-bold text-white">Integrar Flota como Colaborador</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Si cuentas con camiones/ramplas/furgones y quieres operar con SCAR, completa este formulario.</p>
+                  <h2 className="text-base font-bold text-white">Integrar flota como colaborador</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Si cuentas con camiones, ramplas o furgones, cuéntanos cobertura, disponibilidad y estándares para evaluar rutas compatibles.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -331,7 +331,7 @@ export default function Dashboard() {
         {/* Si ya tiene rol, mensaje de redirección */}
         {hasRole && notifications.length === 0 && (
           <div className="bg-white/[0.02] border border-[#0094d9]/15 rounded-2xl p-6 text-center">
-            <p className="text-slate-400 text-sm mb-3">Accede a tu panel para gestionar fletes y operación.</p>
+            <p className="text-slate-400 text-sm mb-3">Accede a tu panel para revisar fletes, solicitudes y estados operativos.</p>
             <Link href={getDashboardUrl()} className="inline-flex items-center gap-2 rounded-xl bg-[#0094d9] hover:bg-[#00a0f0] px-5 py-2.5 text-sm font-semibold text-white transition-all">
               Ir a mi panel <ArrowRightIcon className="w-4 h-4" />
             </Link>

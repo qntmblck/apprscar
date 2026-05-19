@@ -63,8 +63,8 @@ export default function ClienteDashboard() {
             },
             {
               icon: ClipboardDocumentListIcon,
-              title: 'Solicitar flete',
-              desc: 'Ingresa una nueva solicitud de transporte con detalles de carga y destino.',
+              title: 'Solicitar transporte',
+              desc: 'Ingresa origen, destino, volumen y ventana para evaluar el esquema más conveniente.',
               href: '/contacto#clientes',
               color: 'blue',
             },
@@ -101,15 +101,15 @@ export default function ClienteDashboard() {
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
             <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
               <StarIcon className="w-4 h-4 text-emerald-400" />
-              Tu servicio con SCAR
+              Tu operación con SCAR
             </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               {[
-                'Cobertura de distribución nacional (16 regiones)',
-                'Trazabilidad y control operacional en tiempo real',
-                'Protocolos de seguridad y cumplimiento SLA',
+                'Cobertura nacional coordinada en 16 regiones',
+                'Trazabilidad por hitos y control operacional',
+                'Criterios de seguridad, cumplimiento y documentación',
                 'Coordinación directa con equipo operativo',
-                'Consolidado de cargas para volúmenes parciales',
+                'Carga consolidada para volúmenes parciales',
               ].map(b => (
                 <li key={b} className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />{b}
@@ -133,7 +133,7 @@ export default function ClienteDashboard() {
                 <a href="tel:+56949023562" className="text-[#0094d9] hover:underline">+56 9 4902 3562</a>
               </div>
               <div>
-                <p className="font-semibold text-white">Email</p>
+                <p className="font-semibold text-white">Correo</p>
                 <a href="mailto:contacto@scartransportes.cl" className="text-[#0094d9] hover:underline">contacto@scartransportes.cl</a>
               </div>
             </div>
@@ -143,8 +143,8 @@ export default function ClienteDashboard() {
         {/* CTA consolidado */}
         <div className="bg-gradient-to-br from-[#0094d9]/10 to-[#003f8c]/10 border border-[#0094d9]/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-bold text-white">Nuevo: Consolidado de cargas</p>
-            <p className="text-xs text-slate-400 mt-1">Transporta volúmenes parciales de forma eficiente compartiendo capacidad.</p>
+            <p className="text-sm font-bold text-white">Carga consolidada para volúmenes parciales</p>
+            <p className="text-xs text-slate-400 mt-1">Comparte capacidad en rutas compatibles y evita sobredimensionar el flete.</p>
           </div>
           <Link href="/contacto#clientes"
             className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0094d9]/20 hover:bg-[#0094d9]/30 border border-[#0094d9]/30 text-[#0094d9] hover:text-white text-xs font-semibold transition-all">
