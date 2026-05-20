@@ -51,23 +51,25 @@ const suitability = [
 
 export default function ConsolidadoCargas() {
   return (
-    <section id="consolidado" className="bg-white py-16 sm:py-20" aria-labelledby="consolidado-title">
+    <section id="consolidado" className="bg-white py-12 sm:py-14" aria-labelledby="consolidado-title">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-          <div className="lg:sticky lg:top-24">
-            <SectionBadge color="#003f8c" backgroundOpacity={0.07} borderOpacity={0.18} className="mb-5">
-              Carga consolidada · Capacidad compartida · Rutas programadas
-            </SectionBadge>
+        <div className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr] lg:items-stretch">
+          <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm sm:p-7">
+            <div>
+              <SectionBadge color="#003f8c" backgroundOpacity={0.07} borderOpacity={0.18} className="mb-6">
+                Carga consolidada · Capacidad compartida · Rutas programadas
+              </SectionBadge>
 
-            <h2 id="consolidado-title" className="text-3xl font-semibold tracking-tight text-balance text-slate-950 sm:text-4xl">
-              Carga consolidada para empresas que no necesitan llenar un camión
-            </h2>
-            <p className="mt-5 text-base leading-7 text-slate-600">
-              Agrupamos volúmenes compatibles en rutas planificadas para bajar costo, mantener trazabilidad y evitar que tu
-              carga quede esperando por falta de volumen.
-            </p>
+              <h2 id="consolidado-title" className="text-3xl font-semibold tracking-tight text-balance text-slate-950 sm:text-4xl">
+                Carga consolidada para empresas que no necesitan llenar un camión
+              </h2>
+              <p className="mt-6 max-w-xl text-base leading-7 text-slate-600">
+                Agrupamos volúmenes compatibles en rutas planificadas para bajar costo, mantener trazabilidad y evitar que tu
+                carga quede esperando por falta de volumen.
+              </p>
+            </div>
 
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
               <p className="text-sm font-semibold text-slate-950">Conviene cuando necesitas:</p>
               <ul className="mt-4 space-y-3 text-sm text-slate-600">
                 {suitability.map((item) => (
@@ -79,29 +81,34 @@ export default function ConsolidadoCargas() {
               </ul>
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-              <Link
-                href="/contacto#clientes"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0094d9] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00a0f0]"
-              >
-                Cotizar transporte
-                <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link
-                href="/contacto#colaboradores"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#003f8c]/15 bg-white px-5 py-3 text-sm font-semibold text-[#003f8c] transition hover:bg-[#eef7ff]"
-              >
-                Únete como Colaborador
-                <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-              </Link>
+            <div className="mt-auto pt-8">
+              <p className="mb-4 text-sm leading-6 text-slate-500">
+                Pensado para empresas que quieren mover menos volumen sin perder claridad de precio, ruta y seguimiento.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+                <Link
+                  href="/contacto#clientes"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0094d9] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00a0f0]"
+                >
+                  Cotizar transporte
+                  <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/contacto#colaboradores"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#003f8c]/15 bg-white px-5 py-3 text-sm font-semibold text-[#003f8c] transition hover:bg-[#eef7ff]"
+                >
+                  Únete como Colaborador
+                  <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid h-full gap-4 sm:grid-cols-2 lg:auto-rows-fr">
             {ventajas.map((ventaja) => (
               <article
                 key={ventaja.title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0094d9]/35 hover:shadow-md"
+                className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-[#0094d9]/35 hover:shadow-md"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0094d9]/10 text-[#0094d9] ring-1 ring-[#0094d9]/20">
                   <ventaja.icon className="h-5 w-5" aria-hidden="true" />
