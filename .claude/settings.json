@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/AdminProductController.php)",
+      "Bash(php artisan *)"
+    ]
+  }
+}
