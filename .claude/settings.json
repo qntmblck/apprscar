@@ -7,7 +7,9 @@
       "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/AdminController.php)",
       "mcp__claude_ai_Shopify__search_collections",
       "mcp__claude_ai_Shopify__update-collection",
-      "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/HomeController.php)"
+      "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/HomeController.php)",
+      "Bash(php -l /Users/xve1/shopfront/app/Support/CmercadoProductAuditor.php)",
+      "mcp__claude_ai_Shopify__graphql_schema"
     ]
   }
 }
