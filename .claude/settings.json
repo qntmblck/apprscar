@@ -3,7 +3,11 @@
     "allow": [
       "Bash(node -e ' *)",
       "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/AdminProductController.php)",
-      "Bash(php artisan *)"
+      "Bash(php artisan *)",
+      "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/AdminController.php)",
+      "mcp__claude_ai_Shopify__search_collections",
+      "mcp__claude_ai_Shopify__update-collection",
+      "Bash(php -l /Users/xve1/shopfront/app/Http/Controllers/HomeController.php)"
     ]
   }
 }
