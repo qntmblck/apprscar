@@ -310,8 +310,7 @@ public function store(Request $request)
         'colaborador_id'       => $validated['colaborador_id'] ?? null,
         'tracto_id'            => $tractoId,
         'fecha_salida'         => now()->toDateString(),
-        'estado'               => 'Sin Notificar',
-        'notificar'            => false,
+        'estado'               => 'En curso',
         'tipo'                 => 'Directo',
     ];
 
@@ -392,11 +391,16 @@ public function store(Request $request)
         'adicionales',
     ])->findOrFail($validated['rendicion_id']);
 
-    // 2) Alternar estado y, al cerrar, actualizar fecha_llegada
+    // 2) Alternar estado y, al cerrar, actualizar fecha_llegada + pasar flete a Rendido
     if (! empty($validated['fecha_termino'])) {
-        $flete->update(['fecha_llegada' => $validated['fecha_termino']]);
+        $flete->update([
+            'fecha_llegada' => $validated['fecha_termino'],
+            'estado'        => 'Rendido',   // conductor finalizó → flete pasa a Rendido
+        ]);
         $rendicion->estado = 'Cerrado';
     } else {
+        // Reabrir: vuelve a En curso
+        $flete->update(['estado' => 'En curso']);
         $rendicion->estado = 'Activo';
     }
 

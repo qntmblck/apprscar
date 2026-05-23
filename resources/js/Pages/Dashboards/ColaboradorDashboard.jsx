@@ -56,9 +56,9 @@ export default function ColaboradorDashboard() {
           {[
             {
               icon: TruckIcon,
-              title: 'Fletes asignados',
-              desc: 'Revisa rutas asignadas, ventanas, hitos y estado de los servicios en que participas.',
-              href: '/fletes',
+              title: 'Mis fletes',
+              desc: 'Revisa rutas asignadas, ventanas, hitos y estado de los fletes en que participas.',
+              href: '/colaborador/servicios',
               color: 'indigo',
             },
             {

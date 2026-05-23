@@ -80,15 +80,15 @@ export default function ConductorDashboard() {
             {
               icon: TruckIcon,
               title: 'Mis fletes',
-              desc: 'Consulta rutas asignadas, ventanas, datos del equipo y entregas pendientes.',
-              href: '/conductor/fletes',
+              desc: 'Consulta rutas asignadas, estado de cada flete y rinde tus gastos de viaje.',
+              href: '/conductor/servicios',
               color: 'blue',
             },
             {
               icon: DocumentTextIcon,
               title: 'Rendiciones',
-              desc: 'Sube comprobantes, registra gastos y realiza el cierre del viaje.',
-              href: '/conductor/fletes',
+              desc: 'Registra gastos, diesel y abonos de caja para cerrar el servicio.',
+              href: '/conductor/servicios',
               color: 'green',
             },
             {

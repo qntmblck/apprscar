@@ -1,449 +1,218 @@
-// resources/js/Pages/Fletes/FiltrosBar.jsx
-import React, { useState, useEffect } from 'react'
-import { usePage } from '@inertiajs/react'
-import {
-  ArrowPathIcon,
-  CalendarDaysIcon,
-  FolderPlusIcon,
-  MapPinIcon,
-  TruckIcon,
-  IdentificationIcon,
-  BuildingStorefrontIcon,
-  LockClosedIcon,
-  LockOpenIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
-  XMarkIcon as XIcon,
-} from '@heroicons/react/20/solid'
+// resources/js/Pages/Fletes/FiltrosBar.jsx  (reinventado — compacto)
+import React, { useState, useRef, useEffect } from 'react'
+import { MagnifyingGlassIcon, XMarkIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import classNames from 'classnames'
-import PortalDropdown from './PortalDropdown'
 
+/* ── Multi-select dropdown ────────────────────────────────────── */
+function MultiDropdown({ label, options, selected, onToggle, getLabel }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const outside = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', outside)
+    return () => document.removeEventListener('mousedown', outside)
+  }, [])
+
+  const hasSelection = selected.length > 0
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+          hasSelection
+            ? 'bg-[#0094d9]/15 border-[#0094d9]/30 text-[#0094d9]'
+            : 'bg-white/[0.04] border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
+        }`}
+      >
+        {label}
+        {hasSelection && (
+          <span className="w-4 h-4 rounded-full bg-[#0094d9] text-white text-[9px] font-bold flex items-center justify-center">
+            {selected.length}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 min-w-[180px] max-h-56 overflow-y-auto bg-[#0a1628]/95 backdrop-blur border border-white/10 rounded-xl shadow-xl">
+          {options.map(opt => {
+            const id = String(opt.id)
+            const checked = selected.includes(id)
+            return (
+              <div
+                key={id}
+                onClick={() => onToggle(id)}
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs cursor-pointer transition-colors ${
+                  checked ? 'bg-[#0094d9]/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                }`}
+              >
+                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                  checked ? 'bg-[#0094d9] border-[#0094d9]' : 'border-white/20'
+                }`}>
+                  {checked && <span className="text-white text-[8px] font-bold">✓</span>}
+                </div>
+                <span className="truncate">{getLabel ? getLabel(opt) : opt.name}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Date range picker ────────────────────────────────────────── */
+function DateFilter({ desde, hasta, onChange }) {
+  const [open, setOpen] = useState(false)
+  const [range, setRange] = useState({
+    from: desde ? new Date(desde) : undefined,
+    to:   hasta ? new Date(hasta) : undefined,
+  })
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const outside = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', outside)
+    return () => document.removeEventListener('mousedown', outside)
+  }, [])
+
+  const hasDate = !!desde || !!hasta
+  const label = desde && hasta
+    ? `${desde.slice(5)} → ${hasta.slice(5)}`
+    : desde ? `Desde ${desde.slice(5)}` : hasta ? `Hasta ${hasta.slice(5)}` : 'Fechas'
+
+  const apply = () => {
+    const addDay = d => {
+      const x = new Date(d)
+      x.setDate(x.getDate() + 1)
+      return x.toISOString().slice(0, 10)
+    }
+    onChange({
+      desde: range.from ? addDay(range.from) : '',
+      hasta: range.to   ? addDay(range.to)   : '',
+    })
+    setOpen(false)
+  }
+
+  const clear = () => {
+    setRange({ from: undefined, to: undefined })
+    onChange({ desde: '', hasta: '' })
+    setOpen(false)
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+          hasDate
+            ? 'bg-[#0094d9]/15 border-[#0094d9]/30 text-[#0094d9]'
+            : 'bg-white/[0.04] border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
+        }`}
+      >
+        <CalendarDaysIcon className="w-3.5 h-3.5" />
+        {label}
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-[#0a1628]/95 backdrop-blur border border-white/10 rounded-xl shadow-xl p-3">
+          <DayPicker
+            mode="range"
+            selected={range}
+            onSelect={setRange}
+            numberOfMonths={1}
+          />
+          <div className="flex justify-between mt-2 pt-2 border-t border-white/10">
+            <button onClick={clear} className="text-[10px] text-slate-500 hover:text-red-400 transition-colors">
+              Limpiar
+            </button>
+            <button onClick={apply} className="text-[10px] text-[#0094d9] font-semibold hover:text-white transition-colors">
+              Aplicar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Main FiltrosBar ──────────────────────────────────────────── */
 export default function FiltrosBar({
+  search,
+  onSearch,
   data,
-  setData,
-  range,
-  setRange,
-  get,
-  activeTab,
-  setActiveTab,
-  clientes,
   conductores,
-  colaboradores,
-  tractos,
+  clientes,
   destinos,
   handleToggleMultiSelect,
-  handleCreateClick,
-  handleClear,
-  hasDest,
-  hasClient,
-  tooManyMulti,
+  onDateChange,
   hasFilters,
-  handleRangeSelect,
-  topDestinos = destinos.slice(0, 10),
+  onClear,
 }) {
-  const { props } = usePage()
-  const [clientesList, setClientesList] = useState(clientes)
-  const [destInput, setDestInput] = useState('')
-  const [localSuggestions, setLocalSuggestions] = useState(topDestinos)
-
-  // Sync clientesList si props cambian
-  useEffect(() => {
-    setClientesList(props.clientes)
-  }, [props.clientes])
-
-  // Filtrar sugerencias mientras el usuario escribe
-  const handleDestSearch = e => {
-    const v = e.target.value
-    setDestInput(v)
-
-    if (!v.trim()) {
-      setLocalSuggestions(topDestinos)
-    } else {
-      setLocalSuggestions(
-        destinos
-          .filter(d => d.nombre.toLowerCase().includes(v.toLowerCase()))
-          .slice(0, 10)
-      )
-    }
-  }
-
-  const onCrear = () => {
-    if (!hasDest || !hasClient) return
-
-    handleCreateClick({
-      destino_id:           data.destino_ids[0],
-      cliente_principal_id: data.cliente_ids[0],
-      conductor_id:         data.conductor_ids[0]   ?? null,
-      colaborador_id:       data.colaborador_ids[0] ?? null,
-      tracto_id:            data.tracto_ids[0]      ?? null,
-    })
-  }
-
   return (
-    <div className="sticky top-[56px] z-20 overflow-visible" style={{ background: 'rgba(10,22,40,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,148,217,0.18)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-x-2 overflow-x-auto">
-
-        {/* Limpiar filtros */}
-        <button
-          onClick={() => window.location.href = '/fletes'}
-          className="inline-flex items-center p-1.5 bg-white/[0.05] border border-transparent rounded-lg hover:border-[#0094d9]/30 transition-colors"
-        >
-          <ArrowPathIcon
-            className={classNames(
-              hasFilters ? 'text-red-400' : 'text-slate-500',
-              'h-5 w-5 hover:text-slate-300'
-            )}
-          />
-        </button>
-
-        {/* Cliente */}
-        <FiltroBoton
-          icon={BuildingStorefrontIcon}
-          label="Cliente"
-          isActive={activeTab === 'Cliente'}
-          hasSelection={data.cliente_ids.length > 0}
-          onClick={() =>
-            setActiveTab(activeTab === 'Cliente' ? '' : 'Cliente')
-          }
-        >
-          <div className="w-44 max-h-[480px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10">
-            {clientesList.map(c => (
-              <CheckboxItem
-                key={c.id}
-                label={c.razon_social}
-                checked={data.cliente_ids.includes(String(c.id))}
-                onClick={() => {
-                  handleToggleMultiSelect('cliente_ids', c.id)
-                  setActiveTab('')
-                }}
-              />
-            ))}
-          </div>
-        </FiltroBoton>
-
-        {/* Destino */}
-        <FiltroBoton
-          icon={MapPinIcon}
-          label="Destino"
-          isActive={activeTab === 'Destino'}
-          hasSelection={data.destino_ids.length > 0}
-          onClick={() =>
-            setActiveTab(activeTab === 'Destino' ? '' : 'Destino')
-          }
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            onMouseDown={e => e.stopPropagation()}
-            className="w-48 max-h-[480px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10 z-50"
-          >
-            <div className="p-2">
-              <input
-                type="text"
-                placeholder="Buscar destino..."
-                value={destInput}
-                onChange={handleDestSearch}
-                onClick={e => e.stopPropagation()}
-                onMouseDown={e => e.stopPropagation()}
-                className="w-full px-2 py-1 text-sm bg-white/[0.05] border border-[#0094d9]/20 text-slate-200 placeholder-slate-500 rounded-lg focus:outline-none focus:border-[#0094d9]/50"
-              />
-            </div>
-
-            {data.destino_ids.length > 0 && (
-              <div className="divide-y divide-gray-100">
-                {data.destino_ids.map(selId => {
-                  const d = destinos.find(x => String(x.id) === String(selId))
-                  return (
-                    <div
-                      key={d.id}
-                      className="flex items-center justify-between px-3 py-2 text-sm text-slate-200 cursor-pointer hover:bg-[#0094d9]/10"
-                    >
-                      <span>{d.nombre}</span>
-                      <button
-                        onClick={() => {
-                          handleToggleMultiSelect('destino_ids', d.id)
-                          get('/fletes', { preserveState: true, data })
-                        }}
-                        className="p-1 hover:bg-gray-200 rounded"
-                      >
-                        <XIcon className="h-4 w-4 text-red-500" />
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {localSuggestions
-              .filter(d => !data.destino_ids.includes(String(d.id)))
-              .map(d => (
-                <div
-                  key={d.id}
-                  onClick={() => {
-                    handleToggleMultiSelect('destino_ids', d.id)
-                    setDestInput('')
-                    setLocalSuggestions([])
-                    setActiveTab('')
-                    get('/fletes', { preserveState: true, data })
-                  }}
-                  className="px-3 py-2 text-sm text-slate-300 cursor-pointer hover:bg-[#0094d9]/10 hover:text-white"
-                >
-                  {d.nombre}
-                </div>
-              ))}
-          </div>
-        </FiltroBoton>
-
-        {/* Titular (multi) */}
-        <FiltroBoton
-          icon={IdentificationIcon}
-          label="Titular"
-          isActive={activeTab === 'Titular'}
-          hasSelection={
-            data.colaborador_ids.length + data.conductor_ids.length > 0
-          }
-          onClick={() =>
-            setActiveTab(activeTab === 'Titular' ? '' : 'Titular')
-          }
-        >
-          <div className="w-48 max-h-[580px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10">
-            {colaboradores.map(col => (
-              <CheckboxItem
-                key={`col-${col.id}`}
-                label={col.name}
-                checked={data.colaborador_ids.some(id => Number(id) === col.id)}
-                onClick={() =>
-                  handleToggleMultiSelect('colaborador_ids', col.id)
-                }
-              />
-            ))}
-            {conductores.map(cond => (
-              <CheckboxItem
-                key={`cond-${cond.id}`}
-                label={cond.name}
-                checked={data.conductor_ids.some(id => Number(id) === cond.id)}
-                onClick={() =>
-                  handleToggleMultiSelect('conductor_ids', cond.id)
-                }
-              />
-            ))}
-          </div>
-        </FiltroBoton>
-
-        {/* Tracto (multi) */}
-        <FiltroBoton
-          icon={TruckIcon}
-          label="Tracto"
-          isActive={activeTab === 'Tracto'}
-          hasSelection={data.tracto_ids.length > 0}
-          onClick={() =>
-            setActiveTab(activeTab === 'Tracto' ? '' : 'Tracto')
-          }
-        >
-          <div className="w-44 max-h-[480px] overflow-auto bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10">
-            {tractos.map(t => (
-              <CheckboxItem
-                key={t.id}
-                label={t.patente}
-                checked={data.tracto_ids.some(id => Number(id) === t.id)}
-                onClick={() => handleToggleMultiSelect('tracto_ids', t.id)}
-              />
-            ))}
-          </div>
-        </FiltroBoton>
-
-        {/* Crear */}
-        <div className="relative flex-shrink-0">
-          <button
-            onClick={onCrear}
-            className={classNames(
-              hasDest && hasClient
-                ? 'bg-emerald-600/80 hover:bg-emerald-600 text-white border border-emerald-500/40'
-                : 'bg-white/[0.04] text-slate-600 cursor-not-allowed border border-white/10',
-              'inline-flex items-center p-1.5 rounded-lg transition-colors'
-            )}
-          >
-            <FolderPlusIcon className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Fecha */}
-        <FiltroBoton
-          icon={CalendarDaysIcon}
-          label="Fecha"
-          isActive={activeTab === 'Fecha'}
-          hasSelection={!!data.fecha_desde || !!data.fecha_hasta}
-          onClick={() =>
-            setActiveTab(activeTab === 'Fecha' ? '' : 'Fecha')
-          }
-        >
-          <div className="w-64 bg-[#0a1628] border border-[#0094d9]/20 p-2 shadow-xl rounded-xl z-50 text-xs sm:text-sm text-slate-300">
-            <DayPicker
-              mode="range"
-              selected={range}
-              onSelect={handleRangeSelect}
-              numberOfMonths={1}
-            />
-            <div className="flex justify-between mt-2">
-              <button
-                onClick={() => setRange({ from: undefined, to: undefined })}
-                className="text-[10px] text-gray-600 hover:text-gray-800"
-              >
-                X
-              </button>
-              <button
-                onClick={() => {
-                  const addOneDay = date => {
-                    const d = new Date(date)
-                    d.setDate(d.getDate() + 1)
-                    return d.toISOString().split('T')[0]
-                  }
-                  const desde = range.from ? addOneDay(range.from) : ''
-                  const hasta = range.to ? addOneDay(range.to) : ''
-                  setData('fecha_desde', desde)
-                  setData('fecha_hasta', hasta)
-                  setActiveTab('')
-                  get('/fletes', {
-                    preserveState: true,
-                    data: { ...data, fecha_desde: desde, fecha_hasta: hasta },
-                  })
-                }}
-                className="text-[10px] text-blue-600 hover:underline"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </FiltroBoton>
-
-        {/* Rendición */}
-        <div className="relative flex-shrink-0">
-          <button
-            data-toggle-type="Rendición"
-            onClick={() =>
-              setActiveTab(activeTab === 'Rendición' ? '' : 'Rendición')
-            }
-            className={classNames(
-              activeTab === 'Rendición'
-                ? 'border-[#0094d9] bg-[#0094d9]/10'
-                : 'border-transparent hover:border-[#0094d9]/30',
-              'inline-flex items-center bg-white/[0.05] p-1.5 border rounded-lg transition-colors'
-            )}
-          >
-            {!data.rendicion_estado && (
-              <LockClosedIcon className="h-5 w-5 text-gray-500" />
-            )}
-            {data.rendicion_estado === 'Activo' && (
-              <LockOpenIcon className="h-5 w-5 text-green-600" />
-            )}
-            {data.rendicion_estado === 'Cerrado' && (
-              <LockClosedIcon className="h-5 w-5 text-red-600" />
-            )}
-          </button>
-          <PortalDropdown isOpen={activeTab === 'Rendición'} type="Rendición">
-            <div className="w-36 bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10 overflow-hidden">
-              <button onClick={() => { setData('rendicion_estado', ''); setActiveTab(''); get('/fletes', { preserveState: true, data }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
-                <LockClosedIcon className="h-4 w-4 text-slate-400 mr-2" />Todas
-              </button>
-              <button onClick={() => { setData('rendicion_estado', 'Activo'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, rendicion_estado: 'Activo' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
-                <LockOpenIcon className="h-4 w-4 text-emerald-400 mr-2" />Activo
-              </button>
-              <button onClick={() => { setData('rendicion_estado', 'Cerrado'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, rendicion_estado: 'Cerrado' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
-                <LockClosedIcon className="h-4 w-4 text-red-400 mr-2" />Cerrado
-              </button>
-            </div>
-          </PortalDropdown>
-        </div>
-
-        {/* Notificación */}
-        <div className="relative flex-shrink-0">
-          <button
-            data-toggle-type="Notificación"
-            onClick={() =>
-              setActiveTab(activeTab === 'Notificación' ? '' : 'Notificación')
-            }
-            className={classNames(
-              activeTab === 'Notificación'
-                ? 'border-[#0094d9] bg-[#0094d9]/10'
-                : 'border-transparent hover:border-[#0094d9]/30',
-              'inline-flex items-center bg-white/[0.05] p-1.5 border rounded-lg transition-colors'
-            )}
-          >
-            {!data.notificar_estado && (
-              <EnvelopeIcon className="h-5 w-5 text-gray-500" />
-            )}
-            {data.notificar_estado === 'Sin Notificar' && (
-              <EnvelopeOpenIcon className="h-5 w-5 text-green-600" />
-            )}
-            {data.notificar_estado === 'Notificado' && (
-              <EnvelopeIcon className="h-5 w-5 text-black" />
-            )}
-          </button>
-          <PortalDropdown isOpen={activeTab === 'Notificación'} type="Notificación">
-            <div className="w-40 bg-[#0a1628] border border-[#0094d9]/20 shadow-xl rounded-xl divide-y divide-[#0094d9]/10 overflow-hidden">
-              <button onClick={() => { setData('notificar_estado', ''); setActiveTab(''); get('/fletes', { preserveState: true, data }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
-                <EnvelopeIcon className="h-4 w-4 text-slate-400 mr-2" />Todas
-              </button>
-              <button onClick={() => { setData('notificar_estado', 'Sin Notificar'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, notificar_estado: 'Sin Notificar' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
-                <EnvelopeOpenIcon className="h-4 w-4 text-emerald-400 mr-2" />Sin Notificar
-              </button>
-              <button onClick={() => { setData('notificar_estado', 'Notificado'); setActiveTab(''); get('/fletes', { preserveState: true, data: { ...data, notificar_estado: 'Notificado' } }) }} className="flex items-center px-3 py-2.5 text-sm text-slate-300 hover:bg-[#0094d9]/10 hover:text-white w-full transition-colors">
-                <EnvelopeIcon className="h-4 w-4 text-[#0094d9] mr-2" />Notificado
-              </button>
-            </div>
-          </PortalDropdown>
-        </div>
-
-      </div>
-    </div>
-  )
-}
-
-function FiltroBoton({ icon: Icon, isActive, hasSelection = false, onClick, children, label }) {
-  return (
-    <div className="relative flex-shrink-0">
-      <button
-        data-toggle-type={label}
-        onClick={onClick}
-        className={classNames(
-          isActive
-            ? 'border-[#0094d9] bg-[#0094d9]/10'
-            : 'border-transparent hover:border-[#0094d9]/30',
-          'inline-flex items-center bg-white/[0.05] p-1.5 border rounded-lg transition-colors'
-        )}
-      >
-        <Icon
-          className={classNames(
-            isActive || hasSelection ? 'text-[#0094d9]' : 'text-slate-400',
-            'h-5 w-5'
-          )}
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Text search */}
+      <div className="relative flex-1 min-w-[180px] max-w-xs">
+        <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+        <input
+          value={search}
+          onChange={e => onSearch(e.target.value)}
+          placeholder="Buscar destino, cliente…"
+          className="w-full pl-8 pr-3 py-1.5 bg-white/[0.04] border border-white/10 rounded-lg text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-[#0094d9]/40"
         />
-      </button>
-      <PortalDropdown isOpen={isActive} type={label}>
-        {children}
-      </PortalDropdown>
-    </div>
-  )
-}
+        {search && (
+          <button onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2">
+            <XMarkIcon className="w-3 h-3 text-slate-500 hover:text-slate-300" />
+          </button>
+        )}
+      </div>
 
-function CheckboxItem({ label, checked, onClick, className }) {
-  return (
-    <div
-      onClick={onClick}
-      className={classNames(
-        checked ? 'bg-[#0094d9]/10 text-white' : 'text-slate-300 hover:bg-[#0094d9]/5 hover:text-white',
-        'flex items-center px-3 py-2 text-xs sm:text-sm cursor-pointer transition-colors',
-        className
-      )}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        readOnly
-        className="h-4 w-4 accent-[#0094d9] border-slate-600 rounded"
+      {/* Conductor */}
+      <MultiDropdown
+        label="Conductor"
+        options={conductores}
+        selected={data.conductor_ids.map(String)}
+        onToggle={id => handleToggleMultiSelect('conductor_ids', id)}
+        getLabel={o => o.name}
       />
-      <span className="ml-2 truncate">{label}</span>
+
+      {/* Cliente */}
+      <MultiDropdown
+        label="Cliente"
+        options={clientes}
+        selected={data.cliente_ids.map(String)}
+        onToggle={id => handleToggleMultiSelect('cliente_ids', id)}
+        getLabel={o => o.razon_social}
+      />
+
+      {/* Destino */}
+      <MultiDropdown
+        label="Destino"
+        options={destinos}
+        selected={data.destino_ids.map(String)}
+        onToggle={id => handleToggleMultiSelect('destino_ids', id)}
+        getLabel={o => o.nombre}
+      />
+
+      {/* Date range */}
+      <DateFilter
+        desde={data.fecha_desde}
+        hasta={data.fecha_hasta}
+        onChange={onDateChange}
+      />
+
+      {/* Clear all */}
+      {hasFilters && (
+        <button
+          onClick={onClear}
+          className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1.5"
+        >
+          <XMarkIcon className="w-3.5 h-3.5" />
+          Limpiar
+        </button>
+      )}
     </div>
   )
 }

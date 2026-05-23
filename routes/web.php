@@ -39,6 +39,11 @@ use App\Http\Controllers\SolicitudTransporteController;
 use App\Http\Controllers\SolicitudColaboradorController;
 use App\Http\Controllers\SolicitudAdminController;
 
+use App\Http\Controllers\ConductorServiciosController;
+use App\Http\Controllers\ClienteServiciosController;
+use App\Http\Controllers\ColaboradorServiciosController;
+use App\Http\Controllers\SuperRendicionesController;
+
 /*
 |--------------------------------------------------------------------------
 | Rutas Públicas
@@ -124,6 +129,47 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/colaborador/dashboard', [ColaboradorDashboardController::class, 'index'])
         ->middleware('role:colaborador')
         ->name('colaborador.dashboard');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Servicios por Rol (análogo a Pedidos/Reseñas)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:conductor'])->prefix('conductor')->group(function () {
+    Route::get('/servicios', [ConductorServiciosController::class, 'index'])
+        ->name('conductor.servicios.index');
+});
+
+Route::middleware(['auth', 'role:cliente'])->prefix('cliente')->group(function () {
+    Route::get('/servicios', [ClienteServiciosController::class, 'index'])
+        ->name('cliente.servicios.index');
+});
+
+Route::middleware(['auth', 'role:colaborador'])->prefix('colaborador')->group(function () {
+    Route::get('/servicios', [ColaboradorServiciosController::class, 'index'])
+        ->name('colaborador.servicios.index');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Super — Panel de Rendiciones (análogo a Panel de Reseñas)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:superadmin'])->prefix('super')->group(function () {
+    Route::get('/rendiciones', [SuperRendicionesController::class, 'index'])
+        ->name('super.rendiciones.index');
+
+    Route::post('/rendiciones/{flete}/solicitar', [SuperRendicionesController::class, 'solicitarRendicion'])
+        ->name('super.rendiciones.solicitar');
+
+    Route::post('/rendiciones/{flete}/aprobar', [SuperRendicionesController::class, 'aprobar'])
+        ->name('super.rendiciones.aprobar');
+
+    Route::post('/rendiciones/{flete}/pagado', [SuperRendicionesController::class, 'marcarPagado'])
+        ->name('super.rendiciones.pagado');
 });
 
 /*

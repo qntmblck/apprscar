@@ -58,7 +58,7 @@ export default function ClienteDashboard() {
               icon: TruckIcon,
               title: 'Mis fletes',
               desc: 'Revisa el estado y trazabilidad de tus embarques activos e históricos.',
-              href: '/fletes',
+              href: '/cliente/servicios',
               color: 'emerald',
             },
             {

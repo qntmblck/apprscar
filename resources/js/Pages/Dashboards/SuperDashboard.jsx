@@ -216,9 +216,10 @@ export default function SuperDashboard() {
               </h2>
               <div className="space-y-2">
                 {[
-                  { href: '/fletes',   label: 'Revisar fletes',     icon: TruckIcon },
-                  { href: '/usuarios', label: 'Gestionar usuarios',  icon: UsersIcon },
-                  { href: '/admin/solicitudes', label: 'Todas las solicitudes', icon: DocumentTextIcon },
+                  { href: '/fletes',              label: 'Revisar fletes',         icon: TruckIcon },
+                  { href: '/super/rendiciones',   label: 'Panel de rendiciones',   icon: DocumentTextIcon },
+                  { href: '/usuarios',            label: 'Gestionar usuarios',     icon: UsersIcon },
+                  { href: '/admin/solicitudes',   label: 'Todas las solicitudes',  icon: DocumentTextIcon },
                 ].map(({ href, label, icon: Icon }) => (
                   <Link key={href} href={href}
                     className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/[0.03] hover:bg-[#0094d9]/10 border border-white/5 hover:border-[#0094d9]/30 text-slate-300 hover:text-white transition-all group">
