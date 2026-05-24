@@ -170,19 +170,22 @@ export default function DashboardHeader() {
 
 function getNavigation(roles) {
   const navigation = []
-  navigation.push({ name: 'Inicio', href: '/' })
 
-  // Admin / SuperAdmin: acceso a tabla de fletes
+  // Panel siempre primero
+  navigation.push({ name: 'Panel', href: getDashboardUrl(roles) })
+
+  // Admin / SuperAdmin
   if (roles.includes('superadmin') || roles.includes('admin')) {
     navigation.push({ name: 'Fletes', href: '/fletes' })
   }
 
-  // SuperAdmin: panel de rendiciones
+  // SuperAdmin: rendiciones y usuarios
   if (roles.includes('superadmin')) {
     navigation.push({ name: 'Rendiciones', href: '/super/rendiciones' })
+    navigation.push({ name: 'Usuarios',    href: '/usuarios' })
   }
 
-  // Roles de campo: sus propios fletes
+  // Roles de campo
   if (roles.includes('conductor')) {
     navigation.push({ name: 'Mis Fletes', href: '/conductor/servicios' })
   }
@@ -193,11 +196,6 @@ function getNavigation(roles) {
     navigation.push({ name: 'Mis Fletes', href: '/colaborador/servicios' })
   }
 
-  navigation.push({ name: 'Panel', href: getDashboardUrl(roles) })
-
-  if (roles.includes('superadmin')) {
-    navigation.push({ name: 'Usuarios', href: '/usuarios' })
-  }
   return navigation
 }
 

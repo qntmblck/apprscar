@@ -410,8 +410,16 @@ public function store(Request $request)
         $rendicion->viatico_calculado = $validated['viatico_efectivo'];
     }
 
-    // 4) Recalcular totales y guardar
+    // 4) Recalcular totales. Si no informan viático efectivo al finalizar,
+    // usar el calculado automáticamente por días.
     $rendicion->recalcularTotales();
+    if (
+        empty($validated['viatico_efectivo']) &&
+        !empty($validated['fecha_termino']) &&
+        ($rendicion->viatico_calculado ?? null) !== null
+    ) {
+        $rendicion->viatico_efectivo = $rendicion->viatico_calculado;
+    }
     $rendicion->save();
 
     // 5) Refrescar Flete con todas sus relaciones para la UI
@@ -567,7 +575,21 @@ public function updateGuiaRuta(Request $request, Flete $flete)
     ]);
 }
 
+public function updateDestino(Request $request, Flete $flete)
+{
+    $request->validate(['destino_id' => 'required|exists:destinos,id']);
+    $flete->update(['destino_id' => $request->destino_id]);
+    $flete->load(['conductor:id,name','colaborador:id,name','tracto:id,patente','rampla:id,patente','destino:id,nombre','clientePrincipal:id,razon_social','rendicion']);
+    return response()->json(['flete' => $flete]);
+}
 
+public function updateCliente(Request $request, Flete $flete)
+{
+    $request->validate(['cliente_principal_id' => 'nullable|exists:clientes,id']);
+    $flete->update(['cliente_principal_id' => $request->cliente_principal_id ?: null]);
+    $flete->load(['conductor:id,name','colaborador:id,name','tracto:id,patente','rampla:id,patente','destino:id,nombre','clientePrincipal:id,razon_social','rendicion']);
+    return response()->json(['flete' => $flete]);
+}
 
 public function updateFechaSalida(Request $request, Flete $flete)
 {

@@ -67,3 +67,45 @@
   top: 0;
   left: 0;
 }
+
+/* DayPicker dark theme: prioriza legibilidad y foco visual */
+.scar-date-picker .rdp-root {
+  --rdp-accent-color: #22d3ee;
+  --rdp-background-color: rgba(34, 211, 238, 0.22);
+}
+
+.scar-date-picker .rdp-caption_label {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.scar-date-picker .rdp-weekday {
+  color: #94a3b8;
+}
+
+.scar-date-picker .rdp-day_button {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.scar-date-picker .rdp-day_button:hover {
+  background: rgba(34, 211, 238, 0.18);
+  color: #ffffff;
+}
+
+.scar-date-picker .rdp-today .rdp-day_button {
+  color: #67e8f9;
+  border: 1px solid rgba(103, 232, 249, 0.55);
+}
+
+.scar-date-picker .rdp-selected .rdp-day_button,
+.scar-date-picker .rdp-range_start .rdp-day_button,
+.scar-date-picker .rdp-range_end .rdp-day_button {
+  color: #ffffff;
+  background: #0891b2;
+}
+
+.scar-date-picker .rdp-range_middle .rdp-day_button {
+  color: #f1f5f9;
+  background: rgba(34, 211, 238, 0.2);
+}

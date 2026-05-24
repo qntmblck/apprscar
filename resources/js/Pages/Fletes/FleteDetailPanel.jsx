@@ -21,30 +21,64 @@ function SaldoBar({ flete }) {
   const gastos  = r.total_gastos  ?? r.gastos?.reduce((s, g) => s + g.monto, 0) ?? 0
   const diesel  = r.total_diesel  ?? r.diesels?.filter(d => d.metodo_pago !== 'Crédito').reduce((s, d) => s + d.monto, 0) ?? 0
   const viatico = r.viatico_calculado ?? 0
-  const saldo   = r.saldo_temporal ?? (abonos - gastos - diesel - viatico)
+  const saldo    = r.saldo_temporal ?? (abonos - gastos - diesel - viatico)
+  // Comisión = tarifa (destino+cliente) + retorno. Solo de lectura, no editable.
+  const comision = flete.comision_total ?? 0
 
   return (
     <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
       {[
-        { label: 'Abonos',  n: abonos,    sign: '+', color: 'text-emerald-300' },
-        { label: 'Gastos',  n: -gastos,   sign: '-', color: 'text-red-300' },
-        { label: 'Diésel',  n: -diesel,   sign: '-', color: 'text-orange-300' },
-        { label: 'Viático', n: -viatico,  sign: '-', color: 'text-amber-300' },
-        { label: 'Comisión',n: r.comision ?? 0, sign: '+', color: 'text-violet-300' },
+        { label: 'Abonos',  n: abonos,    color: 'text-emerald-300' },
+        { label: 'Gastos',  n: -gastos,   color: 'text-red-300' },
+        { label: 'Diésel',  n: -diesel,   color: 'text-orange-300' },
+        { label: 'Viático', n: -viatico,  color: 'text-amber-300' },
         {
           label: 'Saldo',
           n: saldo,
-          sign: saldo >= 0 ? '+' : '-',
           color: saldo >= 0 ? 'text-emerald-300' : 'text-red-400',
           bold: true,
           border: true,
         },
+        { label: 'Comisión', n: comision, color: 'text-violet-300' },
       ].map(({ label, n, color, bold, border }) => (
         <div key={label} className={`bg-white/[0.04] rounded-xl px-3 py-2 text-center ${border ? 'border border-white/15' : ''}`}>
           <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
           <p className={`text-sm ${color} ${bold ? 'font-extrabold' : 'font-bold'} mt-0.5`}>
             {n < 0 ? '-' : ''}{fmt(n)}
           </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function OperacionResumen({ flete, isConductor }) {
+  const r = flete.rendicion
+  if (!r) return null
+
+  const comision = flete.comision_total ?? 0
+  const adicionales = isConductor ? 0 : (r.adicionales?.reduce((s, a) => s + (a.monto ?? 0), 0) ?? 0)
+  const abonos  = r.abonos?.reduce((s, a) => s + (a.monto ?? 0), 0) ?? 0
+  const gastos  = r.total_gastos ?? (r.gastos?.reduce((s, g) => s + (g.monto ?? 0), 0) ?? 0)
+  const diesel  = r.total_diesel ?? (r.diesels?.filter(d => d.metodo_pago !== 'Crédito').reduce((s, d) => s + (d.monto ?? 0), 0) ?? 0)
+  const viatico = r.viatico_calculado ?? 0
+
+  const rows = [
+    { label: 'Comisión',  sign: '+', n: comision,   color: 'text-violet-300' },
+    ...(isConductor ? [] : [{ label: 'Adicionales', sign: '-', n: adicionales, color: 'text-blue-300' }]),
+    { label: 'Abonos',    sign: '+', n: abonos,     color: 'text-emerald-300' },
+    { label: 'Gastos',    sign: '-', n: gastos,     color: 'text-red-300' },
+    { label: 'Diésel',    sign: '-', n: diesel,     color: 'text-orange-300' },
+    { label: 'Viático',   sign: '-', n: viatico,    color: 'text-amber-300' },
+  ]
+
+  return (
+    <div className="rounded-xl border border-white/10 overflow-hidden">
+      {rows.map((row, i) => (
+        <div key={row.label} className={`grid grid-cols-[20px_1fr_auto] items-center px-3 py-2 bg-white/[0.03] ${i > 0 ? 'border-t border-white/8' : ''}`}>
+          <span className={`text-sm font-bold ${row.color}`}>{row.sign}</span>
+          <span className="text-xs text-slate-300">{row.label}</span>
+          <span className={`text-xs font-mono font-bold ${row.color}`}>{fmt(row.n)}</span>
         </div>
       ))}
     </div>
@@ -100,7 +134,7 @@ const BTN_SM = 'flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounde
 
 const GASTO_TIPOS = ['Carga', 'Descarga', 'Camioneta', 'Estacionamiento', 'Peaje', 'Otros']
 
-function AddForm({ type, flete, onAdded, onCancel }) {
+function AddForm({ type, flete, onAdded, onCancel, isFinalizar }) {
   const rid = flete.rendicion?.id
   const fid = flete.id
   const [saving, setSaving] = useState(false)
@@ -128,6 +162,7 @@ function AddForm({ type, flete, onAdded, onCancel }) {
 
   /* ── Viático / Finalizar ── */
   const [vMonto, setVMonto]   = useState('')
+  const [kmLlegada, setKmLlegada] = useState(flete.kilometraje ?? '')
   const [fFecha, setFFecha]   = useState(
     flete.fecha_llegada
       ? new Date(flete.fecha_llegada).toISOString().slice(0, 10)
@@ -138,7 +173,7 @@ function AddForm({ type, flete, onAdded, onCancel }) {
     setSaving(true); setErr(null)
     try {
       const res = await axios.post(url, payload)
-      onAdded(res.data?.flete)
+      onAdded(res.data?.flete, type === 'finalizar')
     } catch (e) {
       setErr(e.response?.data?.message ?? 'Error al guardar.')
     } finally { setSaving(false) }
@@ -169,8 +204,12 @@ function AddForm({ type, flete, onAdded, onCancel }) {
         flete_id: fid,
         rendicion_id: rid,
         fecha_termino: fFecha,
-        viatico_efectivo: Number(vMonto) || 0,
+        viatico_efectivo: vMonto === '' ? null : Number(vMonto),
       })
+    }
+    if (type === 'km') {
+      if (!kmLlegada) return setErr('KM de llegada es obligatorio.')
+      await post(`/fletes/${fid}/kilometraje`, { kilometraje: Number(kmLlegada) })
     }
   }
 
@@ -222,6 +261,13 @@ function AddForm({ type, flete, onAdded, onCancel }) {
         <input type="number" value={cMonto} onChange={e => setCMonto(e.target.value)} placeholder="Comisión manual $" className={INPUT} />
       )}
 
+      {type === 'km' && (
+        <div className="space-y-1">
+          <label className="text-[10px] text-slate-500 font-medium block">KM de llegada *</label>
+          <input type="number" value={kmLlegada} onChange={e => setKmLlegada(e.target.value)} placeholder="Ej: 284500" className={INPUT} />
+        </div>
+      )}
+
       {type === 'finalizar' && (
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
@@ -260,31 +306,96 @@ function AddForm({ type, flete, onAdded, onCancel }) {
 }
 
 /* ─── Add tab strip ────────────────────────────────────────────── */
-const ADD_TYPES = [
-  { key: 'gasto',    label: 'Gasto',    color: 'hover:text-red-300' },
-  { key: 'diesel',   label: 'Diésel',   color: 'hover:text-orange-300' },
-  { key: 'abono',    label: 'Abono',    color: 'hover:text-emerald-300' },
-  { key: 'retorno',  label: 'Retorno',  color: 'hover:text-yellow-300' },
-  { key: 'comision', label: 'Comisión', color: 'hover:text-violet-300' },
+// Comisión = tarifa + retorno (automático) — no se ingresa manualmente
+const ADD_TYPES_ADMIN = [
+  { key: 'gasto',   label: 'Gasto',  color: 'hover:text-red-300' },
+  { key: 'diesel',  label: 'Diésel', color: 'hover:text-orange-300' },
+  { key: 'abono',   label: 'Abono',  color: 'hover:text-emerald-300' },
+  { key: 'retorno', label: 'Retorno',color: 'hover:text-yellow-300' },
+  { key: 'km',      label: 'KM llegada', color: 'hover:text-cyan-300' },
+]
+const ADD_TYPES_CONDUCTOR = [
+  { key: 'gasto',   label: 'Gasto',  color: 'hover:text-red-300' },
+  { key: 'diesel',  label: 'Diésel', color: 'hover:text-orange-300' },
+  { key: 'abono',   label: 'Abono',  color: 'hover:text-emerald-300' },
+  { key: 'retorno', label: 'Retorno',color: 'hover:text-yellow-300' },
+  { key: 'km',      label: 'KM llegada', color: 'hover:text-cyan-300' },
 ]
 
+/* ─── Modal KM ──────────────────────────────────────────────────── */
+function KmModal({ fleteId, onDone, onSkip }) {
+  const [km, setKm]     = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (!km) return onDone()
+    setSaving(true)
+    try {
+      await axios.post(`/fletes/${fleteId}/kilometraje`, { kilometraje: Number(km) })
+    } catch(e) { console.error(e) }
+    finally { setSaving(false); onDone() }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onSkip} />
+      <div className="relative bg-[#0a1628] border border-white/15 rounded-2xl shadow-2xl p-6 w-full max-w-xs space-y-4">
+        <div>
+          <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-widest mb-1">Opcional</p>
+          <h3 className="text-base font-bold text-white">Kilometraje de llegada</h3>
+          <p className="text-xs text-slate-400 mt-0.5">Registra el KM del vehículo al finalizar el viaje.</p>
+        </div>
+        <input
+          type="number"
+          autoFocus
+          value={km}
+          onChange={e => setKm(e.target.value)}
+          placeholder="Ej: 284500"
+          className="w-full bg-white/[0.05] border border-white/10 rounded-lg text-sm text-white px-3 py-2.5 focus:outline-none focus:border-[#0094d9]/50"
+        />
+        <div className="flex gap-2">
+          <button onClick={onSkip} className="flex-1 py-2 text-xs text-slate-500 hover:text-slate-300 transition-colors">
+            Omitir
+          </button>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex-1 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/25 text-emerald-300 text-xs font-bold transition-colors"
+          >
+            {saving ? 'Guardando…' : 'Guardar KM'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Main panel ────────────────────────────────────────────────── */
-export default function FleteDetailPanel({ flete, actualizarFleteEnLista }) {
+export default function FleteDetailPanel({ flete, actualizarFleteEnLista, userRoles }) {
   const [localFlete, setLocalFlete] = useState(flete)
   const [openAdd, setOpenAdd]       = useState(null)   // key of form open
   const [deleting, setDeleting]     = useState(false)
   const [showFinalizar, setShowFinalizar] = useState(false)
+  const [showKm, setShowKm]         = useState(false)
 
   // Sync when parent sends new flete
   React.useEffect(() => setLocalFlete(flete), [flete])
 
-  const update = useCallback(f => {
+  const update = useCallback((f, fromFinalizar = false) => {
     if (!f) return
     setLocalFlete(f)
     actualizarFleteEnLista(f)
     setOpenAdd(null)
-    setShowFinalizar(false)
+    if (fromFinalizar) {
+      setShowFinalizar(false)
+      setShowKm(true)   // mostrar modal KM después de finalizar
+    } else {
+      setShowFinalizar(false)
+    }
   }, [actualizarFleteEnLista])
+
+  const isConductor = userRoles?.includes('conductor')
+  const addTypes    = isConductor ? ADD_TYPES_CONDUCTOR : ADD_TYPES_ADMIN
 
   // Compile all records sorted by date desc
   const records = useMemo(() => {
@@ -294,10 +405,11 @@ export default function FleteDetailPanel({ flete, actualizarFleteEnLista }) {
       ...(r.abonos     || []).map(x => ({ ...x, _kind: 'abono' })),
       ...(r.diesels    || []).map(x => ({ ...x, _kind: 'diesel' })),
       ...(r.gastos     || []).map(x => ({ ...x, _kind: 'gasto' })),
-      ...(r.adicionales|| []).map(x => ({ ...x, _kind: 'adicional' })),
+      // adicionales: solo para admin/superadmin
+      ...(isConductor ? [] : (r.adicionales || []).map(x => ({ ...x, _kind: 'adicional' }))),
     ]
     return list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-  }, [localFlete.rendicion])
+  }, [localFlete.rendicion, isConductor])
 
   const handleDelete = async (record) => {
     if (!confirm('¿Eliminar este registro?')) return
@@ -321,11 +433,28 @@ export default function FleteDetailPanel({ flete, actualizarFleteEnLista }) {
   const canFinalizar = localFlete.estado === 'En curso' && !!localFlete.rendicion
   const isRendido    = ['Rendido','Aprobado','Pagado'].includes(localFlete.estado)
 
+  // ── Validación pre-finalizar ──────────────────────────────────
+  const camposFaltantes = useMemo(() => {
+    const falta = []
+    if (!localFlete.destino_id)          falta.push('Destino')
+    if (!localFlete.cliente_principal_id) falta.push('Cliente')
+    if (!localFlete.tracto_id)           falta.push('Tracto')
+    if (!localFlete.rampla_id)           falta.push('Rampla')
+    if (!localFlete.guiaruta)            falta.push('Guía de ruta')
+    if (!localFlete.fecha_salida)        falta.push('Fecha salida')
+    if (!localFlete.fecha_llegada)       falta.push('Fecha llegada')
+    if (!localFlete.kilometraje)         falta.push('KM llegada')
+    return falta
+  }, [localFlete])
+
+  const puedeFinalizarCompleto = camposFaltantes.length === 0
+
   return (
     <div className="px-4 py-4 max-w-4xl space-y-4">
 
       {/* ── Saldo bar ──────────────────────────────────────── */}
       <SaldoBar flete={localFlete} />
+      <OperacionResumen flete={localFlete} isConductor={isConductor} />
 
       {/* ── Records ────────────────────────────────────────── */}
       {records.length > 0 && (
@@ -367,7 +496,7 @@ export default function FleteDetailPanel({ flete, actualizarFleteEnLista }) {
           {/* Tab strip */}
           <div className="flex items-center gap-1 flex-wrap">
             <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wide mr-1">Agregar</span>
-            {ADD_TYPES.map(t => (
+            {addTypes.map(t => (
               <button
                 key={t.key}
                 onClick={() => setOpenAdd(p => p === t.key ? null : t.key)}
@@ -394,22 +523,41 @@ export default function FleteDetailPanel({ flete, actualizarFleteEnLista }) {
 
       {/* ── Finalizar ──────────────────────────────────────── */}
       {canFinalizar && (
-        <div>
-          {!showFinalizar ? (
-            <button
-              onClick={() => setShowFinalizar(true)}
-              className="w-full py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/20 text-emerald-300 text-sm font-bold transition-colors flex items-center justify-center gap-2"
-            >
-              <CheckCircleIcon className="w-4 h-4" />
-              Finalizar rendición
-            </button>
-          ) : (
+        <div className="space-y-2">
+          {/* Campos faltantes */}
+          {!puedeFinalizarCompleto && (
+            <div className="bg-amber-500/10 border border-amber-400/20 rounded-xl px-3 py-2.5">
+              <p className="text-[10px] font-semibold text-amber-300 uppercase tracking-wide mb-1">
+                Completa antes de finalizar:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {camposFaltantes.map(c => (
+                  <span key={c} className="text-[10px] bg-amber-500/15 border border-amber-400/25 text-amber-200 rounded px-2 py-0.5">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {showFinalizar ? (
             <AddForm
               type="finalizar"
               flete={localFlete}
               onAdded={update}
               onCancel={() => setShowFinalizar(false)}
             />
+          ) : (
+            <button
+              onClick={() => puedeFinalizarCompleto && setShowFinalizar(true)}
+              className={`w-full py-2.5 rounded-xl border text-sm font-bold transition-colors flex items-center justify-center gap-2 ${
+                puedeFinalizarCompleto
+                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-400/20 text-emerald-300'
+                  : 'bg-white/[0.02] border-white/10 text-slate-600 cursor-not-allowed'
+              }`}
+            >
+              <CheckCircleIcon className="w-4 h-4" />
+              Finalizar rendición
+            </button>
           )}
         </div>
       )}
@@ -420,6 +568,15 @@ export default function FleteDetailPanel({ flete, actualizarFleteEnLista }) {
           Rendición {localFlete.estado === 'Rendido' ? 'enviada — pendiente de aprobación' :
                      localFlete.estado === 'Aprobado' ? 'aprobada — pendiente de pago' : 'pagada ✓'}
         </div>
+      )}
+
+      {/* ── Modal KM ──────────────────────────────────────────── */}
+      {showKm && (
+        <KmModal
+          fleteId={localFlete.id}
+          onDone={() => setShowKm(false)}
+          onSkip={() => setShowKm(false)}
+        />
       )}
     </div>
   )

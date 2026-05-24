@@ -48,12 +48,15 @@ class SuperRendicionesController extends Controller
         $query = Flete::with([
             'destino:id,nombre',
             'clientePrincipal:id,razon_social',
-            'conductor:id,name',
+            'conductor:id,name,email',
             'tracto:id,patente',
-            'rendicion:id,flete_id,estado,saldo,viatico_calculado,viatico_efectivo,comision,updated_at',
-            'rendicion.gastos:id,rendicion_id,tipo,monto',
-            'rendicion.diesels:id,rendicion_id,litros,monto',
-            'rendicion.abonos:id,rendicion_id,monto',
+            'rampla:id,patente',
+            'tarifa:id,valor_comision',
+            'rendicion:id,flete_id,estado,saldo,viatico_calculado,viatico_efectivo,comision,observaciones,updated_at',
+            'rendicion.gastos:id,rendicion_id,tipo,descripcion,monto',
+            'rendicion.diesels:id,rendicion_id,litros,metodo_pago,monto',
+            'rendicion.abonos:id,rendicion_id,metodo,monto',
+            'retorno:id,flete_id,valor,descripcion',
         ])
             ->whereNotNull('conductor_id')   // Solo fletes con conductor asignado
             ->when($filtros['conductor_id'], fn ($q) => $q->where('conductor_id', $filtros['conductor_id']))
@@ -73,9 +76,12 @@ class SuperRendicionesController extends Controller
         $fletes->each(function ($flete) {
             if ($flete->rendicion) {
                 $flete->rendicion->makeVisible([
-                    'saldo', 'total_gastos', 'total_diesel', 'viatico_calculado', 'comision',
+                    'saldo', 'total_gastos', 'total_diesel', 'viatico_calculado', 'comision', 'observaciones',
                 ]);
             }
+            // comision_total = tarifa + retorno
+            $flete->comision_total = ($flete->tarifa?->valor_comision ?? 0)
+                                   + ($flete->retorno?->valor ?? 0);
         });
 
         // Enrich each flete's conductor with their phone from PostulacionConductor
@@ -102,7 +108,7 @@ class SuperRendicionesController extends Controller
             'filtros'     => $filtros,
             'conductores' => $conductores,
             'estados'     => ['En curso', 'Rendido', 'Aprobado', 'Pagado'],
-            'auth'        => ['user' => Auth::user()],
+            'auth'        => ['user' => Auth::user(), 'roles' => Auth::user()->getRoleNames()],
         ]);
     }
 
@@ -157,6 +163,57 @@ class SuperRendicionesController extends Controller
         return response()->json([
             'message' => "Flete #{$flete->id} marcado como pagado.",
             'flete'   => $flete->fresh(['conductor:id,name', 'destino:id,nombre']),
+        ]);
+    }
+
+    /**
+     * Objetar rendición — devuelve a "En curso" con observación, dejándola editable.
+     */
+    public function objetar(Flete $flete, Request $request): JsonResponse
+    {
+        abort_if($flete->estado !== 'Rendido', 422, "Solo se puede objetar una rendición en estado 'Rendido'.");
+
+        $validated = $request->validate([
+            'observacion' => 'required|string|max:500',
+        ]);
+
+        $flete->update(['estado' => 'En curso']);
+
+        if ($flete->rendicion) {
+            $flete->rendicion->update([
+                'observaciones' => $validated['observacion'],
+            ]);
+        }
+
+        return response()->json([
+            'message' => "Rendición del flete #{$flete->id} objetada y devuelta al conductor.",
+            'flete'   => $flete->fresh(['rendicion', 'conductor:id,name,email', 'destino:id,nombre']),
+        ]);
+    }
+
+    /**
+     * Aprobar múltiples rendiciones en batch.
+     */
+    public function aprobarBatch(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:fletes,id',
+        ]);
+
+        $aprobados = 0;
+        foreach ($validated['ids'] as $id) {
+            $flete = Flete::find($id);
+            if ($flete && $flete->estado === 'Rendido') {
+                $flete->update(['estado' => 'Aprobado']);
+                if ($flete->rendicion) $flete->rendicion->recalcularTotales();
+                $aprobados++;
+            }
+        }
+
+        return response()->json([
+            'message'   => "{$aprobados} rendición(es) aprobada(s).",
+            'aprobados' => $aprobados,
         ]);
     }
 }

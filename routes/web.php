@@ -43,6 +43,7 @@ use App\Http\Controllers\ConductorServiciosController;
 use App\Http\Controllers\ClienteServiciosController;
 use App\Http\Controllers\ColaboradorServiciosController;
 use App\Http\Controllers\SuperRendicionesController;
+use App\Http\Controllers\FletePublicoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -170,6 +171,12 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('super')->group(function 
 
     Route::post('/rendiciones/{flete}/pagado', [SuperRendicionesController::class, 'marcarPagado'])
         ->name('super.rendiciones.pagado');
+
+    Route::post('/rendiciones/{flete}/objetar', [SuperRendicionesController::class, 'objetar'])
+        ->name('super.rendiciones.objetar');
+
+    Route::post('/rendiciones/batch/aprobar', [SuperRendicionesController::class, 'aprobarBatch'])
+        ->name('super.rendiciones.batch.aprobar');
 });
 
 /*
@@ -266,6 +273,14 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:superadmin|admin|colaborador|cliente')
         ->name('fletes.fecha-llegada');
 
+    Route::post('/fletes/{flete}/destino', [FleteController::class, 'updateDestino'])
+        ->middleware('role:superadmin|admin')
+        ->name('fletes.destino');
+
+    Route::post('/fletes/{flete}/cliente', [FleteController::class, 'updateCliente'])
+        ->middleware('role:superadmin|admin')
+        ->name('fletes.cliente');
+
     Route::post('/fletes/{flete}/kilometraje', [FleteController::class, 'updateKilometraje']);
 
     Route::get('/fletes/suggest-titulares', [FleteController::class, 'suggestTitulares'])
@@ -327,6 +342,31 @@ Route::middleware(['auth', 'verified'])->post('/make-superadmin', function () {
     $user->assignRole($role);
     return back()->with('success', 'Ahora eres superadmin');
 })->name('make-superadmin');
+
+/*
+|--------------------------------------------------------------------------
+| Flete Público (sin login — link para conductor)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/r/{token}', [FletePublicoController::class, 'show'])
+    ->name('flete.publico');
+
+Route::post('/r/{token}/actualizar', [FletePublicoController::class, 'actualizarRendicion'])
+    ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
+    ->name('flete.publico.actualizar');
+
+Route::post('/r/{token}/finalizar', [FletePublicoController::class, 'finalizarRendicion'])
+    ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
+    ->name('flete.publico.finalizar');
+
+Route::post('/r/{token}/eliminar', [FletePublicoController::class, 'eliminarItem'])
+    ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
+    ->name('flete.publico.eliminar');
+
+Route::post('/fletes/{flete}/generar-token', [FletePublicoController::class, 'generarToken'])
+    ->middleware(['auth', 'role:superadmin|admin'])
+    ->name('fletes.generarToken');
 
 /*
 |--------------------------------------------------------------------------

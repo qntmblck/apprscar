@@ -156,21 +156,16 @@ class Rendicion extends Model
         // 3) Saldo en rendición
         $this->saldo = $abonos - $gastos - $diesel - $viatico;
 
-        // 4) Comisión = fija (tarifa) + manual (retorno)
-        $fija   = optional($this->flete->tarifa)->valor_comision ?? 0;
-        $manual = $this->comision ?? 0;
-        $this->comision = $fija + $manual;
-
-        // 5) Guardar la rendición
+        // 4) Guardar la rendición (comision permanece como monto manual, no se acumula con tarifa)
         $this->save();
 
-        // 6) Sincronizar comisión en el flete padre
+        // 5) Sincronizar comisión TOTAL en el flete = tarifa.valor_comision + rendicion.comision(manual)
         if ($this->flete) {
-            $this->flete->update([
-                'comision' => $this->comision,
-            ]);
+            $fija         = optional($this->flete->tarifa)->valor_comision ?? 0;
+            $manual       = $this->comision ?? 0;
+            $comisionTotal = $fija + $manual;
 
-            // 7) REFRESCAR el modelo para que la prop 'comision' venga actualizada
+            $this->flete->update(['comision' => $comisionTotal]);
             $this->flete->refresh();
         }
     } catch (\Throwable $e) {

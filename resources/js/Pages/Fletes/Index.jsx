@@ -1,7 +1,7 @@
 // resources/js/Pages/Fletes/Index.jsx  (reinventado)
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, useForm, usePage, router } from '@inertiajs/react'
+import { Head, usePage, router } from '@inertiajs/react'
 import axios from 'axios'
 import { saveAs } from 'file-saver'
 import {
@@ -36,8 +36,8 @@ function CreateDrawer({ conductores, colaboradores, clientes, destinos, tractos,
   const sel = 'w-full bg-white/[0.04] border border-white/10 rounded-lg text-xs text-slate-300 px-3 py-2 focus:outline-none focus:border-[#0094d9]/50'
 
   const handleCreate = async () => {
-    if (!form.destino_id || !form.cliente_principal_id) {
-      setError('Destino y cliente son obligatorios.')
+    if (!form.destino_id || !form.conductor_id) {
+      setError('Destino y conductor son obligatorios.')
       return
     }
     setSaving(true)
@@ -77,11 +77,11 @@ function CreateDrawer({ conductores, colaboradores, clientes, destinos, tractos,
         {/* Form */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
           {[
-            { label: 'Destino *', key: 'destino_id', opts: destinos, getLabel: o => o.nombre },
-            { label: 'Cliente *', key: 'cliente_principal_id', opts: clientes, getLabel: o => o.razon_social },
-            { label: 'Conductor', key: 'conductor_id', opts: conductores, getLabel: o => o.name },
-            { label: 'Colaborador', key: 'colaborador_id', opts: colaboradores, getLabel: o => o.name },
-            { label: 'Tracto', key: 'tracto_id', opts: tractos, getLabel: o => o.patente },
+            { label: 'Destino *',   key: 'destino_id',          opts: destinos,      getLabel: o => o.nombre },
+            { label: 'Conductor *', key: 'conductor_id',          opts: conductores,   getLabel: o => o.name },
+            { label: 'Cliente',     key: 'cliente_principal_id',  opts: clientes,      getLabel: o => o.razon_social },
+            { label: 'Colaborador', key: 'colaborador_id',        opts: colaboradores, getLabel: o => o.name },
+            { label: 'Tracto',      key: 'tracto_id',             opts: tractos,       getLabel: o => o.patente },
           ].map(({ label, key, opts, getLabel }) => (
             <div key={key}>
               <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</label>
@@ -133,8 +133,8 @@ export default function Index({
     if (csrf_token) axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf_token
   }, [csrf_token])
 
-  // ── Filtros form ──────────────────────────────────────────────
-  const { data, setData, get } = useForm({
+  // ── Filtros state (ya no useForm — usamos router.get directamente)
+  const [data, setDataRaw] = useState({
     conductor_ids:    filters.conductor_ids    || [],
     colaborador_ids:  filters.colaborador_ids  || [],
     cliente_ids:      filters.cliente_ids      || [],
@@ -144,6 +144,19 @@ export default function Index({
     fecha_hasta:      filters.fecha_hasta      || '',
     notificar_estado: filters.notificar_estado || '',
   })
+
+  const setData = useCallback((keyOrFn, val) => {
+    if (typeof keyOrFn === 'function') {
+      setDataRaw(keyOrFn)
+    } else {
+      setDataRaw(prev => ({ ...prev, [keyOrFn]: val }))
+    }
+  }, [])
+
+  // Navegar con filtros usando router.get (acepta data como 2do argumento)
+  const applyFilters = useCallback((params, opts = {}) => {
+    router.get('/fletes', params, { preserveState: true, preserveScroll: false, ...opts })
+  }, [])
 
   // ── Local state ───────────────────────────────────────────────
   const [fletesState, setFletesState]           = useState(paginatedFletes.data ?? [])
@@ -172,11 +185,8 @@ export default function Index({
     setData('notificar_estado', val)
     setExpandedId(null)
     setSelectedIds([])
-    get('/fletes', {
-      preserveState: false,
-      data: { ...data, notificar_estado: val, page: 1 },
-    })
-  }, [data, get, setData])
+    applyFilters({ ...data, notificar_estado: val, page: 1 }, { preserveState: false })
+  }, [data, setData, applyFilters])
 
   // ── Filtros handlers ──────────────────────────────────────────
   const handleToggleMultiSelect = useCallback((name, id) => {
@@ -184,13 +194,13 @@ export default function Index({
     const idx = arr.indexOf(String(id))
     if (idx === -1) { arr.push(String(id)) } else { arr.splice(idx, 1) }
     setData(name, arr)
-    get('/fletes', { preserveState: true, data: { ...data, [name]: arr } })
-  }, [data, get, setData])
+    applyFilters({ ...data, [name]: arr })
+  }, [data, setData, applyFilters])
 
   const handleDateChange = useCallback(({ desde, hasta }) => {
     setData(d => ({ ...d, fecha_desde: desde, fecha_hasta: hasta }))
-    get('/fletes', { preserveState: true, data: { ...data, fecha_desde: desde, fecha_hasta: hasta } })
-  }, [data, get, setData])
+    applyFilters({ ...data, fecha_desde: desde, fecha_hasta: hasta })
+  }, [data, setData, applyFilters])
 
   const handleClear = useCallback(() => {
     const reset = {
@@ -198,10 +208,10 @@ export default function Index({
       tracto_ids: [], destino_ids: [], fecha_desde: '', fecha_hasta: '',
       notificar_estado: data.notificar_estado,
     }
-    setData(reset)
+    setDataRaw(reset)
     setSearch('')
-    get('/fletes', { preserveState: false, data: reset })
-  }, [data.notificar_estado, get, setData])
+    applyFilters(reset, { preserveState: false })
+  }, [data.notificar_estado, setDataRaw, applyFilters])
 
   const hasFilters = useMemo(() =>
     data.destino_ids.length > 0 || data.cliente_ids.length > 0 ||
@@ -261,6 +271,22 @@ export default function Index({
   }, [actualizarFleteEnLista])
 
   // ── Edit handlers — devuelven la respuesta para que FleteRow la use ──
+  const onSelectDestino = useCallback(async (id, opt) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/destino`, opt)
+      if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+      return res
+    } catch(e) { console.error(e) }
+  }, [actualizarFleteEnLista])
+
+  const onSelectCliente = useCallback(async (id, opt) => {
+    try {
+      const res = await axios.post(`/fletes/${id}/cliente`, opt)
+      if (res.data?.flete) actualizarFleteEnLista(res.data.flete)
+      return res
+    } catch(e) { console.error(e) }
+  }, [actualizarFleteEnLista])
+
   const onSelectTitular = useCallback(async (id, opt) => {
     try {
       const res = await axios.post(`/fletes/${id}/titular`, opt)
@@ -361,7 +387,7 @@ export default function Index({
   const { current_page, last_page } = paginatedFletes
 
   const goPage = (page) => {
-    get('/fletes', { preserveState: true, data: { ...data, page } })
+    applyFilters({ ...data, page })
     setExpandedId(null)
   }
 
@@ -394,7 +420,7 @@ export default function Index({
           tractos={tractos}
           onCreated={() => {
             setCreateOpen(false)
-            get('/fletes', { preserveState: false, data: { ...data, page: 1 } })
+            applyFilters({ ...data, page: 1 }, { preserveState: false })
           }}
           onClose={() => setCreateOpen(false)}
         />
@@ -479,9 +505,9 @@ export default function Index({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/8 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-white/8 text-[9px] font-semibold text-cyan-300/90 uppercase tracking-wide">
                   {/* Checkbox all */}
-                  <th className="w-8 pl-4 py-3">
+                  <th className="w-10 pl-3 py-2.5">
                     <div
                       onClick={selectedIds.length === filtered.length && filtered.length > 0 ? handleClearSel : handleSelectAll}
                       className={`w-3.5 h-3.5 rounded border cursor-pointer flex items-center justify-center transition-colors ${
@@ -495,17 +521,15 @@ export default function Index({
                       )}
                     </div>
                   </th>
-                  <th className="py-3 pl-2 pr-3">#</th>
-                  <th className="py-3 pr-3">Destino / Estado</th>
-                  <th className="py-3 pr-3 hidden sm:table-cell">Cliente</th>
-                  <th className="py-3 pr-3 hidden md:table-cell">Conductor</th>
-                  <th className="py-3 pr-3 hidden lg:table-cell">Tracto</th>
-                  <th className="py-3 pr-3 hidden xl:table-cell">Rampla</th>
-                  <th className="py-3 pr-3 hidden xl:table-cell">Guía de ruta</th>
-                  <th className="py-3 pr-3 hidden sm:table-cell">Salida</th>
-                  <th className="py-3 pr-3 hidden md:table-cell">Llegada</th>
-                  <th className="py-3 pr-3 text-right hidden lg:table-cell">Saldo</th>
-                  <th className="py-3 pr-3 w-6" />
+                  <th className="py-2.5 pl-2 pr-2.5">#</th>
+                  <th className="py-2.5 pr-2">Destino / Estado</th>
+                  <th className="py-2.5 pr-2 w-10" />
+                  <th className="py-2.5 pr-2 hidden sm:table-cell">Fechas</th>
+                  <th className="py-2.5 pr-2 hidden sm:table-cell">Cliente / Guía</th>
+                  <th className="py-2.5 pr-2 hidden lg:table-cell">Tracto / Rampla</th>
+                  <th className="py-2.5 pr-2 hidden md:table-cell">Conductor</th>
+                  <th className="py-2.5 pr-2 text-right hidden lg:table-cell">Saldo</th>
+                  <th className="py-2.5 pr-2 w-6" />
                 </tr>
               </thead>
               <tbody>
@@ -535,6 +559,7 @@ export default function Index({
                       submitForm={submitForm}
                       onEliminarRegistro={eliminarRegistro}
                       onUpdateKilometraje={handleUpdateKilometraje}
+                      userRoles={auth?.roles ?? []}
                       conductores={conductores}
                       colaboradores={colaboradores}
                       clientes={clientes}
@@ -542,6 +567,8 @@ export default function Index({
                       destinos={destinos}
                       ramplas={ramplas}
                       guias={guias}
+                      onSelectDestino={onSelectDestino}
+                      onSelectCliente={onSelectCliente}
                       onSelectTitular={onSelectTitular}
                       onSelectTracto={onSelectTracto}
                       onSelectRampla={onSelectRampla}

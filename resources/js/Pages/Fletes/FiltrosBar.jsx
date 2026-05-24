@@ -79,9 +79,7 @@ function DateFilter({ desde, hasta, onChange }) {
   }, [])
 
   const hasDate = !!desde || !!hasta
-  const label = desde && hasta
-    ? `${desde.slice(5)} → ${hasta.slice(5)}`
-    : desde ? `Desde ${desde.slice(5)}` : hasta ? `Hasta ${hasta.slice(5)}` : 'Fechas'
+  const label = 'Fecha'
 
   const apply = () => {
     const addDay = d => {
@@ -119,10 +117,21 @@ function DateFilter({ desde, hasta, onChange }) {
       {open && (
         <div className="absolute top-full left-0 mt-1 z-50 bg-[#0a1628]/95 backdrop-blur border border-white/10 rounded-xl shadow-xl p-3">
           <DayPicker
+            className="scar-date-picker"
             mode="range"
             selected={range}
             onSelect={setRange}
             numberOfMonths={1}
+            style={{
+              '--rdp-accent-color': '#0ea5e9',
+              '--rdp-background-color': 'rgba(14,165,233,0.25)',
+              '--rdp-day_button-color': '#cbd5e1',
+              '--rdp-today-color': '#67e8f9',
+              '--rdp-nav_button-color': '#cbd5e1',
+              '--rdp-nav_button-disabled-color': '#475569',
+              '--rdp-range_middle-background-color': 'rgba(14,165,233,0.22)',
+              '--rdp-range_middle-color': '#e2e8f0',
+            }}
           />
           <div className="flex justify-between mt-2 pt-2 border-t border-white/10">
             <button onClick={clear} className="text-[10px] text-slate-500 hover:text-red-400 transition-colors">

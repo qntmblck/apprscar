@@ -35,6 +35,7 @@ class Flete extends Model
         'fecha_salida','fecha_llegada',
         'comision','retorno','guiaruta','pagado',
         'rendicion_solicitada_at',
+        'public_token',
         'valor_factura','utilidad',
         'adicionales',
     ];
