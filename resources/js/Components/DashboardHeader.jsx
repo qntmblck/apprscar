@@ -1,7 +1,7 @@
 // resources/js/Components/DashboardHeader.jsx
 import { useState, useEffect, useMemo } from 'react'
 import { usePage, Link } from '@inertiajs/react'
-import { Bars3Icon, XMarkIcon, UserIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, ChevronDownIcon, XMarkIcon, UserIcon } from '@heroicons/react/24/outline'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 
 export default function DashboardHeader() {
@@ -35,25 +35,26 @@ export default function DashboardHeader() {
   const isActive = (name) => activeItem === name
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3a]/90 to-transparent shadow-md">
+    <header className="fixed inset-x-0 top-3 z-50 px-3 sm:px-4">
+      <div className="relative mx-auto max-w-7xl overflow-visible rounded-2xl border border-[#0094d9]/25 bg-[#07172d]/95 shadow-2xl shadow-[#020817]/45 backdrop-blur-xl ring-1 ring-white/5">
 
-      {/* Particles — same as public header */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <svg className="absolute w-full h-full animate-pulse opacity-60 blur-[0.5px] mix-blend-screen">
-          {Array.from({ length: 24 }).map((_, i) => (
-            <circle
-              key={i}
-              cx={`${(i * 4.2) % 100}%`}
-              cy={`${(i * 7.3) % 100}%`}
-              r={1}
-              fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
-              fillOpacity="0.4"
-            />
-          ))}
-        </svg>
-      </div>
+        {/* Particles — same as public header */}
+        <div className="absolute inset-0 -z-10 overflow-hidden rounded-2xl">
+          <svg className="absolute w-full h-full animate-pulse opacity-60 blur-[0.5px] mix-blend-screen">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <circle
+                key={i}
+                cx={`${(i * 4.2) % 100}%`}
+                cy={`${(i * 7.3) % 100}%`}
+                r={1}
+                fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
+                fillOpacity="0.4"
+              />
+            ))}
+          </svg>
+        </div>
 
-      <div className="relative mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8 justify-between">
+      <div className="relative mx-auto flex h-14 items-center px-4 sm:px-6 lg:px-8 justify-between">
 
         {/* Logo — same as public header */}
         <div className="flex-shrink-0">
@@ -83,17 +84,23 @@ export default function DashboardHeader() {
           ))}
         </div>
 
-        {/* Avatar desktop */}
+        {/* Usuario desktop */}
         <div className="hidden lg:flex items-center gap-3">
           <Menu as="div" className="relative shrink-0">
-            <MenuButton className="flex items-center justify-center h-8 w-8 rounded-full bg-[#0094d9]/20 border-2 border-[#0094d9]/40 hover:border-[#0094d9] transition-colors overflow-hidden">
-              {initials ? (
-                <span className="font-bold text-sm text-white">{initials}</span>
-              ) : (
-                <UserIcon className="h-4 w-4 text-slate-300" />
-              )}
+            <MenuButton className="inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-slate-200 transition hover:bg-white/10 hover:text-white">
+              <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-[#0094d9]/45 bg-[#0094d9]/20">
+                {initials ? (
+                  <span className="font-bold text-sm text-white">{initials}</span>
+                ) : (
+                  <UserIcon className="h-4 w-4 text-slate-300" />
+                )}
+              </span>
+              <span className="max-w-28 truncate text-sm font-semibold">
+                {user?.name?.split(' ')[0] ?? 'Perfil'}
+              </span>
+              <ChevronDownIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
             </MenuButton>
-            <MenuItems className="absolute right-0 z-50 mt-2 w-44 origin-top-right rounded-xl bg-[#0c1e3a] border border-[#0094d9]/20 shadow-xl shadow-black/40 overflow-hidden">
+            <MenuItems className="absolute right-0 z-[90] mt-2 w-56 origin-top-right rounded-xl bg-[#0c1e3a] border border-[#0094d9]/20 shadow-xl shadow-black/40 overflow-hidden">
               {user && (
                 <div className="px-4 py-2.5 border-b border-[#0094d9]/15">
                   <p className="text-xs font-semibold text-white truncate">{user.name}</p>
@@ -125,11 +132,12 @@ export default function DashboardHeader() {
           )}
         </div>
       </div>
+      </div>
 
       {/* Menú móvil */}
       {mobileMenuOpen && (
-        <div className="absolute top-0 left-0 z-60 w-full px-4 py-1">
-          <div className="bg-[#0c1e3a]/95 backdrop-blur border border-[#0094d9]/20 rounded-xl shadow-xl px-3 py-2 flex items-center justify-between gap-2">
+        <div className="mx-auto mt-2 max-w-7xl overflow-hidden rounded-2xl border border-[#0094d9]/20 bg-[#0c1e3a]/95 shadow-2xl shadow-[#020817]/45 backdrop-blur-xl">
+          <div className="px-3 py-2 flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1.5 overflow-x-auto">
               {navigation.map((item) => (
                 <Link

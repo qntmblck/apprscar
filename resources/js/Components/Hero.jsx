@@ -65,7 +65,7 @@ export default function Hero() {
       <meta itemProp="areaServed" content="Chile" />
       <meta itemProp="serviceType" content="Transporte de carga consolidada, fletes dedicados y distribución B2B" />
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-24">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 pt-28 pb-16 sm:pt-32 sm:pb-20 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:pt-36 lg:pb-24">
         <div className="max-w-3xl">
           <SectionBadge
             color="#e0f7ff"

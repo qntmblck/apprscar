@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { usePage } from '@inertiajs/react'
 
 const navigation = [
@@ -38,24 +38,25 @@ export default function Header() {
   const isActive = (target) => activeItem === target
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-[#0c1e3a] via-[#0c1e3aa0] to-transparent shadow-md">
-      {/* Partículas */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <svg className="absolute w-full h-full animate-pulse opacity-70 blur-[0.5px] mix-blend-screen">
-          {Array.from({ length: 30 }).map((_, i) => (
-            <circle
-              key={i}
-              cx={`${Math.random() * 100}%`}
-              cy={`${Math.random() * 100}%`}
-              r={Math.random() * 1.5 + 0.4}
-              fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
-              fillOpacity="0.45"
-            />
-          ))}
-        </svg>
-      </div>
+    <header className="fixed inset-x-0 top-3 z-50 px-3 sm:px-4">
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-[#0094d9]/25 bg-[#07172d]/95 shadow-2xl shadow-[#020817]/45 backdrop-blur-xl ring-1 ring-white/5">
+        {/* Partículas */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <svg className="absolute w-full h-full animate-pulse opacity-70 blur-[0.5px] mix-blend-screen">
+            {Array.from({ length: 30 }).map((_, i) => (
+              <circle
+                key={i}
+                cx={`${Math.random() * 100}%`}
+                cy={`${Math.random() * 100}%`}
+                r={Math.random() * 1.5 + 0.4}
+                fill={['#0094d9', '#006bb6', '#003f8c'][i % 3]}
+                fillOpacity="0.45"
+              />
+            ))}
+          </svg>
+        </div>
 
-      <div className="relative mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8 justify-between">
+      <div className="relative mx-auto flex h-14 items-center px-4 sm:px-6 lg:px-8 justify-between">
         {/* Logo */}
         <div className="flex-shrink-0">
           <button
@@ -91,9 +92,10 @@ export default function Header() {
         <div className="hidden lg:flex">
           <button
             onClick={() => (window.location.href = '/redirect-by-role')}
-            className="ml-4 rounded-md bg-gradient-to-r from-[#0094d9] to-[#003f8c] px-4 py-2 text-sm font-semibold text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition"
+            className="ml-4 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white"
           >
-            {user ? 'Mi Panel →' : 'Ingresar →'}
+            <UserCircleIcon className="h-5 w-5 text-slate-300" aria-hidden="true" />
+            {user ? 'Mi Panel' : 'Ingresar'}
           </button>
         </div>
 
@@ -110,11 +112,12 @@ export default function Header() {
           )}
         </div>
       </div>
+      </div>
 
-      {/* Menú móvil — overlay sobre el header */}
+      {/* Menú móvil — panel flotante */}
       {mobileMenuOpen && (
-        <div className="absolute top-0 left-0 z-60 w-full px-4 py-1">
-          <div className="bg-[#0c1e3a]/95 backdrop-blur border border-[#0094d9]/20 rounded-xl shadow-xl px-3 py-2 flex items-center justify-between gap-2">
+        <div className="mx-auto mt-2 max-w-7xl overflow-hidden rounded-2xl border border-[#0094d9]/20 bg-[#0c1e3a]/95 shadow-2xl shadow-[#020817]/45 backdrop-blur-xl">
+          <div className="px-3 py-2 flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1.5 overflow-x-auto">
               {navigation.map((item) => (
                 <a
@@ -135,9 +138,10 @@ export default function Header() {
                   setMobileMenuOpen(false)
                   window.location.href = '/redirect-by-role'
                 }}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold bg-gradient-to-r from-[#0094d9] to-[#003f8c] text-white shadow hover:from-[#00a0f0] hover:to-[#004b99] transition-all duration-200"
+                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-100 hover:bg-white/10 hover:text-white transition-all duration-200"
               >
-                {user ? 'Mi Panel →' : 'Ingresar →'}
+                <UserCircleIcon className="h-5 w-5 text-slate-300" aria-hidden="true" />
+                {user ? 'Mi Panel' : 'Ingresar'}
               </button>
             </div>
             <button

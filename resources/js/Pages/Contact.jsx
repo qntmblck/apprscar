@@ -110,7 +110,7 @@ export default function Contacto() {
       <Header />
 
       <section
-        className="relative bg-[#0c1e3a] text-white py-28 sm:py-36 px-6 text-center overflow-hidden bg-center bg-cover"
+        className="relative bg-[#0c1e3a] text-white pt-32 pb-24 sm:pt-40 sm:pb-32 px-6 text-center overflow-hidden bg-center bg-cover"
         style={{ backgroundImage: "url('/img/mano.webp')" }}
         aria-label="Encabezado de contacto"
       >
