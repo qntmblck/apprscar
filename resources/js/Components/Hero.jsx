@@ -46,11 +46,10 @@ export default function Hero() {
       itemScope
       itemType="https://schema.org/LocalBusiness"
     >
-      <img
-        src="/img/dashboard/truck.webp"
-        alt=""
-        className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_58%] opacity-[0.62]"
-        fetchPriority="high"
+      <div
+        className="absolute inset-0 -z-20 bg-cover bg-fixed opacity-[0.62]"
+        style={{ backgroundImage: "url('/img/dashboard/truck.webp')", backgroundPosition: 'center 58%' }}
+        aria-hidden="true"
       />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(6,13,27,0.78)_0%,rgba(12,30,58,0.64)_48%,rgba(6,13,27,0.44)_100%)]" />
       <div

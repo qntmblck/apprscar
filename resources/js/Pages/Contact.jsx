@@ -111,7 +111,7 @@ export default function Contacto() {
 
       <section
         className="relative bg-[#0c1e3a] text-white pt-32 pb-24 sm:pt-40 sm:pb-32 px-6 text-center overflow-hidden bg-center bg-cover"
-        style={{ backgroundImage: "url('/img/mano.webp')" }}
+        style={{ backgroundImage: "url('/img/mano.webp')", backgroundAttachment: 'fixed' }}
         aria-label="Encabezado de contacto"
       >
         <div className="absolute inset-0 bg-black/60" />

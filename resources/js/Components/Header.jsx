@@ -38,7 +38,7 @@ export default function Header() {
   const isActive = (target) => activeItem === target
 
   return (
-    <header className="fixed inset-x-0 top-3 z-50 px-3 sm:px-4">
+    <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-[#0094d9]/25 bg-[#07172d]/95 shadow-2xl shadow-[#020817]/45 backdrop-blur-xl ring-1 ring-white/5">
         {/* Partículas */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
