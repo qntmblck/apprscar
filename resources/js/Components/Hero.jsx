@@ -6,6 +6,7 @@ import {
   TruckIcon,
 } from '@heroicons/react/24/outline'
 import SectionBadge from './SectionBadge'
+import FixedHeroBackground from './FixedHeroBackground'
 
 const decisionOptions = [
   {
@@ -46,10 +47,10 @@ export default function Hero() {
       itemScope
       itemType="https://schema.org/LocalBusiness"
     >
-      <div
-        className="absolute inset-0 -z-20 bg-cover bg-fixed opacity-[0.62]"
-        style={{ backgroundImage: "url('/img/dashboard/truck.webp')", backgroundPosition: 'center 58%' }}
-        aria-hidden="true"
+      <FixedHeroBackground
+        src="/img/dashboard/truck.webp"
+        position="center 58%"
+        className="-z-20 opacity-[0.62]"
       />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(6,13,27,0.78)_0%,rgba(12,30,58,0.64)_48%,rgba(6,13,27,0.44)_100%)]" />
       <div

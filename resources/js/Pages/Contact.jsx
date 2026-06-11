@@ -6,6 +6,7 @@ import ContactCliente from '@/Components/ContactCliente'
 import ContactConductor from '@/Components/ContactConductor'
 import ContactColaborador from '@/Components/ContactColaborador'
 import FAQ from '@/Components/FAQ'
+import FixedHeroBackground from '@/Components/FixedHeroBackground'
 import WhatsAppChat from '@/Components/WhatsAppChat'
 import CallButton from '@/Components/CallButton'
 import { useEffect, useState } from 'react'
@@ -110,10 +111,10 @@ export default function Contacto() {
       <Header />
 
       <section
-        className="relative bg-[#0c1e3a] text-white pt-32 pb-24 sm:pt-40 sm:pb-32 px-6 text-center overflow-hidden bg-center bg-cover"
-        style={{ backgroundImage: "url('/img/mano.webp')", backgroundAttachment: 'fixed' }}
+        className="relative bg-[#0c1e3a] text-white pt-32 pb-24 sm:pt-40 sm:pb-32 px-6 text-center overflow-hidden"
         aria-label="Encabezado de contacto"
       >
+        <FixedHeroBackground src="/img/mano.webp" />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-bold">Contacto</h1>
